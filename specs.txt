@@ -1,0 +1,21 @@
+
+EPIC: Navigation Bar
+
+1.	Your work
+    a. Assigned to me
+        i. In Progress - Fetch users in progress tickets from all the boards.
+        ii. In Review - Fetch users in review tickets from all the boards.
+    b.	Recent
+        i. Worked On - fetch users assigneed/reported recent tickets if user made a change.
+        ii. Viewed - fetch all the recent viewed board or worked table or tickets. Might need a table or store it in a class in a session
+    c.	Boards
+        i. Recent = fetch users recent worked board or top 5 board. Might need a table or store it in a class in a session
+2.	Projects
+    a. Recent - class object to store it and save it to a session. View all projects by redirecting to a another view.
+3.	Filters
+4.	Dashboards
+5.	People
+    a. Your collaborators - get top 5 team mates or recent collaborators, might need separate class and store it in a session. Invite a teammate by redirect to a page.
+    b. Your teams - Get top 5 teams you are a member or admin of. Start a team by redirect to a page.
+    c. Search people and teams. New view where user can search for a team and/or people.
+6.	Apps
