@@ -4,7 +4,7 @@
 	max-width: 390px
 }
 
-.form-container .loginbox {
+.form-container .form-box {
 	position: relative;
 	width: auto;
 	height: auto!important;
@@ -18,7 +18,7 @@
 	background-color: #fff!important
 }
 
-.form-container .loginbox .loginbox-title {
+.form-container .form-box .form-box-title {
 	position: relative;
 	text-align: center;
 	width: 100%;
@@ -30,25 +30,25 @@
 	color: #444
 }
 
-.form-container .loginbox .loginbox-social {
+.form-container .form-box .form-box-social {
 	padding: 0 10px 10px;
 	text-align: center
 }
 
-.form-container .loginbox .loginbox-social .social-title {
+.form-container .form-box .form-box-social .social-title {
 	font-size: 14px;
 	font-weight: 500;
 	color: #a9a9a9;
 	margin-top: 10px
 }
 
-.form-container .loginbox .loginbox-or {
+.form-container .form-box .form-box-or {
 	position: relative;
 	text-align: center;
 	height: 20px
 }
 
-.form-container .loginbox .loginbox-or .or-line {
+.form-container .form-box .form-box-or .or-line {
 	position: absolute;
 	height: 1px;
 	top: 10px;
@@ -57,11 +57,11 @@
 	background-color: #ccc
 }
 
-.form-container .loginbox .loginbox-textbox {
+.form-container .form-box .form-box-textbox {
 	padding: 10px 40px
 }
 
-.form-container .loginbox .loginbox-textbox .form-control {
+.form-container .form-box .form-box-textbox .form-control {
 	-webkit-border-radius: 3px!important;
 	-webkit-background-clip: padding-box!important;
 	-moz-border-radius: 3px!important;
@@ -70,7 +70,7 @@
 	background-clip: padding-box!important
 }
 
-.form-container .loginbox .loginbox-submit {
+.form-container .form-box .form-box-submit {
 	padding: 10px 40px
 }
 

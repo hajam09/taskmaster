@@ -6,7 +6,7 @@
 <div class="container">
 	<br>
 	<div class="form-container">
-		<div class="loginbox bg-white" style="-webkit-box-shadow:0 4px 8px 0 rgba(0,0,0,.2),0 6px 20px 0 rgba(0,0,0,.19)">
+		<div class="form-box bg-white" style="-webkit-box-shadow:0 4px 8px 0 rgba(0,0,0,.2),0 6px 20px 0 rgba(0,0,0,.19)">
 			<form method="post">
 				{% csrf_token %}
 				{% if messages %}
@@ -20,17 +20,17 @@
 						{% endif %}
 					{% endfor %}
 				{% endif %}
-				<div class="loginbox-title">Login</div>
-				<div class="loginbox-or">
+				<div class="form-box-title">Login</div>
+				<div class="form-box-or">
 					<div class="or-line"></div>
 				</div>
-				<div class="loginbox-textbox">
+				<div class="form-box-textbox">
 					{{ form | crispy }}
 				</div>
-				<div class="loginbox-submit">
+				<div class="form-box-submit">
 					<input type="submit" class="btn btn-primary btn-block" value="Login">
 				</div>
-				<div class="loginbox-social">
+				<div class="form-box-social">
 					<div class="social-title ">Forgot your password? <a href="#">Reset Here</a></div>
 				</div>
 			</form>

@@ -4,6 +4,8 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 
 from accounts.forms import LoginForm
+from accounts.forms import RegistrationForm
+from taskmaster.operations import emailOperations
 
 
 def login(request):
@@ -39,3 +41,23 @@ def login(request):
         "form": form
     }
     return render(request, 'accounts/login.html', context)
+
+
+def register(request):
+    if request.method == "POST":
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            newUser = form.save()
+            emailOperations.sendEmailToActivateAccount(request, newUser)
+
+            messages.info(
+                request, 'We\'ve sent you an activation link. Please check your email.'
+            )
+            return redirect('accounts:login')
+    else:
+        form = RegistrationForm()
+
+    context = {
+        "form": form
+    }
+    return render(request, 'accounts/registration.html', context)
