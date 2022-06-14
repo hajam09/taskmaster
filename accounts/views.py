@@ -1,3 +1,4 @@
+from django.contrib import auth
 from django.contrib import messages
 from django.core.cache import cache
 from django.shortcuts import redirect
@@ -61,3 +62,13 @@ def register(request):
         "form": form
     }
     return render(request, 'accounts/registration.html', context)
+
+
+def logout(request):
+    auth.logout(request)
+
+    previousUrl = request.META.get('HTTP_REFERER')
+    if previousUrl:
+        return redirect(previousUrl)
+
+    return redirect('accounts:login')
