@@ -12,11 +12,9 @@
 				{% if messages %}
 					{% for message in messages %}
 						{% if message.tags == "error" %}
-							<div style="color: black; text-align: center;" class="alert alert-danger"
-								 role="alert">{{ message }}</div>
+							<div style="color: black; text-align: center;" class="alert alert-danger" role="alert">{{ message }}</div>
 						{% else %}
-							<div style="color: black; text-align: center;" class="alert alert-{{ message.tags }}"
-								 role="alert">{{ message }}</div>
+							<div style="color: black; text-align: center;" class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
 						{% endif %}
 					{% endfor %}
 				{% endif %}
@@ -31,7 +29,7 @@
 					<input type="submit" class="btn btn-primary btn-block" value="Login">
 				</div>
 				<div class="form-box-social">
-					<div class="social-title ">Forgot your password? <a href="#">Reset Here</a></div>
+					<div class="social-title ">Forgot your password? <a href="{% url 'accounts:password-forgotten' %}">Reset Here</a></div>
 				</div>
 			</form>
 		</div>

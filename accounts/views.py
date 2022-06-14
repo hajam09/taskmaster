@@ -12,6 +12,7 @@ from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 
 from accounts.forms import LoginForm
+from accounts.forms import PasswordResetForm
 from accounts.forms import RegistrationForm
 from taskmaster.operations import emailOperations
 
@@ -101,3 +102,47 @@ def activateAccount(request, uidb64, token):
         return redirect('accounts:login')
 
     return render(request, "accounts/activateFailed.html", status=HTTPStatus.UNAUTHORIZED)
+
+
+def passwordForgotten(request):
+    if request.method == "POST":
+        email = request.POST["email"]
+
+        try:
+            user = User.objects.get(username=email)
+        except User.DoesNotExist:
+            user = None
+
+        if user is not None:
+            emailOperations.sendEmailToResetPassword(request, user)
+
+        messages.info(
+            request, 'Check your email for a password change link.'
+        )
+
+    return render(request, "accounts/passwordForgotten.html")
+
+
+def passwordReset(request, uidb64, token):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (DjangoUnicodeDecodeError, ValueError, User.DoesNotExist):
+        user = None
+
+    passwordResetTokenGenerator = PasswordResetTokenGenerator()
+    verifyToken = passwordResetTokenGenerator.check_token(user, token)
+
+    if request.method == "POST" and user is not None and verifyToken:
+        form = PasswordResetForm(request, user, request.POST)
+
+        if form.is_valid():
+            form.updatePassword()
+            return redirect("accounts:login")
+
+    context = {
+        'form': PasswordResetForm(),
+    }
+
+    TEMPLATE = 'passwordResetForm' if user is not None and verifyToken else 'activateFailed'
+    return render(request, 'accounts/{}.html'.format(TEMPLATE), context)

@@ -1,5 +1,6 @@
 from django import forms
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
@@ -130,3 +131,55 @@ class LoginForm(forms.ModelForm):
             return self.cleaned_data
 
         raise ValidationError("Username or Password did not match!")
+
+
+class PasswordResetForm(forms.Form):
+    password = forms.CharField(
+        label='',
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                'placeholder': 'Password'
+            }
+        )
+    )
+
+    repeatPassword = forms.CharField(
+        label='',
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                'placeholder': 'Repeat Password'
+            }
+        )
+    )
+
+    def __init__(self, request=None, user=None, *args, **kwargs):
+        self.request = request
+        self.user = user
+        super(PasswordResetForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        newPassword = self.cleaned_data.get('password')
+        confirmPassword = self.cleaned_data.get('repeatPassword')
+
+        if newPassword != confirmPassword:
+            messages.error(
+                self.request,
+                'Your new password and confirm password does not match.'
+            )
+            raise ValidationError('Your new password and confirm password does not match.')
+
+        if not generalOperations.isPasswordStrong(newPassword):
+            messages.warning(
+                self.request,
+                'Your new password is not strong enough.'
+            )
+            raise ValidationError('Your new password is not strong enough.')
+
+        return self.cleaned_data
+
+    def updatePassword(self):
+        newPassword = self.cleaned_data.get('password')
+        self.user.set_password(newPassword)
+        self.user.save()

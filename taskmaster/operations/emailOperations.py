@@ -35,3 +35,28 @@ def sendEmailToActivateAccount(request, user: User):
     emailMessage = EmailMessage(emailSubject, message, settings.EMAIL_HOST_USER, [user.email])
     emailMessage.send()
     return
+
+
+def sendEmailToResetPassword(request, user: User):
+    currentSite = get_current_site(request)
+    emailSubject = "Request to change OneTutor Password"
+    fullName = user.get_full_name()
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    prtg = PasswordResetTokenGenerator()
+    url = reverse('accounts:password-reset', kwargs={'uidb64': uid, "token": prtg.make_token(user)})
+
+    message = """
+            Hi {},
+            \n
+            You have recently request to change your account password.
+            Please click this link below to change your account password.
+            \n
+            http://{}{}
+            \n
+            Thanks,
+            The OneTutor Team
+        """.format(fullName, currentSite.domain, url)
+
+    emailMessage = EmailMessage(emailSubject, message, settings.EMAIL_HOST_USER, [user.email])
+    emailMessage.send()
+    return
