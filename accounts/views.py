@@ -1,8 +1,15 @@
+from http import HTTPStatus
+
 from django.contrib import auth
 from django.contrib import messages
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.cache import cache
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.utils.encoding import DjangoUnicodeDecodeError
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
 
 from accounts.forms import LoginForm
 from accounts.forms import RegistrationForm
@@ -72,3 +79,25 @@ def logout(request):
         return redirect(previousUrl)
 
     return redirect('accounts:login')
+
+
+def activateAccount(request, uidb64, token):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (DjangoUnicodeDecodeError, ValueError, User.DoesNotExist):
+        user = None
+
+    passwordResetTokenGenerator = PasswordResetTokenGenerator()
+
+    if user is not None and passwordResetTokenGenerator.check_token(user, token):
+        user.is_active = True
+        user.save()
+
+        messages.success(
+            request,
+            'Account activated successfully'
+        )
+        return redirect('accounts:login')
+
+    return render(request, "accounts/activateFailed.html", status=HTTPStatus.UNAUTHORIZED)
