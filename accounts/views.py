@@ -1,3 +1,41 @@
+from django.contrib import messages
+from django.core.cache import cache
+from django.shortcuts import redirect
 from django.shortcuts import render
 
-# Create your views here.
+from accounts.forms import LoginForm
+
+
+def login(request):
+    if not request.session.session_key:
+        request.session.save()
+
+    if request.method == "POST":
+        uniqueVisitorId = request.session.session_key
+
+        if cache.get(uniqueVisitorId) is not None and cache.get(uniqueVisitorId) > 3:
+            cache.set(uniqueVisitorId, cache.get(uniqueVisitorId), 600)
+
+            messages.error(
+                request, 'Your account has been temporarily locked out because of too many failed login attempts.'
+            )
+            return redirect('accounts:login')
+
+        form = LoginForm(request, request.POST)
+
+        if form.is_valid():
+            cache.delete(uniqueVisitorId)
+            return redirect('jira:dashboard')
+
+        if cache.get(uniqueVisitorId) is None:
+            cache.set(uniqueVisitorId, 1)
+        else:
+            cache.incr(uniqueVisitorId, 1)
+
+    else:
+        form = LoginForm(request)
+
+    context = {
+        "form": form
+    }
+    return render(request, 'accounts/login.html', context)

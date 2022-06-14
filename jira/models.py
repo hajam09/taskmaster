@@ -25,6 +25,9 @@ class Project(BaseModel):
     class Meta:
         verbose_name = "Project"
         verbose_name_plural = "Projects"
+        index_together = [
+            ("internalKey", "code", "url"),
+        ]
 
     def __str__(self):
         return self.internalKey
@@ -101,8 +104,8 @@ class Ticket(BaseModel):
     colour = ColorField(default='#FF0000')  # EPIC colour
     storyPoints = models.PositiveSmallIntegerField(blank=True, null=True)
     manDays = models.PositiveSmallIntegerField(blank=True, null=True)
-    issueType = models.ForeignKey(Component, on_delete=models.PROTECT, limit_choices_to={'componentGroup__code': 'TICKET_ISSUE_TYPE'})
-    priority = models.ForeignKey(Component, on_delete=models.PROTECT, limit_choices_to={'componentGroup__code': 'TICKET_PRIORITY'})
+    issueType = models.ForeignKey(Component, on_delete=models.PROTECT, related_name='ticketIssueType', limit_choices_to={'componentGroup__code': 'TICKET_ISSUE_TYPE'})
+    priority = models.ForeignKey(Component, on_delete=models.PROTECT, related_name='ticketPriority', limit_choices_to={'componentGroup__code': 'TICKET_PRIORITY'})
     board = models.ForeignKey(Board, blank=True, null=True, on_delete=models.SET_NULL)
     column = models.ForeignKey(Column, null=True, on_delete=models.SET_NULL, related_name='columnTickets')
     watchers = models.ManyToManyField(User, blank=True, related_name='ticketWatchers')
@@ -169,4 +172,10 @@ class TicketComment(BaseModel):
 
 
 class Sprint(BaseModel):
-    pass
+    board = models.ForeignKey(Board, on_delete=models.SET_NULL, blank=True, null=True)
+    startDate = models.DateField()
+    endDate = models.DateField()
+
+    class Meta:
+        verbose_name = "Sprint"
+        verbose_name_plural = "Sprints"
