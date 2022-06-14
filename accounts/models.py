@@ -35,6 +35,10 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
+    def delete(self, using=None, keep_parents=False):
+        self.deleteFl = True
+        self.save()
+
 
 class ComponentGroup(BaseModel):
     internalKey = models.CharField(max_length=2048, blank=True, null=True, unique=True)
@@ -72,6 +76,7 @@ class Team(BaseModel):
     internalKey = models.CharField(max_length=2048, blank=True, null=True, unique=True)
     url = models.SlugField(max_length=10, editable=settings.DEBUG, unique=True, default=generateString, db_index=True)
     isPrivate = models.BooleanField(default=False)
+    admins = models.ManyToManyField(User, related_name='teamAdmins')
     members = models.ManyToManyField(User, related_name='teamMembers')
     description = models.TextField()
 
