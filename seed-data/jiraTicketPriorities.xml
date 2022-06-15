@@ -1,0 +1,29 @@
+<SeedData>
+    <ComponentGroups>
+        <ComponentGroup internalKey="Ticket Priority" code="TICKET_PRIORITY"/>
+    </ComponentGroups>
+
+    <Components>
+        <Component componentGroup.code="TICKET_PRIORITY" internalKey="Trivial" code="TRIVIAL"
+                   icon="img/ticket-priority/trivial.jpg" orderNo="1"/>
+        <Component componentGroup.code="TICKET_PRIORITY" internalKey="Minor" code="MINOR"
+                   icon="img/ticket-priority/minor.jpg" orderNo="2"/>
+        <Component componentGroup.code="TICKET_PRIORITY" internalKey="Lowest" code="LOWEST"
+                   icon="img/ticket-priority/lowest.jpg" orderNo="3"/>
+        <Component componentGroup.code="TICKET_PRIORITY" internalKey="Low" code="LOW" icon="img/ticket-priority/low.jpg"
+                   orderNo="4"/>
+        <Component componentGroup.code="TICKET_PRIORITY" internalKey="Medium" code="MEDIUM"
+                   icon="img/ticket-priority/medium.jpg" orderNo="5"/>
+        <Component componentGroup.code="TICKET_PRIORITY" internalKey="High" code="HIGH"
+                   icon="img/ticket-priority/high.jpg" orderNo="6"/>
+        <Component componentGroup.code="TICKET_PRIORITY" internalKey="Highest" code="HIGHEST"
+                   icon="img/ticket-priority/highest.jpg" orderNo="7"/>
+        <Component componentGroup.code="TICKET_PRIORITY" internalKey="Major" code="MAJOR"
+                   icon="img/ticket-priority/major.jpg" orderNo="8"/>
+        <Component componentGroup.code="TICKET_PRIORITY" internalKey="Critical" code="CRITICAL"
+                   icon="img/ticket-priority/critical.jpg" orderNo="9"/>
+        <Component componentGroup.code="TICKET_PRIORITY" internalKey="Blocker" code="BLOCKER"
+                   icon="img/ticket-priority/blocker.jpg" orderNo="10"/>
+
+    </Components>
+</SeedData>
