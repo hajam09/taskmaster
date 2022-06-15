@@ -1,0 +1,32 @@
+{% extends "accounts/baseProfile.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block profileContent %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            <h4>Security</h4>
+            <hr>
+            <br>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <h5>Change your password</h5>
+                    {{form | crispy}}
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Save Password</button>
+                <button type="reset" class="btn btn-light btn-sm">Reset Changes</button>
+            </form>
+            <hr>
+            <form>
+                <div class="form-group">
+                    <h5>Two-step verification</h5>
+                    <button class="btn btn-info" type="button">Enable two-factor authentication</button>
+                    <p class="small text-muted mt-2">Two-factor authentication adds an additional layer of security to your account by requiring more than just a password to log in.</p>
+                </div>
+            </form>
+            <hr>
+        </div>
+    </div>
+</div>
+{% endblock %}

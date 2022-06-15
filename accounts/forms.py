@@ -183,3 +183,77 @@ class PasswordResetForm(forms.Form):
         newPassword = self.cleaned_data.get('password')
         self.user.set_password(newPassword)
         self.user.save()
+
+
+class PasswordUpdateForm(forms.Form):
+    currentPassword = forms.CharField(
+        label='',
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                'placeholder': 'Current password'
+            }
+        )
+    )
+    newPassword = forms.CharField(
+        label='',
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                'placeholder': 'New password'
+            }
+        )
+    )
+    repeatNewPassword = forms.CharField(
+        label='',
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                'placeholder': 'Repeat new password'
+            }
+        )
+    )
+
+    def __init__(self, request, *args, **kwargs):
+        self.request = request
+        self.user = request.user
+        super(PasswordUpdateForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        currentPassword = self.cleaned_data.get('currentPassword')
+        newPassword = self.cleaned_data.get('newPassword')
+        repeatNewPassword = self.cleaned_data.get('repeatNewPassword')
+
+        if currentPassword and not self.user.check_password(currentPassword):
+            raise ValidationError('Your current password does not match with the account\'s existing password.')
+
+        if newPassword and repeatNewPassword:
+            if newPassword != repeatNewPassword:
+                raise ValidationError('Your new password and confirm password does not match.')
+
+            if not generalOperations.isPasswordStrong(newPassword):
+                raise ValidationError('Your new password is not strong enough.')
+
+        return self.cleaned_data
+
+    def updatePassword(self):
+        newPassword = self.cleaned_data.get('newPassword')
+        self.user.set_password(newPassword)
+        self.user.save()
+
+    def reAuthenticate(self):
+        newPassword = self.cleaned_data.get('newPassword')
+        user = authenticate(username=self.user.username, password=newPassword)
+        if user:
+            messages.success(
+                self.request,
+                'Your password has been updated.'
+            )
+            login(self.request, user)
+            return True
+        else:
+            messages.warning(
+                self.request,
+                'Something happened. Try to login to the system again.'
+            )
+            return False

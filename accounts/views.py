@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 from django.contrib import auth
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.cache import cache
@@ -11,7 +12,7 @@ from django.utils.encoding import DjangoUnicodeDecodeError
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 
-from accounts.forms import LoginForm
+from accounts.forms import LoginForm, PasswordUpdateForm
 from accounts.forms import PasswordResetForm
 from accounts.forms import RegistrationForm
 from taskmaster.operations import emailOperations
@@ -146,3 +147,32 @@ def passwordReset(request, uidb64, token):
 
     TEMPLATE = 'passwordResetForm' if user is not None and verifyToken else 'activateFailed'
     return render(request, 'accounts/{}.html'.format(TEMPLATE), context)
+
+
+@login_required
+def accountProfileAndVisibility(request):
+    context = {
+        'activeTab': 'profileAndVisibility'
+    }
+    return render(request, 'accounts/profileAndVisibility.html', context)
+
+
+@login_required
+def accountSecurity(request):
+    if request.method == "POST":
+        form = PasswordUpdateForm(request, request.POST)
+
+        if form.is_valid():
+            form.updatePassword()
+            isSuccess = form.reAuthenticate()
+
+            if not isSuccess:
+                return redirect("accounts:login")
+    else:
+        form = PasswordUpdateForm(request)
+
+    context = {
+        'form': form,
+        'activeTab': 'accountSecurity'
+    }
+    return render(request, 'accounts/accountSecurity.html', context)
