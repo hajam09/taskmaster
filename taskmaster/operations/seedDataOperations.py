@@ -35,8 +35,14 @@ def installSeedData(xmlFile):
             newKeys = {}
             oldKeys = []
 
+            deleteObject = False
+
             # change "." -> "__" to search for foreign key objects.
             for key, value in childElement.attrib.items():
+                if key == 'delete':
+                    deleteObject = True
+                    continue
+
                 if "." in key:
                     newKey = key.replace(".", "__")
                     newKeys[newKey] = value
@@ -51,6 +57,11 @@ def installSeedData(xmlFile):
                 childElement.attrib = childElement.attrib | newKeys
             except TypeError:
                 childElement.attrib = {**childElement.attrib, **newKeys}
+
+            if deleteObject:
+                del childElement.attrib['delete']
+                modelType.object.filter(**childElement.attrib).delete()
+                continue
 
             if modelType.object.filter(**childElement.attrib).exists():
                 continue
