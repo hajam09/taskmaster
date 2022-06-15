@@ -1,0 +1,211 @@
+{% extends "accounts/account_base.html" %}
+{% load static %}
+{% block content %}
+
+<style type="text/css">
+	.avatars {
+		padding-left: 0;
+		list-style: none;
+		margin: 0;
+	}
+
+	.avatars>li {
+		display: inline-block;
+	}
+
+	.avatars>li+li {
+		margin-left: -0.75rem;
+	}
+
+	.avatar {
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 50%;
+		border: 2px solid #f8f9fa;
+		background: #f8f9fa;
+		color: #fff;
+	}
+</style>
+
+<div class="container-fluid" style="color: black; max-width: 1600px;">
+   <div class="row">
+   </div>
+   <div class="row" id="div-list-of-board-column-container">
+   </div>
+</div>
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script type="text/javascript">
+
+	function renderColumns(data)
+	{
+		var result = "";
+
+		for (const column of data.columns)
+		{
+			var ticketsInColumn = column.tickets.length;
+			var columnTickets = renderTickets(column.tickets);
+
+			result += `
+				<div class="col">
+			        <div class="card bg-light">
+			            <div class="card-header">${column.name}</div>
+			            <ul id="ulColumnId-${column.id}" class="card-body tickets connectedSortable" style="min-height: 900px;">
+			               ${columnTickets}
+			            </ul>
+			        </div>
+			    </div>
+			`;
+		}
+
+		return result;
+	}
+
+	function renderTickets(tickets)
+	{
+		var result = "";
+
+		for (const ticket of tickets)
+		{
+			var top = renderTopTicketComponent(ticket);
+			var middle = renderMiddleTicketComponent(ticket);
+			var bottom = renderBottomTicketComponent(ticket);
+
+			result += `
+				<li style="width: 100%; cursor: move;" draggable="true" id="ticketComponent-${ticket.id}" ticketId="${ticket.id}">
+					<div class="card mb-0" style="margin-right: -15px; margin-left: -15px; margin-top: -15px;">
+					   	<div class="card-body p-2">
+					      	<div class="row">
+					         	<div class="col">
+					            	${top}
+					         	</div>
+					      	</div>
+					      	<div class="row">
+					         	<div class="col" margin-left: -2px;>
+					            	${middle}
+					         	</div>
+					      	</div>
+					      	<div class="row">
+					         	<div class="col" margin-left: -2px;>
+					            	${bottom}
+					         	</div>
+					      	</div>
+					   	</div>
+					</div>
+					<div style="height: 20px;"></div>
+				</li>
+			`;
+		}
+
+		return result;
+	}
+
+	function renderTopTicketComponent(ticket)
+	{
+		return `<div>${ticket.summary}</div>`;
+	}
+
+	function renderMiddleTicketComponent(ticket)
+	{
+		if (ticket.epic == null)
+			return "";
+
+		return `
+		<div style="height: 5px;"></div>
+		<div>
+		   	<h5><span class="badge font-weight-light" style="color: grey; background-color: ${ticket.epic.colour}">${ticket.epic.summary}</span></h5>
+		</div>
+		`;
+	}
+
+	function renderBottomTicketComponent(ticket)
+	{
+		var assignee = renderTicketAssigneeComponent(ticket);
+		return `
+		<div class="row">
+			<div class="col">
+				<img src="${ticket.issueType.icon}" title=${ticket.issueType.internalKey} class="rounded" style="width: 20px;">
+				<img src="${ticket.priority.icon}" title=${ticket.priority.internalKey} class="rounded" style="width: 20px;">
+				<span class="badge badge-pill badge-light" style="background-color: #e7e7e7; font-size: 14px;">${ticket.storyPoints}</span>
+			</div>
+			<div class="col text-right">
+				<a href="${ticket.link}" style="color: grey;">${ticket.internalKey}</a>
+				${assignee}
+			</div>
+		</div>
+		`;
+	}
+
+	function renderTicketAssigneeComponent(ticket)
+	{
+		if (ticket.assignee == null)
+			return "";
+		// TODO: Error this filter-by-alt
+		return `<img class="avatar" style="width: 2rem; height: 2rem;" filter-by-alt src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png" data-filter-by="alt">`
+	}
+
+
+	window.onload = function(e)
+	{
+		$.ajax(
+		{
+			url: "{% url 'jira2:kanbanBoardDetailsAndItemsApiEventVersion1Component' boardId=board.id %}",
+			type: "GET",
+			dataType: 'json',
+			success: function(response)
+			{
+            	if (!response.success)
+            		return;
+
+            	$('#div-list-of-board-column-container').append(renderColumns(response.data));
+
+            	$( ".connectedSortable" ).sortable(
+					{
+						// revert: true
+						connectWith: ".connectedSortable"
+					}
+				).disableSelection();
+
+				$( "#draggable" ).draggable(
+					{
+						connectToSortable: "#sortable",
+						helper: "clone",
+						revert: "invalid"
+					}
+				);
+
+				$( "ul, li" ).disableSelection();
+
+				for (const column of response.data.columns)
+				{
+					$("#ulColumnId-"+column.id).on('DOMNodeInserted', function(e)
+					{
+						var anchorElement = e.target;
+
+						if (anchorElement.hasAttribute('ticketId'))
+						{
+							var ticketIdToMove = anchorElement.getAttribute('ticketId');
+							var ticketComponentElement = $("#ticketComponent-"+ticketIdToMove);
+							var columnId = ticketComponentElement.parent().attr('id').split("-")[1];
+
+							$.ajax(
+								{
+									url: `{% url 'jira2:kanbanBoardTicketColumnUpdateApiEventVersion1Component' %}`,							
+									data:
+									{
+										'column-id': columnId,
+										'ticket-id': ticketIdToMove,
+									},
+									type: 'PUT',
+									dataType: 'json',
+								}
+							);
+						}
+					});
+				}
+			}
+		});	
+	}
+</script>
+
+{% endblock %}

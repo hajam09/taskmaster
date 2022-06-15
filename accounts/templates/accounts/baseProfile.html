@@ -8,18 +8,18 @@
         <ul class="sidebar-nav">
             <li class="sidebar-brand">
                 <a href="#">
-                	Jira Account
+                    Jira Account
                 </a>
             </li>
             <br>
             <li class="profileAndVisibility">
-                <a href="#">Profile and Visibility</a>
+                <a href="{% url 'accounts:profile-and-visibility' %}">Profile and Visibility</a>
             </li>
             <li class="accountEmail">
                 <a href="#">Email</a>
             </li>
             <li class="accountSecurity">
-                <a href="#">Security</a>
+                <a href="{% url 'accounts:account-security' %}">Security</a>
             </li>
             <li class="accountPreferences">
                 <a href="#">Account Preferences</a>
@@ -42,20 +42,18 @@
         </nav>
         <br>
         {% block profileContent %}
-		{% endblock %}
+        {% endblock %}
     </div>
 </div>
 <script type="text/javascript">
-	
-	window.onload = function(e)
-	{
-		$(".btn-toggle-menu").click( function()
-    	{
-        	$("#wrapper").toggleClass("toggled");
+
+    window.onload = function (e) {
+        $(".btn-toggle-menu").click(function () {
+            $("#wrapper").toggleClass("toggled");
         });
 
-        $( ".{{activeTab}}" ).addClass( "active" );
-	}
+        $(".{{activeTab}}").addClass("active");
+    }
 
 </script>
 {% endblock %}

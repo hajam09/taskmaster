@@ -1,0 +1,149 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/avatarsIcon.css' %}"/>
+
+<div class="container-fluid" style="margin: auto;overflow-x: hipen; color: black; max-width: 1800px;">
+    <br>
+    <div class="row">
+        <div class="col-12">
+            <div class="row">
+                <div class="col">
+                    <h3>Boards</h3>
+                </div>
+                <div class="col">
+                    <a type="button" class="btn btn-primary float-right" href="#">New board</a>
+                </div>
+            </div>
+            <br>
+            {% if boards.count > 0  %}
+                <table id="boardTable" class="table table-sm table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Admin</th>
+                            <th>Project</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in boards  %}
+                        <tr>
+                            <td>
+                                <a href="{{b.getUrl}}">{{b.internalKey}}</a>
+                            </td>
+                            {% if b.admins.count == 1 %}
+                            <td>
+                                {% for admin in b.admins.all %}
+                                <span>
+                                    <span class="row">
+                                        <span class="col">
+                                            <span class="d-flex align-items-center">
+                                                {% if debug %}
+                                                <img alt="{{admin.get_full_name}}" class="avatar filter-by-alt" src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png" data-filter-by="alt">
+                                                {% elif admin.developerProfile.profilePicture %}
+                                                <img alt="{{admin.get_full_name}}" class="avatar filter-by-alt" src="{{admin.developerProfile.profilePicture.url }}" data-filter-by="alt">
+                                                {% else %}
+                                                <img alt="{{admin.get_full_name}}" class="avatar filter-by-alt" src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png" data-filter-by="alt">
+                                                {% endif %}
+                                                &nbsp;&nbsp;
+                                                <a href="#">{{admin.get_full_name}}</a>
+                                            </span>
+                                        </span>
+                                    </span>
+                                </span>
+                                {% endfor %}
+                            </td>
+                            {% else %}
+                            <td>
+                                <ul class="avatars">
+                                    {% for admin in b.admins.all %}
+                                    <li>
+                                        <a href="#" data-toggle="tooltip" data-original-title="{{admin.get_full_name}}" title="{{admin.get_full_name}}">
+                                            {% if debug %}
+                                            <img alt="{{admin.get_full_name}}" class="avatar filter-by-alt" src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png" data-filter-by="alt">
+                                            {% elif admin.developerProfile.profilePicture %}
+                                            <img alt="{{admin.get_full_name}}" class="avatar filter-by-alt" src="{{admin.developerProfile.profilePicture.url }}" data-filter-by="alt">
+                                            {% else %}
+                                            <img alt="{{admin.get_full_name}}" class="avatar filter-by-alt" src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png" data-filter-by="alt">
+                                            {% endif %}
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            {% endif %}
+
+                            {% if b.projects.count == 1 %}
+                            <td>
+                                {% for project in b.projects.all %}
+                                <span>
+                                    <span class="row">
+                                        <span class="col">
+                                            <span class="d-flex align-items-center">
+                                                {% if debug %}
+                                                <img alt="{{project.internalKey}}" class="avatar filter-by-alt" src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png" data-filter-by="alt">
+                                                {% elif project.icon %}
+                                                <img alt="{{project.internalKey}}" class="avatar filter-by-alt" src="{{project.icon.url }}" data-filter-by="alt">
+                                                {% else %}
+                                                <img alt="{{project.internalKey}}" class="avatar filter-by-alt" src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png" data-filter-by="alt">
+                                                {% endif %}
+                                                &nbsp;&nbsp;
+                                                <a href="{{ project.getProjectUrl }}">{{project.internalKey}}</a>
+                                            </span>
+                                        </span>
+                                    </span>
+                                </span>
+                                {% endfor %}
+                            </td>
+                            {% else %}
+                            <td>
+                                <ul class="avatars">
+                                    {% for project in b.projects.all %}
+                                    <li>
+                                        <a href="#" data-toggle="tooltip" data-original-title="{{project.internalKey}}" title="{{project.internalKey}}">
+                                            {% if project.icon %}
+                                            <img alt="{{project.internalKey}}" class="avatar filter-by-alt" src="{{project.icon.url }}" data-filter-by="alt">
+                                            {% else %}
+                                            <img alt="{{project.internalKey}}" class="avatar filter-by-alt" src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png" data-filter-by="alt">
+                                            {% endif %}
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            {% endif %}
+
+                            
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="alert alert-primary text-center" role="alert">
+                    Looks like there's no board to see. Create one.
+                </div>
+            {% endif %}
+        </div>        
+    </div>
+</div>
+<script type="text/javascript">
+
+    // $( function ()
+    //     {
+    //         $("#boardTable").DataTable(
+    //             {
+    //                 "responsive": true,
+    //                 "autoWidth": false,
+    //                 "paging": true,
+    //                 "searching": true,
+    //                 "ordering": true,
+    //                 "info": false,
+    //                 "pageLength": 10,
+    //             }
+    //         );
+
+    //         $('#boardTable_length').remove();
+    //     }
+    // );
+</script>
+{% endblock %}
