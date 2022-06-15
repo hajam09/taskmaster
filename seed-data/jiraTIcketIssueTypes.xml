@@ -1,0 +1,27 @@
+<SeedData>
+    <ComponentGroups>
+        <ComponentGroup internalKey="Ticket Issue Type" code="TICKET_ISSUE_TYPE"/>
+    </ComponentGroups>
+
+    <Components>
+        <Component componentGroup.code="TICKET_ISSUE_TYPE" internalKey="Bug" code="BUG"
+                   icon="img/ticket-issue-type/bug.jpg" orderNo="1"/>
+        <Component componentGroup.code="TICKET_ISSUE_TYPE" internalKey="Epic" code="EPIC"
+                   icon="img/ticket-issue-type/epic.jpg" orderNo="2"/>
+        <Component componentGroup.code="TICKET_ISSUE_TYPE" internalKey="Improvement" code="IMPROVEMENT"
+                   icon="img/ticket-issue-type/improvement.jpg" orderNo="3"/>
+        <Component componentGroup.code="TICKET_ISSUE_TYPE" internalKey="New Feature" code="NEW_FEATURE"
+                   icon="img/ticket-issue-type/newFeature.jpg" orderNo="4"/>
+        <Component componentGroup.code="TICKET_ISSUE_TYPE" internalKey="Story" code="STORY"
+                   icon="img/ticket-issue-type/story.jpg" orderNo="5"/>
+        <Component componentGroup.code="TICKET_ISSUE_TYPE" internalKey="Sub Task" code="SUB_TASK"
+                   icon="img/ticket-issue-type/subtask.jpg" orderNo="6"/>
+        <Component componentGroup.code="TICKET_ISSUE_TYPE" internalKey="Task" code="TASK"
+                   icon="img/ticket-issue-type/task.jpg" orderNo="7"/>
+        <Component componentGroup.code="TICKET_ISSUE_TYPE" internalKey="Test" code="TEST"
+                   icon="img/ticket-issue-type/test.jpg" orderNo="8"/>
+        <Component componentGroup.code="TICKET_ISSUE_TYPE" internalKey="Spike" code="SPIKE"
+                   icon="img/ticket-issue-type/spike.jpg" orderNo="9"/>
+
+    </Components>
+</SeedData>
