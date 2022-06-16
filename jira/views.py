@@ -61,10 +61,10 @@ def boards(request):
         # mandatory columns for a board
         Column.object.bulk_create(
             [
-                Column(board=newBoard, internalKey='BACKLOG'),
-                Column(board=newBoard, internalKey='TO DO'),
-                Column(board=newBoard, internalKey='IN PROGRESS'),
-                Column(board=newBoard, internalKey='DONE')
+                Column(board=newBoard, internalKey='BACKLOG', orderNo=1),
+                Column(board=newBoard, internalKey='TO DO', orderNo=2),
+                Column(board=newBoard, internalKey='IN PROGRESS', orderNo=3),
+                Column(board=newBoard, internalKey='DONE', orderNo=4)
             ]
         )
 
@@ -80,6 +80,24 @@ def boards(request):
         'boards': allBoards,
     }
     return render(request, 'jira/boards.html', context)
+
+
+@login_required
+def boardSettings(request, url):
+    try:
+        thisBoard = Board.object.prefetch_related('boardColumns', 'boardLabels').get(url=url)
+    except Board.DoesNotExist:
+        raise Http404
+
+    allProjects = Project.object.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False))
+    allProfiles = Profile.object.all().select_related('user')
+
+    context = {
+        'board': thisBoard,
+        'projects': allProjects,
+        'profiles': allProfiles
+    }
+    return render(request, 'jira/boardSettings.html', context)
 
 
 def board(request, url):
