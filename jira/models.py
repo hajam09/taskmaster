@@ -55,6 +55,11 @@ class Board(BaseModel):
     def getUrl(self):
         return reverse('jira:board-page', kwargs={'url': self.url})
 
+    def hasAccessPermission(self, user):
+        if not self.isPrivate:
+            return True
+        return user in self.members.all() or user in self.admins.all()
+
 
 class Label(BaseModel):
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='boardLabels')

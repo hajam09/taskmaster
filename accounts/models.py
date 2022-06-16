@@ -102,6 +102,3 @@ class Profile(BaseModel):
     class Meta:
         verbose_name = "Profile"
         verbose_name_plural = "Profiles"
-
-    def __str__(self):
-        return self.user
