@@ -1,0 +1,298 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block content %}
+
+<style type="text/css">
+    body {
+        color: black;
+    }
+</style>
+
+<div class="modal fade bd-example-modal-lg" id="newProjectModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="color: black;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Create Project</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <ul class="nav nav-tabs nav-fill" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="project-add-details-tab" data-toggle="tab" href="#project-add-details" role="tab" aria-controls="project-add-details" aria-selected="true">Details</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="project-add-members-tab" data-toggle="tab" href="#project-add-members" role="tab" aria-controls="project-add-members" aria-selected="false" onclick="triggerDataTable();">Members</a>
+                </li>
+            </ul>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="project-add-details" role="tabpanel">
+                            <h6>General Details</h6>
+                            <dl class="row">
+
+                                <dd class="col-sm-12">
+                                    <label style="font-size: 85%; color: #6c757d;">Name</label>
+                                    <input class="form-control col" type="text" placeholder="Project name" name="project-name" required>
+                                </dd>
+
+                                <dd class="col-sm-12">
+                                    <label style="font-size: 85%; color: #6c757d;">Code</label>
+                                    <input class="form-control col" type="text" placeholder="Project code" name="project-code" required>
+                                </dd>
+
+                                <dd class="col-sm-12">
+                                    <label style="font-size: 85%; color: #6c757d;">Description</label>
+                                    <textarea class="form-control col" rows="3" placeholder="Project description" name="project-description" required></textarea>
+                                </dd>
+
+                            </dl>
+
+                            <hr>
+
+                            <h6>Timeline</h6>
+
+                            <dl class="row">
+
+                                <dd class="col-sm-3">
+                                    <label style="font-size: 85%; color: #6c757d;">Start Date</label>
+                                </dd>
+                                <dd class="col-sm-9">
+                                    <input class="form-control col flatpickr-input" type="hidden" name="project-start" placeholder="Select a date" data-flatpickr="" data-alt-input="true">
+                                </dd>
+
+                                <dd class="col-sm-3">
+                                    <label style="font-size: 85%; color: #6c757d;">Due Date</label>
+                                </dd>
+                                <dd class="col-sm-9">
+                                    <input class="form-control col flatpickr-input" type="hidden" name="project-due" placeholder="Select a date" data-flatpickr="" data-alt-input="true">
+                                </dd>
+
+                            </dl>
+
+                            <hr>
+                            <h6>Visibility</h6>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" id="visibility-everyone" name="project-visibility" value="visibility-everyone" class="custom-control-input" checked="">
+                                        <label class="custom-control-label" for="visibility-everyone">Everyone</label>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" id="visibility-members" name="project-visibility" value="visibility-members" class="custom-control-input">
+                                        <label class="custom-control-label" for="visibility-members">Members</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr>
+                            <h6>Logo</h6>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="media-body ml-4">
+                                        <label class="btn btn-danger btn-sm" for="project-icon">
+                                            <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;&nbsp;
+                                            <input id="project-icon" name="project-icon" type="file" style="display:none" onchange="$('#upload-file-info').html(this.files[0].name)">
+                                            Choose a File
+                                        </label> &nbsp;
+                                        <div class="small mt-1">Allowed JPG, GIF or PNG. Max size of 800K</div>
+                                        <div class="small mt-1" id="upload-file-info"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="project-add-members" role="tabpanel">
+                            <div class="users-manage" data-filter-list="form-group-users">
+                                <input style="border-radius: 25px;" id="member-search" type="search" class="form-control" placeholder="Filter members">
+                                <br>
+                                <div class="form-group-users filter-list-1644074794132" style="height: 600px; overflow: auto; overflow-x: hidden;">
+                                    <table id="availableMembers">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for m in profiles  %}
+                                            <tr onclick="selectUser('{{m.user.id}}');">
+                                                <td>
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <span class="d-flex align-items-center">
+                                                                {% if debug %}
+                                                                    <img src='https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png' width="10%" height="10%" class="rounded-circle">
+                                                                {% elif m.profilePicture %}
+                                                                    <img src="{{m.profilePicture.url }}" width="10%" height="10%" class="rounded-circle">
+                                                                {% else %}
+                                                                    <img src='https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png' width="10%" height="10%" class="rounded-circle">
+                                                                {% endif %}
+                                                                &nbsp;&nbsp;
+                                                                <p class="h6" data-filter-by="text" style="padding-top: 9px;">{{m.user.get_full_name}}</p>
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-2">
+                                                            <div class="icheck-primary d-inline pull-right" style="margin-right: 25px;">
+                                                                <input type="checkbox" id="project-user-{{m.user.id}}" name='project-users' value='{{m.user.id}}' style="margin-top: 13px;">
+                                                                <label for="project-user-{{m.user.id}}"></label>
+                                                            </div>
+                                                        </div>
+                                                        <span style="height:48px;"></span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        You can these details at any time.
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input class="btn btn-primary" type="submit" value="Create Project">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid" style="margin: auto;overflow-x: hipen; color: black; max-width: 1800px;">
+    <br>
+    <div class="row">
+        <div class="col-12">
+            <div class="row">
+                <div class="col">
+                    <h3>Projects</h3>
+                </div>
+                <div class="col">
+                    <button type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#newProjectModal">New Project</button>
+                </div>
+            </div>
+            <br>
+            {% if projects.all %}
+                <table id="projectTable" class="table table-sm table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Key</th>
+                            <th>Lead</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in projects  %}
+                        <tr>
+                            <td>
+                                {% if debug %}
+                                    <img src='https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png' width="30px" class="rounded-0">
+                                {% elif p.icon %}
+                                    <img src="{{ p.icon.url }}" width="30px" class="rounded-0">
+                                {% else %}
+                                    <img src='https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png' width="30px" class="rounded-0">
+                                {% endif %}
+                                &nbsp;&nbsp;
+                                <a href="{{ p.getUrl }}">{{p.internalKey}}</a>
+                            </td>
+                            <td>{{p.code}}</td>
+                            <td>
+                                {% if debug %}
+                                    <img src='https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png' width="30px" class="rounded-0">
+                                {% elif p.lead.developerProfile.profilePicture %}
+                                    <img src="{{p.lead.developerProfile.profilePicture.url }}" width="30px" class="rounded-0">
+                                {% else %}
+                                    <img src='{% static "img/default-user-icon.jpg" %}' width="30px" class="rounded-0">
+                                {% endif %}
+                                &nbsp;&nbsp;
+                                <a href="#">{{p.lead.get_full_name}}</a>
+                            </td>
+                            <td><span class="{{p.status.icon}}" style="text-transform:uppercase">{{p.status.internalKey}}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="alert alert-primary text-center" role="alert">
+                    Looks like there's no project to see. Create one.
+                </div>
+            {% endif %}
+        </div>        
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    var AVAILABLE_MEMBERS_TABLE_TRIGGERED = false;
+    var MEMBERS_TABLE = null;
+
+    flatpickr('.flatpickr-input', {
+        "minDate": "today",
+        "altFormat": "d-m-Y",
+    });
+
+    $('#member-search').on( 'keyup click', function ()
+        {
+            if (MEMBERS_TABLE != null)
+                MEMBERS_TABLE.search($('#member-search').val()).draw();
+        }
+    );
+
+    function triggerDataTable()
+    {
+        if (!AVAILABLE_MEMBERS_TABLE_TRIGGERED)
+        {
+            MEMBERS_TABLE = $("#availableMembers").DataTable(
+                {
+                    "paging": false,
+                    "autoWidth": false,
+                    "responsive": true,
+                    "info": false,
+                    "ordering": false,
+                    "dom": '<"top"i>rt<"bottom"><"clear">',
+                }
+            );
+        }
+
+        AVAILABLE_MEMBERS_TABLE_TRIGGERED = true;
+    }
+
+    function selectUser(id)
+    {
+        if($('#project-user-'+id).is(":checked"))
+        {
+            $('#project-user-'+id).prop('checked', false);
+        }
+        else
+        {
+            $('#project-user-'+id).prop('checked', true);
+        }
+    }
+
+     $( function ()
+        {
+            $("#projectTable").DataTable(
+                {
+                    "responsive": true,
+                    "autoWidth": false,
+                    "paging": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": false,
+                    "pageLength": 10,
+                }
+            );
+
+            $('#projectTable_length').remove();
+        }
+    );
+</script>
+{% endblock %}

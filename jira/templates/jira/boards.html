@@ -236,22 +236,22 @@
         $('.select2bs4').select2();
     });
 
-    // $( function ()
-    //     {
-    //         $("#boardTable").DataTable(
-    //             {
-    //                 "responsive": true,
-    //                 "autoWidth": false,
-    //                 "paging": true,
-    //                 "searching": true,
-    //                 "ordering": true,
-    //                 "info": false,
-    //                 "pageLength": 10,
-    //             }
-    //         );
+    $( function ()
+        {
+            $("#boardTable").DataTable(
+                {
+                    "responsive": true,
+                    "autoWidth": false,
+                    "paging": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": false,
+                    "pageLength": 10,
+                }
+            );
 
-    //         $('#boardTable_length').remove();
-    //     }
-    // );
+            $('#boardTable_length').remove();
+        }
+    );
 </script>
 {% endblock %}

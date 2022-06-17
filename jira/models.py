@@ -1,3 +1,6 @@
+import os
+import random
+
 from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -9,6 +12,10 @@ from django.utils import timezone
 from accounts.models import BaseModel, generateString, Component
 
 
+def getRandomProjectIcon():
+    return "project-icons/" + random.choice(os.listdir(os.path.join(settings.MEDIA_ROOT, "project-icons/")))
+
+
 class Project(BaseModel):
     internalKey = models.CharField(max_length=2048, unique=True)
     code = models.CharField(max_length=2048, unique=True, db_index=True)
@@ -17,9 +24,10 @@ class Project(BaseModel):
     lead = models.ForeignKey(User, on_delete=models.CASCADE)
     startDate = models.DateField(default=timezone.now)
     endDate = models.DateField(default=timezone.datetime.max)
+    status = models.ForeignKey(Component, null=True, on_delete=models.SET_NULL, limit_choices_to={'componentGroup__code': 'PROJECT_STATUS'})
     members = models.ManyToManyField(User, blank=True, related_name='projectMembers')
     watchers = models.ManyToManyField(User, blank=True, related_name='projectWatchers')
-    icon = models.ImageField(upload_to='project-icons/')
+    icon = models.ImageField(upload_to='project-icons/', default=getRandomProjectIcon)
     isPrivate = models.BooleanField(default=False)
 
     class Meta:

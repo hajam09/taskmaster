@@ -1,10 +1,13 @@
 import random
+import string
 
+from django.apps import apps
 from django.contrib.auth.models import User
 from django.db import connection
 from faker import Faker
 
-from accounts.models import Profile
+from accounts.models import Profile, Team
+from taskmaster.operations import seedDataOperations
 
 all_tables = connection.introspection.table_names()
 
@@ -13,6 +16,28 @@ EMAIL_DOMAINS = ["@yahoo", "@gmail", "@outlook", "@hotmail"]
 DOMAINS = [".co.uk", ".com", ".co.in", ".net", ".us"]
 BOOLEAN = [True, False]
 JOB_TITLE = ['Software Engineer', 'Project Owner', 'Project Manager', 'UX/UI Designer', 'Solutions Architect']
+PROJECT_APPS = ['accounts', 'jira']
+
+
+def generateString():
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+
+
+def cleanInstall(request, excludeThisUser=True, removeExistingObjects=True):
+    if excludeThisUser:
+        User.objects.all().exclude(id=request.user.id).exclude(is_superuser=True).delete()
+
+    if removeExistingObjects:
+        for app in PROJECT_APPS:
+            for model in apps.get_app_config(app).get_models():
+                model.object.all().delete()
+
+    seedDataOperations.runSeedDataInstaller()
+
+    users = createUserObjects()
+    profiles = createProfileObjects(users)
+    teams = createTeamObjects(users)
+    return
 
 
 def createUserObjects(limit=20, maxLimit=20):
@@ -41,17 +66,24 @@ def createUserObjects(limit=20, maxLimit=20):
     return User.objects.filter(email__in=uniqueEmails)
 
 
-def createProfiles(users=None):
+def createProfileObjects(users=None):
     if users is None or len(users) == 0:
         users = createUserObjects()
 
-    requiredProfile = [user for user in users]
+    requiredProfile = []
+
+    for user in users:
+        try:
+            user.profile
+        except Profile.DoesNotExist:
+            requiredProfile.append(user)
 
     for user in User.objects.all():
         try:
             user.profile
         except Profile.DoesNotExist:
-            requiredProfile.append(user)
+            if user not in requiredProfile:
+                requiredProfile.append(user)
 
     # TODO: Convert this to list comprehension
     BULK_PROFILES = []
@@ -65,3 +97,25 @@ def createProfiles(users=None):
             )
         )
     return Profile.object.bulk_create(BULK_PROFILES)
+
+
+def createTeamObjects(users=None):
+    if users is None or len(users) == 0:
+        users = createUserObjects()
+
+    chunkSize = 5
+    usersChunks = [users[i:i + chunkSize] for i in range(0, len(users), chunkSize)]
+    teams = []
+
+    for userGroup in usersChunks:
+        team = Team()
+        team.internalKey = generateString()
+        team.isPrivate = random.choice(BOOLEAN)
+        team.description = generateString()
+        team.save()
+
+        team.admins.add(userGroup[0])
+        team.members.add(*userGroup[1:])
+
+        teams.append(team)
+    return teams

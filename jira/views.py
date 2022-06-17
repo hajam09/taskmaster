@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render
 
-from accounts.models import Profile
+from accounts.models import Profile, Component
 from jira.models import Board, Project, Column
 
 
@@ -130,8 +130,39 @@ def yourWork(request):
     pass
 
 
+@login_required
 def projects(request):
-    pass
+    allProjects = Project.object.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False))
+    allProfiles = Profile.object.all().select_related('user')
+
+    if request.method == "POST":
+        newProject = Project()
+        newProject.internalKey = request.POST['project-name']
+        newProject.code = request.POST['project-code']
+        newProject.description = request.POST['project-description']
+        newProject.lead = request.user
+        newProject.isPrivate = request.POST['project-visibility'] == 'visibility-members'
+        newProject.status = Component.object.get(componentGroup__code='PROJECT_STATUS', code='ON_GOING')
+
+        if request.FILES.get('project-icon'):
+            newProject.icon = request.FILES.get('project-icon')
+
+        if request.POST['project-start']:
+            newProject.startDate = request.POST['project-start']
+
+        if request.POST['project-due']:
+            newProject.endDate = request.POST['project-due']
+
+        newProject.save()
+        newProject.members.add(*request.POST.getlist('project-users', []))
+
+        allProjects = Project.object.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False))
+
+    context = {
+        'projects': allProjects,
+        'profiles': allProfiles
+    }
+    return render(request, 'jira/projects.html', context)
 
 
 def project(request, url):
