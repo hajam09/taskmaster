@@ -6,6 +6,7 @@ from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 
 
@@ -89,6 +90,14 @@ class Team(BaseModel):
 
     def __str__(self):
         return self.internalKey
+
+    def getUrl(self):
+        return reverse('jira:team-page', kwargs={'url': self.url})
+
+    def hasAccessPermission(self, user):
+        if not self.isPrivate:
+            return True
+        return user in self.members.all() or user in self.admins.all()
 
 
 class Profile(BaseModel):

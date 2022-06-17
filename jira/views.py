@@ -1,4 +1,3 @@
-# Create your views here.
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -7,7 +6,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render
 
-from accounts.models import Profile, Component
+from accounts.models import Profile, Component, Team
 from jira.models import Board, Project, Column
 from taskmaster.operations import databaseOperations
 
@@ -25,7 +24,19 @@ def teams(request):
 
 
 def team(request, url):
-    pass
+    try:
+        thisTeam = Team.object.prefetch_related('members__profile').get(url=url)
+    except Team.DoesNotExist:
+        raise Http404
+
+    if not thisTeam.hasAccessPermission(request.user):
+        raise PermissionDenied()
+
+    context = {
+
+        "team": thisTeam
+    }
+    return render(request, "jira/team.html", context)
 
 
 def peopleAndTeamSearch(request):
@@ -122,11 +133,7 @@ def board(request, url):
 
         "board": thisBoard
     }
-    return render(request, "jira2/board.html", context)
-
-
-def kanbanBoardCreate(request):
-    pass
+    return render(request, "jira/board.html", context)
 
 
 def backlog(request, url):

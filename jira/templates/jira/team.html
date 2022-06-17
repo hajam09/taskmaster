@@ -1,0 +1,77 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/avatarsIcon.css' %}"/>
+<div>
+	<div class="p-3 mb-2 text-white bg-secondary" style="height:180px;">
+		<div class="container" style="padding-top: 110px;">
+		</div>
+	</div>
+</div>
+<div class="container-fluid" style="margin: auto;overflow-x: hidden; color: black; max-width: 1500px;">
+	<div class="gutters-sm">
+		<div style="height:30px;"></div>
+		<div class="col-md-12">
+			<div class="row">
+				<div class="col">
+					<h4>{{team.internalKey}}</h4>
+
+					{% if team.isPrivate %}
+					<p class="text-secondary">&nbsp;<i class="fas fa-unlock"></i>&nbsp;&nbsp;Open team</p>
+					{% else %}
+					<p class="text-secondary">&nbsp;<i class="fas fa-unlock-alt"></i>&nbsp;&nbsp;Private team</p>
+					{% endif %}
+
+					<div style="height:10px;"></div>
+					
+
+					<p class="text-secondary">&nbsp;{{team.description}}</p>
+
+					<button type="button" class="btn btn-light" style="background: #f5f6f8; width: 83%;">Add people</button>
+					<button role="button" type="button" class="btn dropdown" data-toggle="dropdown" style="background: #f5f6f8; width: 15%;">
+						<i class="fa fa-ellipsis-h"></i>
+					</button>
+					<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+						<a class="dropdown-item" href="#">Leave team</a>
+						<a class="dropdown-item" href="#">Delete team</a>
+					</div>
+
+					<div style="height:30px;"></div>
+
+
+					<div class="card card-header">
+						<b>Team members</b>
+						<small>{{team.members.count}} members</small>
+					</div>
+					<div class="card card-body">
+						{% for t in team.members.all %}
+						<div class="row">
+							<div class="col-2">
+								{% if debug %}
+								<img alt="{{ t.get_full_name }}" class="avatar filter-by-alt" src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png" data-filter-by="alt">
+								{% elif t.profile.profilePicture %}
+								<img alt="{{ t.get_full_name }}" class="avatar filter-by-alt" src="{{ t.profile.profilePicture.url }}" data-filter-by="alt">
+								{% endif %}
+							</div>
+							<div class="col-10">
+								{{ t.get_full_name }}<br><small class="text-secondary">{{t.profile.jobTitle}}</small>
+							</div>
+						</div>
+						<div style="height:15px;"></div>
+						{% endfor %}
+					</div>
+				</div>
+				<div class="col-12 col-md-8" id="div-id-forum-list-container">
+
+				</div>
+				
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+
+	
+
+</script>
+{% endblock %}
