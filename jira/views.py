@@ -6,6 +6,7 @@ from django.shortcuts import render
 
 from accounts.models import Profile, Component
 from jira.models import Board, Project, Column
+from taskmaster.operations import databaseOperations
 
 
 def index(request):
@@ -132,7 +133,11 @@ def yourWork(request):
 
 @login_required
 def projects(request):
-    allProjects = Project.object.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False))
+    """
+    TODO: Filter dropdown to filter projects by name, name contains, lead, status (show ongoing and terminated)...
+    """
+    projectQuery = Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)
+    allProjects = Project.object.filter(projectQuery).select_related('status', 'lead')
     allProfiles = Profile.object.all().select_related('user')
 
     if request.method == "POST":
@@ -156,7 +161,7 @@ def projects(request):
         newProject.save()
         newProject.members.add(*request.POST.getlist('project-users', []))
 
-        allProjects = Project.object.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False))
+        allProjects = Project.object.filter(projectQuery).select_related('status', 'lead')
 
     context = {
         'projects': allProjects,
@@ -170,7 +175,40 @@ def project(request, url):
 
 
 def projectSettings(request, url):
-    pass
+    # TODO: The start date and the end date in the template is not showing the correct project dates.
+    try:
+        thisProject = Project.object.get(url=url)
+    except Project.DoesNotExist:
+        raise Http404
+
+    allProfiles = Profile.object.all().select_related('user')
+    component = Component.object.filter(componentGroup__code='PROJECT_STATUS')
+
+    if request.method == "POST":
+        thisProject.internalKey = request.POST['project-name']
+        thisProject.description = request.POST['project-description']
+        thisProject.lead = next(p.user for p in allProfiles if str(p.user.id) == request.POST['project-lead'])
+        thisProject.startDate = request.POST['project-start']
+        thisProject.endDate = request.POST['project-end']
+        thisProject.status = databaseOperations.getObjectByIdOrNone(component, request.POST['project-status'])
+        thisProject.isPrivate = request.POST['project-visibility'] == 'visibility-members'
+
+        if request.FILES.get('project-icon'):
+            thisProject.icon = request.FILES.get('project-icon')
+
+        updatedProjectMembers = [
+            i.user for i in allProfiles if str(i.user.id) in request.POST.getlist('project-members')
+        ]
+        thisProject.members.clear()
+        thisProject.members.add(*updatedProjectMembers)
+        thisProject.save()
+
+    context = {
+        'project': thisProject,
+        'profiles': allProfiles,
+        'projectStatusComponent': component
+    }
+    return render(request, 'jira/projectSettings.html', context)
 
 
 def createProject(request):

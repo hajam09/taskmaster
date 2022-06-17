@@ -1,0 +1,239 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block content %}
+
+<style type="text/css">
+.grabbable {
+    cursor: move; /* fallback if grab cursor is unsupported */
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+ /* (Optional) Apply a "closed-hand" cursor during drag operation. */
+.grabbable:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+body {
+	color: black;
+}
+</style>
+
+<div class="container-fluid" style="margin: auto;overflow-x: hipen; color: black; max-width: 1800px;">
+	<br>
+	<div class="col-lg-6 col-md-12">
+        <div>
+        	<h4><bold>Details</bold></h4><br>
+        	<form method="post" enctype="multipart/form-data">
+        		{% csrf_token %}
+	            <dl class="row">
+
+	                <dd class="col-sm-3">
+	                    <label style="color: #6c757d;">Name</label>
+	                </dd>
+	                <dd class="col-sm-9">
+	                    <input class="form-control col" type="text" placeholder="Project name" id="project-name" name="project-name" value="{{project.internalKey}}" placeholder="Project name">
+	                </dd>
+
+	                <!--  -->
+
+	                <dd class="col-sm-3">
+	                    <label style="color: #6c757d;">Key</label>
+	                </dd>
+	                <dd class="col-sm-9">
+	                    <input class="form-control col" type="text" placeholder="Project code" id="project-code" name="project-code" value="{{project.code}}" placeholder="Project Code" disabled>
+	                </dd>
+
+	                <!--  -->
+
+	                <dd class="col-sm-3">
+	                    <label style="color: #6c757d;">Lead</label>
+	                </dd>
+	                <dd class="col-sm-9">
+	                    <div class="form-group">
+		                	<select class="form-control select2bs4" name="project-lead" style="width: 100%;">
+		                  		{% for dp in profiles %}
+		                  			<option value="{{dp.user.id}}" {% if project.lead == dp.user %} selected {% endif %} >{{dp.user.get_full_name}}</option>
+		                    	{% endfor %}
+		                	</select>
+		                </div>
+	                </dd>
+
+	                <!--  -->
+
+	                <dd class="col-sm-3">
+	                    <label style="color: #6c757d;">Status</label>
+	                </dd>
+	                <dd class="col-sm-9">
+	                    <div class="form-group">
+	                    	<select class="form-control select2bs4" name="project-status" style="width: 100%;">
+		                  		{% for status in projectStatusComponent %}
+		                  			<option value="{{status.id}}" {% if project.status == status %} selected {% endif %} >{{status}}</option>
+		                    	{% endfor %}
+		                	</select>
+		                </div>
+	                </dd>
+
+	                <!--  -->
+
+	                <dd class="col-sm-3">
+	                    <label style="color: #6c757d;">Start date</label>
+	                </dd>
+	                <dd class="col-sm-9">
+	                    <input class="form-control col flatpickr-input-start-date" type="hidden" name="project-start" placeholder="Select a date" data-flatpickr="" data-alt-input="true" readonly>
+	                </dd>
+
+	                <!--  -->
+
+	                <dd class="col-sm-3">
+	                    <label style="color: #6c757d;">End date</label>
+	                </dd>
+	                <dd class="col-sm-9">
+	                    <input class="form-control col flatpickr-input-end-date" type="hidden" name="project-end" placeholder="Select a date" data-flatpickr="" data-alt-input="true" readonly>
+	                </dd>
+
+	                <!--  -->
+	                
+	                <dd class="col-sm-3">
+	                    <label style="color: #6c757d;">Description</label>
+	                </dd>
+	                <dd class="col-sm-9">
+	                    <div class="form-group">
+	                    	<textarea class="form-control" rows="3" id="project-description" name="project-description" placeholder="Project description">{{project.description}}</textarea>
+	                    </div>
+	                </dd>
+
+	                <!--  -->
+
+	                <dd class="col-sm-3">
+	                    <label style="color: #6c757d;">Avatar</label>
+	                </dd>
+	                <dd class="col-sm-9">
+	                    <div class="card-body media align-items-center">
+	                        {% if project.icon %}
+	                        <img src="{{ project.icon.url }}" width="50px" class="rounded-0">
+	                        {% else %}
+	                        <img src="https://icon-library.com/images/default-user-icon/default-user-icon-13.jpg" alt="" class="d-block ui-w-80 rounded-circle">
+	                        {% endif %}
+	                        <div class="media-body ml-4">
+	                           <label class="btn btn-danger" for="project-icon">
+	                           <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;&nbsp;
+	                           <input id="project-icon" name="project-icon" type="file" style="display:none" onchange="$('#upload-file-info').html(this.files[0].name)"> Choose a File
+	                        </div>
+	                     </div>
+	                </dd>
+
+	                <!--  -->
+
+	                <dd class="col-sm-3">
+	                    <label style="color: #6c757d;">Project members</label>
+	                </dd>
+	                <dd class="col-sm-9">
+	                    <div class="form-group">
+	                        <select class="form-control select2bs4" multiple="multiple" name="project-members" id="project-members" required>
+		                        {% for dp in profiles %}
+		                    		<option value="{{dp.user.id}}">{{dp.user.get_full_name}}</option>
+	                            {% endfor %}
+	                        </select>
+	                    </div>
+	                </dd>
+
+	                <!--  -->
+
+	                <dd class="col-sm-3">
+	                    <label style="color: #6c757d;">Project visibility</label>
+	                </dd>
+	                <dd class="col-sm-9">
+	                    <div class="row">
+	                        <div class="col">
+	                            <div class="custom-control custom-radio">
+	                                <input type="radio" id="visibility-everyone" name="project-visibility" value="visibility-everyone" class="custom-control-input" {% if not project.isPrivate %} checked {% endif %}>
+	                                <label class="custom-control-label" for="visibility-everyone">Everyone</label>
+	                            </div>
+	                        </div>
+	                        <div class="col">
+	                            <div class="custom-control custom-radio">
+	                                <input type="radio" id="visibility-members" name="project-visibility" value="visibility-members" class="custom-control-input" {% if project.isPrivate %} checked {% endif %}>
+	                                <label class="custom-control-label" for="visibility-members">Members</label>
+	                            </div>
+	                        </div>
+	                    </div>
+	                </dd>
+	            </dl>
+
+	            <div class="row">
+	        		<div class="col">
+	        			<div class="row">
+	        				<div class="col">
+	        					<button type="submit" class="btn btn-primary btn-sm pull-right">Save details</button>
+	        				</div>
+	        			</div>
+	        		</div>
+	        	</div>
+
+	        </form>
+        </div>
+    </div>
+    <hr>
+    <div class="col-lg-6 col-md-12">
+        <div>
+        	<div class="row">
+        		<div class="col">
+        			<div class="row">
+        				<h4><bold>Boards</bold></h4>
+        			</div>
+        		</div>
+        	</div>
+        	<br>
+            <div class="row">
+            	<!-- TODO: Display all the boards which has this project. -->
+        		<div class="col" id="project-boards-container">
+        			{% for column in board.boardColumns.all %}
+        			<div class="card grabbable" id="column-container-{{column.id}}">
+        				<div class="card-body" style="height: 10px;">
+		        			<div class="row">
+		        				<div class="col">
+		        					<input type="text" id="board-column-name-{{column.id}}" class="form-control form-control-sm" value="{{column.name}}" placeholder="Column name" style="margin-top: -15px;" readonly>
+		        				</div>
+		        				<div class="col-auto">
+		        					<button type="button" class="btn btn-danger btn-sm" onclick="deleteColumn('{{column.id}}');" style="margin-top: -24px;">Delete Column</button>
+		        				</div>
+		        			</div>
+        				</div>
+        			</div>
+        			{% endfor %}
+        		</div>
+        	</div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+	$(document).ready(function()
+	{
+    	$('.select2bs4').select2();
+    });
+
+	flatpickr('.flatpickr-input-start-date', {
+        "altFormat": "d-m-Y",
+        "defaultDate": ["{{ project.startDate|date:'Y-m-d' }}"]
+    });
+
+    flatpickr('.flatpickr-input-end-date', {
+        "altFormat": "d-m-Y",
+        "defaultDate": ["{{ project.endDate|date:'Y-m-d' }}"]
+    });
+
+    var PROJECT_MEMBERS_ID = [];
+
+    {% for member in project.members.all %}
+		PROJECT_MEMBERS_ID.push({{member.id}});
+	{% endfor %}
+
+	$('#project-members').select2().val(PROJECT_MEMBERS_ID).trigger("change")
+
+</script>
+{% endblock %}
