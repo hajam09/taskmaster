@@ -92,6 +92,15 @@
 
 <div class="container-fluid" style="margin: auto;overflow-x: hipen; color: black; max-width: 1800px;">
     <br>
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == "error" %}
+                <div style="color: black; text-align: center;" class="alert alert-danger" role="alert">{{ message }}</div>
+            {% else %}
+                <div style="color: black; text-align: center;" class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
     <div class="row">
         <div class="col-12">
             <div class="row">

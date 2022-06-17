@@ -1,5 +1,8 @@
 # Create your views here.
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.db import IntegrityError
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render
@@ -41,7 +44,6 @@ def ticketView(request, url):
 def boards(request):
     """
        TODO: Allow user to copy board on template and make changes before creating new board.
-       TODO: Add Datatables to the table.
        TODO: Inform that in some places the project will appear to other users.
     """
     allBoards = Board.object.all().prefetch_related('projects', 'admins', 'members')
@@ -53,27 +55,32 @@ def boards(request):
         boardMembers = [i.user for i in allProfiles if str(i.user.pk) in request.POST.getlist('board-members')]
         boardProjects = [i for i in allProjects if str(i.pk) in request.POST.getlist('board-projects')]
 
-        # TODO: If board already exists with the name, then return a message to user.
-        newBoard = Board.object.create(
-            internalKey=request.POST['board-name'],
-            isPrivate=request.POST['board-visibility'] == 'visibility-members'
-        )
+        try:
+            newBoard = Board.object.create(
+                internalKey=request.POST['board-name'],
+                isPrivate=request.POST['board-visibility'] == 'visibility-members'
+            )
 
-        # mandatory columns for a board
-        Column.object.bulk_create(
-            [
-                Column(board=newBoard, internalKey='BACKLOG', orderNo=1),
-                Column(board=newBoard, internalKey='TO DO', orderNo=2),
-                Column(board=newBoard, internalKey='IN PROGRESS', orderNo=3),
-                Column(board=newBoard, internalKey='DONE', orderNo=4)
-            ]
-        )
+            # mandatory columns for a board
+            Column.object.bulk_create(
+                [
+                    Column(board=newBoard, internalKey='BACKLOG', orderNo=1),
+                    Column(board=newBoard, internalKey='TO DO', orderNo=2),
+                    Column(board=newBoard, internalKey='IN PROGRESS', orderNo=3),
+                    Column(board=newBoard, internalKey='DONE', orderNo=4)
+                ]
+            )
 
-        newBoard.projects.add(*boardProjects)
-        newBoard.members.add(*boardMembers)
-        newBoard.admins.add(*boardAdmins)
+            newBoard.projects.add(*boardProjects)
+            newBoard.members.add(*boardMembers)
+            newBoard.admins.add(*boardAdmins)
 
-        allBoards = Board.object.all().prefetch_related('projects', 'admins', 'members')
+            allBoards = Board.object.all().prefetch_related('projects', 'admins', 'members')
+        except IntegrityError:
+            messages.error(
+                request,
+                f'Board with name {request.POST["board-name"]} already exists.'
+            )
 
     context = {
         'projects': allProjects,
@@ -109,7 +116,7 @@ def board(request, url):
 
     if not thisBoard.hasAccessPermission(request.user):
         # TODO: Show access denied page.
-        pass
+        raise PermissionDenied()
 
     context = {
 
@@ -175,7 +182,6 @@ def project(request, url):
 
 
 def projectSettings(request, url):
-    # TODO: The start date and the end date in the template is not showing the correct project dates.
     try:
         thisProject = Project.object.get(url=url)
     except Project.DoesNotExist:
@@ -209,10 +215,6 @@ def projectSettings(request, url):
         'projectStatusComponent': component
     }
     return render(request, 'jira/projectSettings.html', context)
-
-
-def createProject(request):
-    pass
 
 
 def profileAndSettings(request):
