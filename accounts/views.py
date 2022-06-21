@@ -37,7 +37,10 @@ def login(request):
 
         if form.is_valid():
             cache.delete(uniqueVisitorId)
-            return redirect('jira:dashboard')
+            redirectUrl = request.GET.get('next')
+            if redirectUrl:
+                return redirect(redirectUrl)
+            return redirect('accounts:login')
 
         if cache.get(uniqueVisitorId) is None:
             cache.set(uniqueVisitorId, 1)

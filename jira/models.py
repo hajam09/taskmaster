@@ -134,10 +134,10 @@ class Ticket(BaseModel):
         return self.internalKey
 
     def getTicketUrl(self):
-        return reverse('jira:ticket-page', kwargs={'internalKey': self.internalKey})
+        return reverse('jira:ticket-detail-view', kwargs={'internalKey': self.internalKey})
 
     def getEpicUrl(self):
-        return reverse('jira:ticket-page', kwargs={'internalKey': self.epic.internalKey})
+        return reverse('jira:ticket-detail-view', kwargs={'internalKey': self.epic.internalKey})
 
 
 class TicketAttachment(BaseModel):

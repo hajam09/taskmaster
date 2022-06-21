@@ -18,6 +18,5 @@
         <Component componentGroup.code="PROJECT_STATUS" internalKey="Archived" code="ARCHIVED" colour="#dc3545"
                    reference="ARCHIVED"
                    icon="badge badge-secondary" orderNo="5"/>
-
     </Components>
 </SeedData>

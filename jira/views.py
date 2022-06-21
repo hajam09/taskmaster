@@ -7,7 +7,7 @@ from django.http import Http404
 from django.shortcuts import render
 
 from accounts.models import Profile, Component, Team
-from jira.models import Board, Project, Column
+from jira.models import Board, Project, Column, Ticket
 from taskmaster.operations import databaseOperations
 
 
@@ -23,7 +23,9 @@ def teams(request):
     pass
 
 
+@login_required
 def team(request, url):
+    # TODO: Add admins and members to the team.
     try:
         thisTeam = Team.object.prefetch_related('members__profile').get(url=url)
     except Team.DoesNotExist:
@@ -32,9 +34,14 @@ def team(request, url):
     if not thisTeam.hasAccessPermission(request.user):
         raise PermissionDenied()
 
-    context = {
+    allProfiles = Profile.object.all().select_related('user')
+    excludedMembers = allProfiles.exclude(user__id__in=[i.id for i in thisTeam.members.all()])
+    excludedAdmins = allProfiles.exclude(user__id__in=[i.id for i in thisTeam.admins.all()])
 
-        "team": thisTeam
+    context = {
+        "team": thisTeam,
+        "members": excludedMembers,
+        "admins": excludedAdmins,
     }
     return render(request, "jira/team.html", context)
 
@@ -47,8 +54,32 @@ def profileView(request, url):
     pass
 
 
-def ticketView(request, url):
-    pass
+def ticketDetailView(request, internalKey):
+    """
+    TODO: remove unused css on the ticket css files
+    TODO: change fields onclick and udpate it via ajax
+    TODO: Try to move the components to external files and import it.
+    TODO: Fix spacing on the texts.
+    TODO: Update the fields dynamically.
+    TODO: Implement the comment section.
+    TODO: Implement file attachment section
+    TODO: Fix linked issue component.
+    TODO: Add sub tasks dynamically using React for issues !EPIC.
+    TODO: Add tickets dynamically using React for issues EPIC.
+    TODO: Fix the style for right divs.
+    """
+    try:
+        ticket = Ticket.object.get(internalKey__iexact=internalKey)
+        # thisTicket = Ticket.objects.select_related('issueType', 'project', 'priority').prefetch_related(
+        #     'epicTickets__issueType', 'epicTickets__assignee', 'epicTickets__priority').get(
+        #     internalKey__iexact=internalKey)
+    except Ticket.DoesNotExist:
+        raise Http404
+
+    context = {
+        "ticket": ticket
+    }
+    return render(request, "jira/ticketDetailViewPage.html", context)
 
 
 @login_required
@@ -75,10 +106,10 @@ def boards(request):
             # mandatory columns for a board
             Column.object.bulk_create(
                 [
-                    Column(board=newBoard, internalKey='BACKLOG', orderNo=1),
-                    Column(board=newBoard, internalKey='TO DO', orderNo=2),
-                    Column(board=newBoard, internalKey='IN PROGRESS', orderNo=3),
-                    Column(board=newBoard, internalKey='DONE', orderNo=4)
+                    Column(board=newBoard, internalKey='BACKLOG', colour='#42526e', orderNo=1),
+                    Column(board=newBoard, internalKey='TO DO', colour='#42526e', orderNo=2),
+                    Column(board=newBoard, internalKey='IN PROGRESS', colour='#0052c', orderNo=3),
+                    Column(board=newBoard, internalKey='DONE', colour='#00875a', orderNo=4)
                 ]
             )
 
@@ -119,9 +150,10 @@ def boardSettings(request, url):
     return render(request, 'jira/boardSettings.html', context)
 
 
+@login_required
 def board(request, url):
     try:
-        thisBoard = Board.objects.get(url=url)
+        thisBoard = Board.object.get(url=url)
     except Board.DoesNotExist:
         raise Http404
 
@@ -185,6 +217,7 @@ def projects(request):
 
 
 def project(request, url):
+    # url = project code
     pass
 
 
@@ -224,11 +257,11 @@ def projectSettings(request, url):
     return render(request, 'jira/projectSettings.html', context)
 
 
-def profileAndSettings(request):
+def projectIssues(request, url):
     pass
 
 
-def projectIssues(request, projectId):
+def profileAndSettings(request):
     pass
 
 

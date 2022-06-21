@@ -6,6 +6,8 @@ from jira.api import BoardColumnsBulkOrderChangeApiEventVersion1Component
 from jira.api import BoardSettingsViewBoardColumnsApiEventVersion1Component
 from jira.api import BoardSettingsViewBoardLabelsApiEventVersion1Component
 from jira.api import BoardSettingsViewGeneralDetailsApiEventVersion1Component
+from jira.api import TeamsViewApiEventVersion1Component
+from jira.api import TeamsObjectApiEventVersion1Component
 
 # from jira.api import KanbanBoardBacklogActiveTicketsApiEventVersion1Component
 # from jira.api import KanbanBoardBacklogActiveTicketsApiEventVersion2Component
@@ -23,17 +25,18 @@ urlpatterns = [
     # path('', views.mainPage, name='main-page'),
     # path('sprint-board/', views.sprintBoard, name='sprintBoard'),
     # path('back-log/', views.backLog, name='backLog'),
-    # path('ticket/<slug:internalKey>/', views.ticketPage, name='ticket-page'),
+    path('ticket/<slug:internalKey>/', views.ticketDetailView, name='ticket-detail-view'),
     path('projects/', views.projects, name='projects-page'),
-    path('project/<slug:url>/', views.project, name='project-page'),
-    path('project/<slug:url>/settings', views.projectSettings, name='project-settings'),
+    path('projects/<slug:url>/', views.project, name='project-page'),
+    path('projects/<slug:url>/settings', views.projectSettings, name='project-settings'),
+    path('projects/<slug:url>/issues', views.projectIssues, name='project-issues'),
     path('boards/', views.boards, name='boards-page'),
-    path('board/<slug:url>/', views.board, name='board-page'),
-    path('board/<slug:url>/settings/', views.boardSettings, name='board-settings'),
+    path('boards/<slug:url>/', views.board, name='board-page'),
+    path('boards/<slug:url>/settings/', views.boardSettings, name='board-settings'),
     # path('kanbanBoard/<slug:url>/', views.kanbanBoard, name='kanban-board-page'),
     # path('board/<slug:url>/backlog/', views.backlog, name='board-backlog'),
     # path('kanbanBoard/<slug:url>/backlog/', views.kanbanBoardBacklog, name='kanban-board-backlog'),
-    path('people/team/<slug:url>/', views.team, name='team-page'),
+    path('people/teams/<slug:url>/', views.team, name='team-page'),
 ]
 
 # api
@@ -57,6 +60,16 @@ urlpatterns += [
         'api/v1/boardSettingsViewBoardLabelsApiEventVersion1Component/<slug:url>',
         BoardSettingsViewBoardLabelsApiEventVersion1Component.as_view(),
         name='boardSettingsViewBoardLabelsApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/teamsViewApiEventVersion1Component/<slug:teamId>',
+        TeamsViewApiEventVersion1Component.as_view(),
+        name='teamsViewApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/teamsObjectApiEventVersion1Component/<slug:teamId>',
+        TeamsObjectApiEventVersion1Component.as_view(),
+        name='teamsObjectApiEventVersion1Component'
     ),
     # path(
     #     'api/v1/ticketObjectForIssuesInTheEpicTicketApiEventVersion1Component',

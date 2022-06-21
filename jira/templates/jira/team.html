@@ -13,7 +13,7 @@
 		<div style="height:30px;"></div>
 		<div class="col-md-12">
 			<div class="row">
-				<div class="col">
+				<div class="col-md-4">
 					<h4>{{team.internalKey}}</h4>
 
 					{% if team.isPrivate %}
@@ -32,8 +32,8 @@
 						<i class="fa fa-ellipsis-h"></i>
 					</button>
 					<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-						<a class="dropdown-item" href="#">Leave team</a>
-						<a class="dropdown-item" href="#">Delete team</a>
+						<span class="dropdown-item" onclick="leaveTeam();">Leave team</span>
+						<span class="dropdown-item" onclick="deleteTeam();">Delete team</span>
 					</div>
 
 					<div style="height:30px;"></div>
@@ -61,8 +61,34 @@
 						{% endfor %}
 					</div>
 				</div>
-				<div class="col-12 col-md-8" id="div-id-forum-list-container">
+				<div class="col-md-1"></div>
+				<div class="col-md-7" id="div-id-forum-list-container">
+					<!-- TODO: Update container to reflect the teams activity -->
+					<h5>Team activity</h5>
+					<div class="card">
+						<div class="card card-body">
+							{% for t in team.members.all %}
+							<div class="row">
+								<div class="col-1">
+									{% if debug %}
+									<img alt="{{ t.get_full_name }}" class="avatar filter-by-alt" src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png" data-filter-by="alt">
+									{% elif t.profile.profilePicture %}
+									<img alt="{{ t.get_full_name }}" class="avatar filter-by-alt" src="{{ t.profile.profilePicture.url }}" data-filter-by="alt">
+									{% endif %}
+								</div>
+								<div class="col-11">
+									{{ t.get_full_name }}<br><small class="text-secondary">{{t.profile.jobTitle}}</small>
+								</div>
+							</div>
+							<div style="height:15px;"></div>
+							{% endfor %}
+						</div>
+					</div>
 
+					<!--  -->
+					<div style="height:30px;"></div>
+
+					<h5>Team chat</h5>
 				</div>
 				
 			</div>
@@ -71,7 +97,81 @@
 </div>
 <script type="text/javascript">
 
-	
+	function leaveTeam()
+	{
+	    Swal.fire({
+	        title: 'Are you sure?',
+	        text: "You won't be able to revert this!",
+	        icon: 'warning',
+	        showCancelButton: true,
+	        confirmButtonColor: '#3085d6',
+	        cancelButtonColor: '#d33',
+	        confirmButtonText: 'Yes'
+	    }).then((result) => {
+	        if (result.isConfirmed)
+	        {
+	            $.ajax(
+					{
+						url: "{% url 'jira:teamsViewApiEventVersion1Component' teamId=team.id %}",
+						data:
+						{
+						},
+						type: 'PUT',
+						dataType: 'json',
+					}
+				);
+
+				// TODO: redirect to dashboard and log a message.
+	        }
+	    })
+	}
+
+	function deleteTeam()
+	{
+	    // teamsObjectApiEventVersion1Component
+
+	    Swal.fire({
+	        title: 'Are you sure?',
+	        text: "You won't be able to revert this!",
+	        icon: 'warning',
+	        showCancelButton: true,
+	        confirmButtonColor: '#3085d6',
+	        cancelButtonColor: '#d33',
+	        confirmButtonText: 'Yes'
+	    }).then((result) => {
+	        if (result.isConfirmed)
+	        {
+	            $.ajax(
+					{
+						url: "{% url 'jira:teamsObjectApiEventVersion1Component' teamId=team.id %}",
+						data:
+						{
+						},
+						type: 'delete',
+						dataType: 'json',
+						success: function(response)
+						{
+							if (!response.success)
+							{
+								Swal.fire(
+			                        {
+			                            icon: 'error',
+			                            title: "Can't do that!",
+			                            text: response.message
+			                        }
+		                    	);
+							}
+							else
+							{
+								// TODO: redirect to dashboard and log a message.
+							}
+						}
+					}
+				);
+	        }
+	    })
+	}
+
 
 </script>
 {% endblock %}

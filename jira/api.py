@@ -1,19 +1,13 @@
-import json
-import threading
-from datetime import datetime
-from datetime import timedelta
 from http import HTTPStatus
 
-from django.contrib.auth.models import User
-from django.core.cache import cache
-from django.db.models import Q
+from django.contrib import messages
 from django.http import QueryDict, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from accounts.models import Component
-from jira.models import Board, Column, Label, Ticket, Project
+from accounts.models import Team
+from jira.models import Board, Column, Label
 from taskmaster.operations import databaseOperations
 
 
@@ -341,6 +335,61 @@ class BoardSettingsViewBoardLabelsApiEventVersion1Component(View):
         response = {
             "success": True
         }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TeamsViewApiEventVersion1Component(View):
+    def put(self, *args, **kwargs):
+        teamId = self.kwargs.get("teamId", None)
+
+        try:
+            thisTeam = Team.object.get(id=teamId)
+        except Team.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a team with url/id: ".format(teamId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        thisTeam.members.remove(self.request.user)
+
+        response = {
+            "success": True
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TeamsObjectApiEventVersion1Component(View):
+    def delete(self, *args, **kwargs):
+        # MANUAL_TESTED
+        teamId = self.kwargs.get("teamId", None)
+
+        try:
+            thisTeam = Team.object.get(id=teamId)
+        except Team.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a team with url/id: ".format(teamId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        if self.request.user in thisTeam.admins.all():
+            thisTeam.deleteFl = True
+            thisTeam.save(update_fields=['deleteFl'])
+            messages.success(
+                self.request,
+                'Your team has been deleted successfully!'
+            )
+            response = {
+                "success": True
+            }
+        else:
+            response = {
+                "success": False,
+                "message": "You don't have the permission to complete this operation."
+            }
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
