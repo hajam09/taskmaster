@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -105,12 +107,27 @@ def ticketDetailView(request, internalKey):
             for attachment in request.FILES.getlist('attachments')
         )
 
+    ticketComments = [
+        {
+            'id': i.pk,
+            'creator': i.creator.get_full_name(),
+            'comment': i.comment.replace("\n", "<br />"),
+            'edited': i.edited,
+            'likeCount': i.likes.count(),
+            'dislikeCount': i.dislikes.count(),
+            'canEdit': i.creator == request.user,
+            'masterCommentId': i.reply.pk if i.reply else None
+        }
+        for i in ticket.ticketComments.all()
+    ]
+
     context = {
         "ticket": ticket,
         "allProfiles": allProfiles,
         "ticketIssueTypes": ticketIssueTypes,
         "ticketPriorities": ticketPriorities,
-        "projectComponents": projectComponents
+        "projectComponents": projectComponents,
+        "ticketComments": json.dumps(ticketComments),
     }
     return render(request, "jira/ticketDetailViewPage.html", context)
 

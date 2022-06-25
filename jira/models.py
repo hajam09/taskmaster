@@ -154,10 +154,11 @@ class TicketAttachment(BaseModel):
 
 
 class TicketComment(BaseModel):
-    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='ticketComments')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ticketCommentCreator')
     comment = models.TextField()
     edited = models.BooleanField(default=False)
+    reply = models.ForeignKey('TicketComment', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
     likes = models.ManyToManyField(User, related_name='ticketCommentLikes')
     dislikes = models.ManyToManyField(User, related_name='ticketCommentDislikes')
 
