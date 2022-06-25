@@ -2,6 +2,10 @@
 {% load static %}
 {% block content %}
 
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
     <link type="text/css" rel="stylesheet" href="{% static 'css/ticketPageCss1.css' %}" media="all">
     <link type="text/css" rel="stylesheet" href="{% static 'css/ticketPageCss2.css' %}" media="all">
     <link rel="stylesheet"
@@ -228,7 +232,7 @@
                                     <li class="item item-right">
                                         <div class="wrap">
                                             <strong class="name" title="Resolution">Resolution:</strong>
-                                            <span id="resolution-val" class="value unresolved"> Unresolved </span>
+                                            <span id="resolution-val" class="value {{ ticket.resolution.internalKey }}"> {{ ticket.resolution.internalKey }} </span>
                                         </div>
                                     </li>
                                     <li class="item">
@@ -408,36 +412,8 @@
                             </div>
                         </div>
                         <div id="linkingmodule" class="module toggle-wrap">
-                            <div id="linkingmodule_heading" class="mod-header">
-                                <button class="aui-button toggle-title" aria-label="Issue Links"
-                                        aria-controls="linkingmodule" aria-expanded="true" resolved="">
-                                    <span class="accicon"><i class="fas fa-angle-down rotate-icon"></i></span>
-                                </button>
-                                <h4 class="toggle-title" id="linkingmodule-label">Issue Links</h4>
-                                <ul class="ops"></ul>
-                            </div>
-                            <div class="mod-content">
-                                <div class="links-container" data-default-link-icon="/images/icons/generic_link_16.png">
-                                    <dl class="links-list ">
-                                        <dt title="links to">links to</dt>
-                                        <dd id="remote-27862" data-remote-link-id="27862" class="remote-link">
-                                            <div class="link-content">
-                                                <p>
-                                                    <img src="https://github.com/favicon.ico" width="16" height="16"
-                                                         title="Web Link" alt="Web Link">
-                                                    <span title="https://github.com/jenkinsci/jenkins/pull/6691">
-                                                        <a href="https://github.com/jenkinsci/jenkins/pull/6691"
-                                                           class="link-title" target="_blank" rel="noopener">https://github.com/jenkinsci/jenkins/pull/6691</a>
-                                                        <span class="link-summary"></span>
-                                                    </span>
-                                                </p>
-                                                <ul class="link-snapshot">
-                                                </ul>
-                                            </div>
-                                        </dd>
-                                    </dl>
-                                </div>
-                            </div>
+
+
                         </div>
                         <div id="activitymodule" class="module toggle-wrap">
                             <div id="activitymodule_heading" class="mod-header">
@@ -566,270 +542,248 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
     <script type="text/javascript">
-        $(document).ready(function () {
-            renderForumComments({{ticketComments|safe}});
-        });
-
-        function verifyLogin() {
-            {% if not user.is_authenticated %}
-                window.location.href = "{% url 'accounts:login' %}";
-            {% endif %}
-        }
-
-        function updateReplyModal(masterCommentId) {
-            document.getElementById('masterCommentId').value = masterCommentId;
-        }
-
-        function createForumComment() {
-            var comment = $("#textarea-id-forum-comment").val();
-            comment = comment.trim();
-
-            if (comment && !comment.trim() || comment.length === 0) {
-                alert("Enter a comment!");
-                return;
-            }
-
-            $("#textarea-id-forum-comment").val("");
-
-            $.ajax(
-                {
-                    data: {
-                        'functionality': 'createForumComment',
-                        'comment': comment
-                    },
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.statusCode == 200) {
-                            renderForumComments(response.forum);
-                        }
-                    }
-                });
-        }
-
-        function createChildForumComment() {
-            var comment = $('textarea#childCommentText').val();
-            comment = comment.trim();
-
-            if (comment && !comment.trim() || comment.length === 0) {
-                alert("Enter a reply!");
-                return;
-            }
-
-            $("#replyModal").modal('hide');
-            $("textarea#childCommentText").val("");
-
-            $.ajax(
-                {
-                    data:
-                        {
-                            'functionality': 'createForumComment',
-                            'comment': comment,
-                            'masterCommentId': $('#masterCommentId').val(),
-                        },
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.statusCode == 200) {
-                            renderForumComments(response.forum);
-                        }
-                    }
-                });
-        }
-
-        function renderForumComments(forumComments) {
-            if (forumComments.length === 0)
-                return;
-
-            var unidentifiedComments = [];
-
-            for (const comment of forumComments) {
-
-                var editDeleteDropdown = '';
-                if (comment.canEdit) {
-                    editDeleteDropdown = `
-					<a href="#" onclick="edit_forum_comment_text_area(` + comment.id + `);"><i class='far fa-edit' style='font-size:15px'></i> Edit</a>
-					&nbsp;
-					<a href="#" onclick="deleteForumComment(` + comment.id + `);return false;"><i class='far fa-trash-alt' style='font-size:15px'></i> Delete</a>`;
-                }
-
-                var forumCommentComponent = `
-			<div class="div-id-forum-comment-component` + comment.id + `">
-				<div class="">
-					<div class="row m-0">
-						<div class="">
-							<a class="text-decoration-none" href="#">
-								<img class="" src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/avat-01-512.png" width="25" height="25" alt="...">
-							</a>
-						</div>
-						<div class="flex-grow-1 pl-2">
-							<a class="text-decoration-none" href="#">
-								<span class="text-capitalize mb-0">` + comment.creatorFullName + `</span>
-								<span class="small text-secondary m-0 mt-1" id="date_and_edited_msg_` + comment.id + `">1 day ago
-                {% if f.edited %}(edited){% endif %}</span>
-							</a>
-						</div>
-					</div>
-					<div class="">
-						<p class="my-2" id="forum_comment_text_` + comment.id + `">
-							` + comment.comment + `
-						</p>
-					</div>
-					<footer>
-						<span id="forum-comment-like-id-` + comment.id + `" type="button" class="btn btn-default btn-sm" onclick="likeForumComment(` + comment.id + `)">
-							<i class='far fa-thumbs-up' style='font-size:15px'></i> (` + comment.likeCount + `)
-						</span>
-						<span id="forum-comment-dislike-id-` + comment.id + `" type="button" class="btn btn-default btn-sm" onclick="dislikeForumComment(` + comment.id + `)">
-							<i class='far fa-thumbs-down' style='font-size:15px'></i> (` + comment.dislikeCount + `)
-						</span>
-						&nbsp;
-						<a href="#"  data-toggle="modal" data-target="#replyModal" onclick="updateReplyModal(` + comment.id + `);return false;"><i class='far fa-comment-alt' style='font-size:15px'></i> Reply</a>
-						&nbsp;
-						` + editDeleteDropdown + `
-					</footer>
-					<hr>
-					<div class="div-class-child-comments-container` + comment.id + `"></div>
-				</div>
-			</div>`;
-
-                if (!comment.masterCommentId) {
-                    // master comment. reply field is null.
-                    $('#div-id-forum-master-comment').prepend(forumCommentComponent);
-                } else {
-                    // this comment does have a master comment. Needs to be under appropriate comment object.
-                    if ($('.div-class-child-comments-container' + comment.masterCommentId)[0])
-                        $('.div-class-child-comments-container' + comment.masterCommentId).append(forumCommentComponent);
-                    else
-                        unidentifiedComments.push(comment);
-                }
-            }
-
-            return renderForumComments(unidentifiedComments);
-        }
-
-        function deleteForumComment(commentId) {
-            if (!confirm('Are you sure you want to delete it?'))
-                return;
-
-            $.ajax(
-                {
-                    data:
-                        {
-                            'functionality': 'deleteForumComment',
-                            'id': commentId
-                        },
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.statusCode == 200 || response.statusCode == 404) {
-                            location.reload();
-                        }
-                    }
-                }
-            );
-        }
-
-
-        // --------------------------------------------------------------------------- //
-
-        // --------------------------------------------------------------------------- //
-
-        function likeForumComment(commentId) {
-            // TODO: NotImplemented
-            verifyLogin();
-            $.ajax(
-                {
-                    data:
-                        {
-                            'functionality': 'likeForumComment'
-                        },
-                    url: '/forum/api/v1/forumCommentOperations/' + commentId,
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.statusCode == 200) {
-                            $('#forum-comment-like-id-' + commentId).html('<i class="far fa-thumbs-up" style="font-size:15px"></i> (' + response.likeCount + ')');
-                            $('#forum-comment-dislike-id-' + commentId).html('<i class="far fa-thumbs-down" style="font-size:15px"></i> (' + response.dislikeCount + ')');
-                        }
-
-                        if (response.statusCode == 404) {
-                            Swal.fire(
-                                {
-                                    icon: 'warning',
-                                    title: "Can't do that!",
-                                    text: response.message
-                                }
-                            );
-                        }
-                    }
-                }
-            );
-        }
-
-        function dislikeForumComment(commentId) {
-            // TODO: NotImplemented
-            verifyLogin();
-
-            $.ajax(
-                {
-                    data:
-                        {
-                            'functionality': 'dislikeForumComment'
-                        },
-                    url: '/forum/api/v1/forumCommentOperations/' + commentId,
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.statusCode == 200) {
-                            $('#forum-comment-like-id-' + commentId).html('<i class="far fa-thumbs-up" style="font-size:15px"></i> (' + response.likeCount + ')');
-                            $('#forum-comment-dislike-id-' + commentId).html('<i class="far fa-thumbs-down" style="font-size:15px"></i> (' + response.dislikeCount + ')');
-                        }
-
-                        if (response.statusCode == 404) {
-                            Swal.fire(
-                                {
-                                    icon: 'warning',
-                                    title: "Can't do that!",
-                                    text: response.message
-                                }
-                            );
-                        }
-                    }
-                }
-            );
-        }
-
-        function updateWatchers(isWatching, watchingCount, forumId) {
-            var forumWatchContainer = null;
-            if (isWatching)
-                forumWatchContainer = `<span onclick="watchUnwatchForum(` + forumId + `);" data-toggle="tooltip" data-placement="top" title="You are watching this issue. Click to stop watching this issue."><i class='far fa-eye' style='font-size:15px'></i> (` + watchingCount + `) Unwatch</span>`;
-            else
-                forumWatchContainer = `<span onclick="watchUnwatchForum(` + forumId + `);" data-toggle="tooltip" data-placement="top" title="You are not watching this issue. Click to watch this issue."><i class='far fa-eye' style='font-size:15px'></i> (` + watchingCount + `) Watch</span>`;
-
-            $('a#a-id-forum-watcher' + forumId).html(forumWatchContainer);
-        }
-
-        function watchUnwatchForum(forumId) {
-            // TODO: NotImplemented
-            $.ajax(
-                {
-                    data:
-                        {
-                            'functionality': 'watchUnwatchForum',
-                        },
-                    url: '/forum/api/v1/forumOperations/' + forumId,
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.statusCode == 200) {
-                            updateWatchers(response.isWatching, response.newWatchCount, forumId);
-                        } else {
-                            Swal.fire(
-                                {
-                                    icon: 'warning',
-                                    title: "Can't do that!",
-                                    text: response.message
-                                }
-                            );
-                        }
-                    }
-                });
-        }
-
         $('#priority').selectpicker();
+    </script>
+    <script type="text/babel">
+
+        class LinkingModuleBody extends React.Component {
+            constructor(props) {
+                super(props);
+            }
+
+            renderSubTaskTickets = () => {
+                const style1 = {
+                    height: "10px"
+                }
+                const style2 = {
+                    marginTop: "-13px",
+                    marginLeft: "-10px"
+                }
+
+                const style3 = {
+                    marginTop: "-12px",
+                    marginLeft: "-15px"
+                }
+                return <div>
+                    {% for et in ticket.subTask.all %}
+                        <div className="card">
+                            <div className="card-body" style={style1}>
+                                <div className="row">
+                                    <div className="col-auto" style={style2}>
+                                        <img src='{{ et.issueType.icon }}' width="20" height="20" data-toggle="tooltip"
+                                             data-placement="top" title="{{ et.issueType.internalKey }}"></img>
+                                    </div>
+                                    <div className="col-auto" style={style3}>
+                                        <a href="{{ et.getTicketUrl }}">{{ et.internalKey }}</a>
+                                    </div>
+                                    <div className="col" style={style3}>
+                                        <span>{{ et.summary }}</span>
+                                    </div>
+                                    <div className="col-auto" style={style2}>
+                                        <img src='{{ et.priority.icon }}' width="20" height="20" data-toggle="tooltip"
+                                             data-placement="top" title="{{ et.priority.internalKey }}"></img>
+                                    </div>
+                                    <div className="col-auto" style={style2}>
+                                        <img src='{{ et.assignee.profile.profilePicture.url }}' width="25" height="25"
+                                             data-toggle="tooltip" data-placement="top"
+                                             title="{{ et.assignee.get_full_name }}"></img>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            }
+
+            renderEpicChildTickets = () => {
+
+                const style1 = {
+                    height: "10px"
+                }
+                const style2 = {
+                    marginTop: "-13px",
+                    marginLeft: "-10px"
+                }
+
+                const style3 = {
+                    marginTop: "-12px",
+                    marginLeft: "-15px"
+                }
+                return <div>
+                    {% for et in ticket.epicTickets.all %}
+                        <div className="card">
+                            <div className="card-body" style={style1}>
+                                <div className="row">
+                                    <div className="col-auto" style={style2}>
+                                        <img src='{{ et.issueType.icon }}' width="20" height="20" data-toggle="tooltip"
+                                             data-placement="top" title="{{ et.issueType.internalKey }}"></img>
+                                    </div>
+                                    <div className="col-auto" style={style3}>
+                                        <a href="{{ et.getTicketUrl }}">{{ et.internalKey }}</a>
+                                    </div>
+                                    <div className="col" style={style3}>
+                                        <span>{{ et.summary }}</span>
+                                    </div>
+                                    <div className="col-auto" style={style2}>
+                                        <img src='{{ et.priority.icon }}' width="20" height="20" data-toggle="tooltip"
+                                             data-placement="top" title="{{ et.priority.internalKey }}"></img>
+                                    </div>
+                                    <div className="col-auto" style={style2}>
+                                        <img src='{{ et.assignee.profile.profilePicture.url }}' width="25" height="25"
+                                             data-toggle="tooltip" data-placement="top"
+                                             title="{{ et.assignee.get_full_name }}"></img>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            }
+
+            renderNormalMode = () => {
+                return <div></div>
+            }
+
+            renderNewTicketMode = () => {
+
+                const style1 = {
+                    marginRight: "25px"
+                }
+                if (this.props.isEpic)
+                {
+                    return (
+                        <div id="new-ticket-creator">
+                    <div className="row">
+                        <div className="col-4">
+                            <select id="issueType" data-show-content="true" className="form-control">
+                                {% for ji in ticketIssueTypes.all %}
+                                    {% if ji.code == "STORY" %}
+                                        <option
+                                            data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"
+                                            selected="selected">{{ ji.internalKey }}</option>
+                                    {% else %}
+                                        <option
+                                            data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"
+                                            defaultValue="{{ ji.code }}">{{ ji.internalKey }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div className="col-8">
+                            <input className="form-control pull-right" id="new-ticket-name" type="text"
+                                   placeholder="What needs to be done?"></input>
+                        </div>
+                    </div>
+                    <br></br>
+                    <div>
+                        <button type="button" className="btn btn-primary pull-right">Create</button>
+                        <button type="button" className="btn btn-light pull-right" style={style1} onClick={this.props.switchCreateMode}>Cancel</button>
+                    </div>
+                </div>
+                    )
+                }
+                else
+                {
+                    return (
+                        <div id="subtask-tickets-container">
+                            <div id="subtask-tickets-creator">
+                                <input className="form-control" id="new-sub-task-name" type="text"
+                                       placeholder="What needs to be done in this sub task?"></input>
+                                <br></br>
+                                <button type="button" className="btn btn-primary pull-right">Create</button>
+                                <button type="button" className="btn btn-light pull-right" style={style1}
+                                        onClick={this.props.switchCreateMode}>Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )
+                }
+
+
+            }
+
+            render() {
+                return (
+                    <div id="tickets-list-container">
+                        { this.props.isEpic ?  this.renderEpicChildTickets() : this.renderSubTaskTickets() }
+                        { this.props.inCreateMode ?  this.renderNewTicketMode() : this.renderNormalMode() }
+                    </div>
+                )
+            }
+        }
+
+
+        class LinkingModuleHead extends React.Component {
+            constructor(props) {
+                super(props);
+
+                this.state = {
+                    heading: this.props.isEpic ? "Issues in the epic" : "Subtasks"
+                }
+            }
+
+            initaliseTicket = () => {
+                console.log("ss")
+            }
+
+            render() {
+
+                const style1 = {
+                    fontSize: "24px",
+                    cursor: "pointer"
+                }
+                return (
+                    <div id="linkingmodule_heading" className="mod-header">
+                        <button className="aui-button toggle-title" aria-label="Issue Links"
+                                aria-controls="linkingmodule" aria-expanded="true" resolved="">
+                            <span className="accicon">
+                                <i className="fas fa-angle-down rotate-icon"></i>
+                            </span>
+                        </button>
+                        <div className="row">
+                            <div className="col">
+                                <p className="font-weight-bold">{this.state.heading}</p>
+                            </div>
+                            <div className="col-auto">
+                                <i className="fa fa-plus-square float-right"
+                                   style={style1} onClick={this.props.switchCreateMode}
+                                ></i>
+                            </div>
+                        </div>
+
+                    </div>
+                );
+            }
+        }
+
+        class LinkingModuleComponent extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = {
+                    isEpic: '{{ ticket.issueType.code }}' === 'EPIC',
+                    inCreateMode: false
+                }
+
+                this.switchCreateMode = this.switchCreateMode.bind(this)
+            }
+
+            switchCreateMode = () => {
+                this.setState({
+                    inCreateMode: !this.state.inCreateMode
+                })
+            }
+
+            render() {
+                return (
+                    <div>
+                        <LinkingModuleHead isEpic={this.state.isEpic} inCreateMode={this.state.inCreateMode} switchCreateMode={this.switchCreateMode}/>
+                        <br></br>
+                        <LinkingModuleBody isEpic={this.state.isEpic} inCreateMode={this.state.inCreateMode} switchCreateMode={this.switchCreateMode}/>
+                    </div>
+                );
+            }
+        }
+
+    ReactDOM.render( <LinkingModuleComponent/>, document.getElementById('linkingmodule') );
     </script>
 {% endblock %}
