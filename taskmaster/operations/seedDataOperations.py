@@ -60,10 +60,10 @@ def installSeedData(xmlFile):
 
             if deleteObject:
                 del childElement.attrib['delete']
-                modelType.object.filter(**childElement.attrib).delete()
+                modelType.objects.filter(**childElement.attrib).delete()
                 continue
 
-            if modelType.object.filter(**childElement.attrib).exists():
+            if modelType.objects.filter(**childElement.attrib).exists():
                 continue
 
             modelInstance = modelType()
@@ -71,7 +71,7 @@ def installSeedData(xmlFile):
                 setattr(modelInstance, getKeyOrForeignObjectId(key), getValueOrForeignObjectId(key, value))
             bulkObjects.append(modelInstance)
 
-        modelType.object.bulk_create(bulkObjects)
+        modelType.objects.bulk_create(bulkObjects)
     return
 
 
@@ -103,7 +103,7 @@ def getValueOrForeignObjectId(key, value):
     appName = getAppLabelForModel(tableName)
 
     modelType = apps.get_model(appName, tableName)
-    return modelType.object.get(**{key.split("__")[1]: value}).id
+    return modelType.objects.get(**{key.split("__")[1]: value}).id
 
 
 def getAppLabelForModel(modalName):

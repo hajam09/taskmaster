@@ -30,7 +30,7 @@ def cleanInstall(request, excludeThisUser=True, removeExistingObjects=True):
     if removeExistingObjects:
         for app in PROJECT_APPS:
             for model in apps.get_app_config(app).get_models():
-                model.object.all().delete()
+                model.objects.all().delete()
 
     seedDataOperations.runSeedDataInstaller()
 
@@ -96,7 +96,7 @@ def createProfileObjects(users=None):
                 jobTitle=random.choice(JOB_TITLE),
             )
         )
-    return Profile.object.bulk_create(BULK_PROFILES)
+    return Profile.objects.bulk_create(BULK_PROFILES)
 
 
 def createTeamObjects(users=None):

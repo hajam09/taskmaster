@@ -159,9 +159,6 @@ body {
 	color: var(--aui-body-text)
 }
 
-html>body {
-	overflow-y: hidden
-}
 
 h1,
 h4 {

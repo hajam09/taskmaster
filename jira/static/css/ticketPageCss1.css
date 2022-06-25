@@ -191,21 +191,6 @@ body {
 /* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.fb15cffa72', location = 'aui.splitchunk.fb15cffa72.css' */
 
 /* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.56dfb54d0c', location = 'aui.splitchunk.56dfb54d0c.css' */
-@font-face {
-	font-family: Atlassian Icons;
-	src: url(/s/ns5y22/820006/157mvhb/9.2.3-4dc984d9f/_/download/resources/com.atlassian.auiplugin:split_aui.splitchunk.56dfb54d0c/assets/atlassian-icons.eot);
-	src: url(/s/ns5y22/820006/157mvhb/9.2.3-4dc984d9f/_/download/resources/com.atlassian.auiplugin:split_aui.splitchunk.56dfb54d0c/assets/atlassian-icons.eot?#iefix) format("embedded-opentype"), url() format("woff"), url(/s/ns5y22/820006/157mvhb/9.2.3-4dc984d9f/_/download/resources/com.atlassian.auiplugin:split_aui.splitchunk.56dfb54d0c/assets/atlassian-icons.ttf) format("truetype"), url(/s/ns5y22/820006/157mvhb/9.2.3-4dc984d9f/_/download/resources/com.atlassian.auiplugin:split_aui.splitchunk.56dfb54d0c/assets/atlassian-icons.svg#atlassian-icons) format("svg");
-	font-weight: 400;
-	font-style: normal
-}
-
-@font-face {
-	font-family: Adgs Icons;
-	src: url();
-	src: url(/s/ns5y22/820006/157mvhb/9.2.3-4dc984d9f/_/download/resources/com.atlassian.auiplugin:split_aui.splitchunk.56dfb54d0c/assets/adgs-icons.eot?#iefix) format("embedded-opentype"), url() format("woff"), url(/s/ns5y22/820006/157mvhb/9.2.3-4dc984d9f/_/download/resources/com.atlassian.auiplugin:split_aui.splitchunk.56dfb54d0c/assets/adgs-icons.ttf) format("truetype"), url(/s/ns5y22/820006/157mvhb/9.2.3-4dc984d9f/_/download/resources/com.atlassian.auiplugin:split_aui.splitchunk.56dfb54d0c/assets/adgs-icons.svg#adgs-icons) format("svg");
-	font-weight: 400;
-	font-style: normal
-}
 
 /* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.908fe798b4', location = 'aui.splitchunk.908fe798b4.css' */
 

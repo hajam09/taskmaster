@@ -20,7 +20,7 @@ class BoardSettingsViewGeneralDetailsApiEventVersion1Component(View):
         put = QueryDict(self.request.body)
 
         try:
-            board = Board.object.get(url=url)
+            board = Board.objects.get(url=url)
         except Board.DoesNotExist:
             response = {
                 "success": False,
@@ -63,7 +63,7 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
         url = self.kwargs.get("url", None)
 
         try:
-            board = Board.object.get(url=url)
+            board = Board.objects.get(url=url)
         except Board.DoesNotExist:
             response = {
                 "success": False,
@@ -95,7 +95,7 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
         url = self.kwargs.get("url", None)
 
         try:
-            board = Board.object.get(url=url)
+            board = Board.objects.get(url=url)
         except Board.DoesNotExist:
             response = {
                 "success": False,
@@ -110,7 +110,7 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
 
             existingColumn = [i for i in boardColumns if i.internalKey.lower() == newColumnName.lower()]
             if len(existingColumn) == 0:
-                newColumn = Column.object.create(
+                newColumn = Column.objects.create(
                     board=board,
                     internalKey=newColumnName,
                     orderNo=board.boardColumns.count() + 1
@@ -132,7 +132,7 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
         put = QueryDict(self.request.body)
 
         try:
-            board = Board.object.get(url=url)
+            board = Board.objects.get(url=url)
         except Board.DoesNotExist:
             response = {
                 "success": False,
@@ -173,7 +173,7 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
         url = self.kwargs.get("url", None)
 
         try:
-            Board.object.get(url=url)
+            Board.objects.get(url=url)
         except Board.DoesNotExist:
             response = {
                 "success": False,
@@ -183,7 +183,7 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
 
         put = QueryDict(self.request.body)
         columnId = put.get("column-id", None)
-        column = Column.object.filter(id=columnId).first()
+        column = Column.objects.filter(id=columnId).first()
 
         def canDeleteOrEdit(columnName):
             return columnName not in ["BACKLOG", "TO DO", "IN PROGRESS", "DONE"]
@@ -220,7 +220,7 @@ class BoardColumnsBulkOrderChangeApiEventVersion1Component(View):
         put = QueryDict(self.request.body)
 
         try:
-            board = Board.object.get(url=url)
+            board = Board.objects.get(url=url)
         except Board.DoesNotExist:
             response = {
                 "success": False,
@@ -250,7 +250,7 @@ class BoardSettingsViewBoardLabelsApiEventVersion1Component(View):
         url = self.kwargs.get("url", None)
 
         try:
-            board = Board.object.get(url=url)
+            board = Board.objects.get(url=url)
         except Board.DoesNotExist:
             response = {
                 "success": False,
@@ -263,7 +263,7 @@ class BoardSettingsViewBoardLabelsApiEventVersion1Component(View):
         if newLabelName is None:
             return JsonResponse({}, status=HTTPStatus.ACCEPTED)
 
-        newLabel = Label.object.create(
+        newLabel = Label.objects.create(
             board=board,
             internalKey=newLabelName,
         )
@@ -284,7 +284,7 @@ class BoardSettingsViewBoardLabelsApiEventVersion1Component(View):
         put = QueryDict(self.request.body)
 
         try:
-            board = Board.object.get(url=url)
+            board = Board.objects.get(url=url)
         except Board.DoesNotExist:
             response = {
                 "success": False,
@@ -319,7 +319,7 @@ class BoardSettingsViewBoardLabelsApiEventVersion1Component(View):
         url = self.kwargs.get("url", None)
 
         try:
-            board = Board.object.get(url=url)
+            board = Board.objects.get(url=url)
         except Board.DoesNotExist:
             response = {
                 "success": False,
@@ -330,7 +330,7 @@ class BoardSettingsViewBoardLabelsApiEventVersion1Component(View):
         put = QueryDict(self.request.body)
         labelId = put.get("label-id", None)
 
-        Label.object.filter(id=labelId, board=board).update(deleteFl=True)
+        Label.objects.filter(id=labelId, board=board).update(deleteFl=True)
 
         response = {
             "success": True
@@ -344,7 +344,7 @@ class TeamsViewApiEventVersion1Component(View):
         teamId = self.kwargs.get("teamId", None)
 
         try:
-            thisTeam = Team.object.get(id=teamId)
+            thisTeam = Team.objects.get(id=teamId)
         except Team.DoesNotExist:
             response = {
                 "success": False,
@@ -367,7 +367,7 @@ class TeamsObjectApiEventVersion1Component(View):
         teamId = self.kwargs.get("teamId", None)
 
         try:
-            thisTeam = Team.object.get(id=teamId)
+            thisTeam = Team.objects.get(id=teamId)
         except Team.DoesNotExist:
             response = {
                 "success": False,
@@ -405,7 +405,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         ticketSecurityComponents = cache.get("ticketSecurityComponents")
 #         ticketPriorityComponents = cache.get("ticketPriorityComponents")
 #
-#         project = Project.object.get(id=projectId)
+#         project = Project.objects.get(id=projectId)
 #         newTicketNumber = project.projectTickets.count() + 1
 #
 #         ticket = Ticket()
@@ -418,7 +418,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         ticket.priority = next((i for i in ticketPriorityComponents if i.code == "MEDIUM"), None)
 #
 #         if standardTicketId is not None:
-#             standardTicket = Ticket.object.get(id=standardTicketId)
+#             standardTicket = Ticket.objects.get(id=standardTicketId)
 #             ticket.sprint = standardTicket.sprint
 #             ticket.status = standardTicket.status
 #             ticket.board = standardTicket.board
@@ -461,7 +461,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         put = QueryDict(self.request.body)
 #
 #         try:
-#             ticket = Ticket.object.get(id=ticketId)
+#             ticket = Ticket.objects.get(id=ticketId)
 #         except Ticket.DoesNotExist:
 #             response = {
 #                 "success": False,
@@ -503,7 +503,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         ticketStatusComponents = cache.get("ticketStatusComponents")
 #         ticketPriorityComponents = cache.get("ticketPriorityComponents")
 #
-#         project = Project.object.get(id=projectId)
+#         project = Project.objects.get(id=projectId)
 #         newTicketNumber = project.projectTickets.count() + 1
 #
 #         ticket = Ticket()
@@ -517,7 +517,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         ticket.priority = next((i for i in ticketPriorityComponents if i.code == "MEDIUM"), None)
 #
 #         if epicTicketId is not None:
-#             epicTicket = Ticket.object.get(id=epicTicketId, issueType__code="EPIC")
+#             epicTicket = Ticket.objects.get(id=epicTicketId, issueType__code="EPIC")
 #             ticket.board = epicTicket.board
 #             ticket.column = epicTicket.column
 #             ticket.epic = epicTicket
@@ -551,7 +551,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         boardId = self.kwargs.get("boardId", None)
 #
 #         try:
-#             board = Board.object.get(id=boardId)
+#             board = Board.objects.get(id=boardId)
 #         except Board.DoesNotExist:
 #             response = {
 #                 "success": False,
@@ -559,8 +559,8 @@ class TeamsObjectApiEventVersion1Component(View):
 #             }
 #             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 #
-#         backLogColumn = Column.object.filter(board=board, name__icontains="BACKLOG").first()
-#         otherColumns = Column.object.filter(board=board).exclude(id=backLogColumn.id).prefetch_related('columnTickets')
+#         backLogColumn = Column.objects.filter(board=board, name__icontains="BACKLOG").first()
+#         otherColumns = Column.objects.filter(board=board).exclude(id=backLogColumn.id).prefetch_related('columnTickets')
 #
 #         response = {
 #             "success": True,
@@ -605,7 +605,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         columnId = put.get("column-id")
 #         ticketId = put.get("ticket-id")
 #
-#         Ticket.object.filter(id=ticketId).update(column_id=columnId)
+#         Ticket.objects.filter(id=ticketId).update(column_id=columnId)
 #         # TODO: Need to update the ticket status.
 #
 #         response = {
@@ -621,7 +621,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         boardId = self.kwargs.get("boardId", None)
 #
 #         try:
-#             board = Board.object.get(id=boardId)
+#             board = Board.objects.get(id=boardId)
 #         except Board.DoesNotExist:
 #             response = {
 #                 "success": False,
@@ -629,9 +629,9 @@ class TeamsObjectApiEventVersion1Component(View):
 #             }
 #             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 #
-#         backLogColumn = Column.object.filter(board=board, name__icontains="BACKLOG").first()
-#         otherColumns = Column.object.filter(board=board).exclude(id=backLogColumn.id)
-#         otherColumnTickets = Ticket.object.filter(column__in=otherColumns,
+#         backLogColumn = Column.objects.filter(board=board, name__icontains="BACKLOG").first()
+#         otherColumns = Column.objects.filter(board=board).exclude(id=backLogColumn.id)
+#         otherColumnTickets = Ticket.objects.filter(column__in=otherColumns,
 #                                                   modifiedDttm__gte=datetime.now() - timedelta(days=7))
 #
 #         if not otherColumns.exists():
@@ -665,7 +665,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         boardId = self.kwargs.get("boardId", None)
 #
 #         try:
-#             board = Board.object.get(id=boardId)
+#             board = Board.objects.get(id=boardId)
 #         except Board.DoesNotExist:
 #             response = {
 #                 "success": False,
@@ -673,9 +673,9 @@ class TeamsObjectApiEventVersion1Component(View):
 #             }
 #             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 #
-#         backLogColumn = Column.object.filter(board=board, name__icontains="BACKLOG").first()
-#         otherColumns = Column.object.filter(board=board).exclude(id=backLogColumn.id)
-#         otherColumnTickets = Ticket.object.filter(column__in=otherColumns,
+#         backLogColumn = Column.objects.filter(board=board, name__icontains="BACKLOG").first()
+#         otherColumns = Column.objects.filter(board=board).exclude(id=backLogColumn.id)
+#         otherColumnTickets = Ticket.objects.filter(column__in=otherColumns,
 #                                                   modifiedDttm__gte=datetime.now() - timedelta(days=7))
 #
 #         if not otherColumns.exists():
@@ -709,7 +709,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         boardId = self.kwargs.get("boardId", None)
 #
 #         try:
-#             board = Board.object.get(id=boardId)
+#             board = Board.objects.get(id=boardId)
 #         except Board.DoesNotExist:
 #             response = {
 #                 "success": False,
@@ -717,8 +717,8 @@ class TeamsObjectApiEventVersion1Component(View):
 #             }
 #             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 #
-#         backLogColumn = Column.object.filter(board=board, name__icontains="BACKLOG").first()
-#         todoColumn = Column.object.filter(board=board, name__icontains="TO DO").first()
+#         backLogColumn = Column.objects.filter(board=board, name__icontains="BACKLOG").first()
+#         todoColumn = Column.objects.filter(board=board, name__icontains="TO DO").first()
 #
 #         if backLogColumn is None or todoColumn is None:
 #             response = {
@@ -751,7 +751,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         boardId = self.kwargs.get("boardId", None)
 #
 #         try:
-#             board = Board.object.get(id=boardId)
+#             board = Board.objects.get(id=boardId)
 #         except Board.DoesNotExist:
 #             response = {
 #                 "success": False,
@@ -759,8 +759,8 @@ class TeamsObjectApiEventVersion1Component(View):
 #             }
 #             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 #
-#         backlogColumn = Column.object.filter(board=board, name__icontains="BACKLOG").first()
-#         todoColumn = Column.object.filter(board=board, name__icontains="TO DO").first()
+#         backlogColumn = Column.objects.filter(board=board, name__icontains="BACKLOG").first()
+#         todoColumn = Column.objects.filter(board=board, name__icontains="TO DO").first()
 #
 #         if backlogColumn is None or todoColumn is None:
 #             response = {
@@ -793,7 +793,7 @@ class TeamsObjectApiEventVersion1Component(View):
 #         boardId = self.kwargs.get("boardId", None)
 #
 #         try:
-#             board = Board.object.get(id=boardId)
+#             board = Board.objects.get(id=boardId)
 #         except Board.DoesNotExist:
 #             response = {
 #                 "success": False,
@@ -839,9 +839,9 @@ class TeamsObjectApiEventVersion1Component(View):
 #         body = json.loads(self.request.body)
 #
 #         for ticket in body['data']['tickets']:
-#             project = Project.object.filter(code__icontains=ticket['projectCode']).first()
+#             project = Project.objects.filter(code__icontains=ticket['projectCode']).first()
 #
-#             if project is None or Ticket.object.filter(internalKey=ticket["internalKey"]).exists():
+#             if project is None or Ticket.objects.filter(internalKey=ticket["internalKey"]).exists():
 #                 continue
 #
 #             newTicket = Ticket()
@@ -849,11 +849,11 @@ class TeamsObjectApiEventVersion1Component(View):
 #             newTicket.summary = ticket["summary"]
 #             newTicket.description = ticket["description"]
 #             newTicket.project = project
-#             newTicket.reporter = User.object.get(username="admin")
+#             newTicket.reporter = User.objects.get(username="admin")
 #             newTicket.storyPoints = int(ticket["storyPoints"])
-#             newTicket.issueType = Component.object.filter(componentGroup__code="TICKET_ISSUE_TYPE",
+#             newTicket.issueType = Component.objects.filter(componentGroup__code="TICKET_ISSUE_TYPE",
 #                                                           internalKey=ticket["issueType"]).first()
-#             newTicket.priority = Component.object.filter(componentGroup__code="TICKET_PRIORITY",
+#             newTicket.priority = Component.objects.filter(componentGroup__code="TICKET_PRIORITY",
 #                                                          internalKey=ticket["priority"]).first()
 #             newTicket.board = project.boardProjects.first()
 #             newTicket.column = project.boardProjects.first().boardColumns.first()

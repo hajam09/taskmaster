@@ -1,29 +1,30 @@
 <SeedData>
     <ComponentGroups>
-        <ComponentGroup internalKey="Ticket Priority" code="TICKET_PRIORITY"/>
+        <ComponentGroup internalKey="Ticket Priority" code="TICKET_PRIORITY"
+                        reference="https://www.imagevenue.com/GAU6RI"/>
     </ComponentGroups>
 
     <Components>
         <Component componentGroup.code="TICKET_PRIORITY" internalKey="Trivial" code="TRIVIAL"
-                   icon="img/ticket-priority/trivial.jpg" orderNo="1"/>
+                   icon="https://cdn-thumbs.imagevenue.com/25/48/d3/ME14ZPLM_t.jpg" orderNo="1"/>
         <Component componentGroup.code="TICKET_PRIORITY" internalKey="Minor" code="MINOR"
-                   icon="img/ticket-priority/minor.jpg" orderNo="2"/>
+                   icon="https://cdn-thumbs.imagevenue.com/61/79/e5/ME14ZPLL_t.jpg" orderNo="2"/>
         <Component componentGroup.code="TICKET_PRIORITY" internalKey="Lowest" code="LOWEST"
-                   icon="img/ticket-priority/lowest.jpg" orderNo="3"/>
-        <Component componentGroup.code="TICKET_PRIORITY" internalKey="Low" code="LOW" icon="img/ticket-priority/low.jpg"
-                   orderNo="4"/>
+                   icon="https://cdn-thumbs.imagevenue.com/18/6a/20/ME14ZPLH_t.jpg" orderNo="3"/>
+        <Component componentGroup.code="TICKET_PRIORITY" internalKey="Low" code="LOW"
+                   icon="https://cdn-thumbs.imagevenue.com/81/0d/09/ME14ZPLG_t.jpg" orderNo="4"/>
         <Component componentGroup.code="TICKET_PRIORITY" internalKey="Medium" code="MEDIUM"
-                   icon="img/ticket-priority/medium.jpg" orderNo="5"/>
+                   icon="https://cdn-thumbs.imagevenue.com/17/d5/e6/ME14ZPLK_t.jpg" orderNo="5"/>
         <Component componentGroup.code="TICKET_PRIORITY" internalKey="High" code="HIGH"
-                   icon="img/ticket-priority/high.jpg" orderNo="6"/>
+                   icon="https://cdn-thumbs.imagevenue.com/84/ba/de/ME14ZPLE_t.jpg" orderNo="6"/>
         <Component componentGroup.code="TICKET_PRIORITY" internalKey="Highest" code="HIGHEST"
-                   icon="img/ticket-priority/highest.jpg" orderNo="7"/>
+                   icon="https://cdn-thumbs.imagevenue.com/dd/2d/2f/ME14ZPLF_t.jpg" orderNo="7"/>
         <Component componentGroup.code="TICKET_PRIORITY" internalKey="Major" code="MAJOR"
-                   icon="img/ticket-priority/major.jpg" orderNo="8"/>
+                   icon="https://cdn-thumbs.imagevenue.com/58/a6/45/ME14ZPLJ_t.jpg" orderNo="8"/>
         <Component componentGroup.code="TICKET_PRIORITY" internalKey="Critical" code="CRITICAL"
-                   icon="img/ticket-priority/critical.jpg" orderNo="9"/>
+                   icon="https://cdn-thumbs.imagevenue.com/20/d6/63/ME14ZPLD_t.jpg" orderNo="9"/>
         <Component componentGroup.code="TICKET_PRIORITY" internalKey="Blocker" code="BLOCKER"
-                   icon="img/ticket-priority/blocker.jpg" orderNo="10"/>
+                   icon="https://cdn-thumbs.imagevenue.com/0f/3f/d2/ME14ZPLC_t.jpg" orderNo="10"/>
 
     </Components>
 </SeedData>

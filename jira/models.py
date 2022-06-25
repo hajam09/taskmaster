@@ -110,7 +110,7 @@ class Ticket(BaseModel):
     summary = models.CharField(max_length=2048)
     description = models.TextField(blank=True, null=True)
     fixVersion = models.CharField(max_length=2048, blank=True, null=True)
-    component = models.CharField(max_length=2048, blank=True, null=True)
+    component = models.ForeignKey(Component, on_delete=models.SET_NULL, null=True, related_name="ticketComponents" , limit_choices_to={'componentGroup__code': 'PROJECT_COMPONENTS'})
     project = models.ForeignKey(Project, on_delete=models.PROTECT, null=True, related_name="projectTickets")
     assignee = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="ticketAssignee")
     reporter = models.ForeignKey(User, on_delete=models.PROTECT, related_name="ticketReporter")

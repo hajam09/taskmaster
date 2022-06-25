@@ -31,8 +31,6 @@ class BaseModel(models.Model):
     orderNo = models.IntegerField(default=1, blank=True, null=True)
     versionNo = models.IntegerField(default=1, blank=True, null=True)
 
-    object = BaseModelManager()
-
     class Meta:
         abstract = True
 

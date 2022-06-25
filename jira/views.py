@@ -6,8 +6,8 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render
 
-from accounts.models import Profile, Component, Team
-from jira.models import Board, Project, Column, Ticket
+from accounts.models import Profile, Component, Team, ComponentGroup
+from jira.models import Board, Project, Column, Ticket, TicketAttachment
 from taskmaster.operations import databaseOperations
 
 
@@ -27,14 +27,14 @@ def teams(request):
 def team(request, url):
     # TODO: Add admins and members to the team.
     try:
-        thisTeam = Team.object.prefetch_related('members__profile').get(url=url)
+        thisTeam = Team.objects.prefetch_related('members__profile').get(url=url)
     except Team.DoesNotExist:
         raise Http404
 
     if not thisTeam.hasAccessPermission(request.user):
         raise PermissionDenied()
 
-    allProfiles = Profile.object.all().select_related('user')
+    allProfiles = Profile.objects.all().select_related('user')
     excludedMembers = allProfiles.exclude(user__id__in=[i.id for i in thisTeam.members.all()])
     excludedAdmins = allProfiles.exclude(user__id__in=[i.id for i in thisTeam.admins.all()])
 
@@ -67,17 +67,50 @@ def ticketDetailView(request, internalKey):
     TODO: Add sub tasks dynamically using React for issues !EPIC.
     TODO: Add tickets dynamically using React for issues EPIC.
     TODO: Fix the style for right divs.
+    TODO: Collapse items
     """
     try:
-        ticket = Ticket.object.get(internalKey__iexact=internalKey)
+        ticket = Ticket.objects.select_related('issueType', 'reporter', 'assignee').prefetch_related('watchers').get(
+            internalKey__iexact=internalKey)
         # thisTicket = Ticket.objects.select_related('issueType', 'project', 'priority').prefetch_related(
         #     'epicTickets__issueType', 'epicTickets__assignee', 'epicTickets__priority').get(
         #     internalKey__iexact=internalKey)
     except Ticket.DoesNotExist:
         raise Http404
 
+    ticketIssueTypes = Component.objects.filter(componentGroup__code="TICKET_ISSUE_TYPE")
+    ticketPriorities = Component.objects.filter(componentGroup__code="TICKET_PRIORITY")
+    projectComponents = Component.objects.filter(componentGroup__code="PROJECT_COMPONENTS", reference__exact=f"Component_{ticket.project.code}")
+    allProfiles = Profile.objects.all().select_related('user')
+
+    if request.method == "POST":
+        ticket.summary = request.POST['summary']
+        ticket.description = request.POST['description']
+        # ticket.fixVersion = request.POST['description']
+        # ticket.component = request.POST['description'] # multiple values
+        # ticket.label = request.POST['label'] # multiple values
+        ticket.assignee = databaseOperations.getObjectByIdOrNone([i.user for i in allProfiles],
+                                                                 request.POST['assignee'])
+        ticket.storyPoints = request.POST['storyPoints']
+        # ticket.manDays = request.POST['manDays']
+        ticket.issueType = databaseOperations.getObjectByIdOrNone(ticketIssueTypes, request.POST['ticketIssueType'])
+        ticket.priority = databaseOperations.getObjectByIdOrNone(ticketPriorities, request.POST['priority'])
+
+        TicketAttachment.objects.bulk_create(
+            TicketAttachment(
+                ticket=ticket,
+                internalKey=attachment.name,
+                attachment=attachment
+            )
+            for attachment in request.FILES.getlist('attachments')
+        )
+
     context = {
-        "ticket": ticket
+        "ticket": ticket,
+        "allProfiles": allProfiles,
+        "ticketIssueTypes": ticketIssueTypes,
+        "ticketPriorities": ticketPriorities,
+        "projectComponents": projectComponents
     }
     return render(request, "jira/ticketDetailViewPage.html", context)
 
@@ -88,9 +121,9 @@ def boards(request):
        TODO: Allow user to copy board on template and make changes before creating new board.
        TODO: Inform that in some places the project will appear to other users.
     """
-    allBoards = Board.object.all().prefetch_related('projects', 'admins', 'members')
-    allProfiles = Profile.object.all().select_related('user')
-    allProjects = Project.object.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False))
+    allBoards = Board.objects.all().prefetch_related('projects', 'admins', 'members')
+    allProfiles = Profile.objects.all().select_related('user')
+    allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False))
 
     if request.method == "POST":
         boardAdmins = [i.user for i in allProfiles if str(i.user.pk) in request.POST.getlist('board-admins')]
@@ -98,18 +131,18 @@ def boards(request):
         boardProjects = [i for i in allProjects if str(i.pk) in request.POST.getlist('board-projects')]
 
         try:
-            newBoard = Board.object.create(
+            newBoard = Board.objects.create(
                 internalKey=request.POST['board-name'],
                 isPrivate=request.POST['board-visibility'] == 'visibility-members'
             )
 
             # mandatory columns for a board
-            Column.object.bulk_create(
+            Column.objects.bulk_create(
                 [
-                    Column(board=newBoard, internalKey='BACKLOG', colour='#42526e', orderNo=1),
-                    Column(board=newBoard, internalKey='TO DO', colour='#42526e', orderNo=2),
-                    Column(board=newBoard, internalKey='IN PROGRESS', colour='#0052c', orderNo=3),
-                    Column(board=newBoard, internalKey='DONE', colour='#00875a', orderNo=4)
+                    Column(board=newBoard, internalKey='BACKLOG', colour='#dfe1e5', orderNo=1),
+                    Column(board=newBoard, internalKey='TO DO', colour='#dfe1e5', orderNo=2),
+                    Column(board=newBoard, internalKey='IN PROGRESS', colour='#deebff', orderNo=3),
+                    Column(board=newBoard, internalKey='DONE', colour='#e3fcef', orderNo=4)
                 ]
             )
 
@@ -117,7 +150,7 @@ def boards(request):
             newBoard.members.add(*boardMembers)
             newBoard.admins.add(*boardAdmins)
 
-            allBoards = Board.object.all().prefetch_related('projects', 'admins', 'members')
+            allBoards = Board.objects.all().prefetch_related('projects', 'admins', 'members')
         except IntegrityError:
             messages.error(
                 request,
@@ -135,12 +168,12 @@ def boards(request):
 @login_required
 def boardSettings(request, url):
     try:
-        thisBoard = Board.object.prefetch_related('boardColumns', 'boardLabels').get(url=url)
+        thisBoard = Board.objects.prefetch_related('boardColumns', 'boardLabels').get(url=url)
     except Board.DoesNotExist:
         raise Http404
 
-    allProjects = Project.object.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False))
-    allProfiles = Profile.object.all().select_related('user')
+    allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False))
+    allProfiles = Profile.objects.all().select_related('user')
 
     context = {
         'board': thisBoard,
@@ -153,7 +186,7 @@ def boardSettings(request, url):
 @login_required
 def board(request, url):
     try:
-        thisBoard = Board.object.get(url=url)
+        thisBoard = Board.objects.get(url=url)
     except Board.DoesNotExist:
         raise Http404
 
@@ -183,8 +216,8 @@ def projects(request):
     TODO: Filter dropdown to filter projects by name, name contains, lead, status (show ongoing and terminated)...
     """
     projectQuery = Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)
-    allProjects = Project.object.filter(projectQuery).select_related('status', 'lead')
-    allProfiles = Profile.object.all().select_related('user')
+    allProjects = Project.objects.filter(projectQuery).select_related('status', 'lead')
+    allProfiles = Profile.objects.all().select_related('user')
 
     if request.method == "POST":
         newProject = Project()
@@ -193,7 +226,7 @@ def projects(request):
         newProject.description = request.POST['project-description']
         newProject.lead = request.user
         newProject.isPrivate = request.POST['project-visibility'] == 'visibility-members'
-        newProject.status = Component.object.get(componentGroup__code='PROJECT_STATUS', code='ON_GOING')
+        newProject.status = Component.objects.get(componentGroup__code='PROJECT_STATUS', code='ON_GOING')
 
         if request.FILES.get('project-icon'):
             newProject.icon = request.FILES.get('project-icon')
@@ -206,8 +239,7 @@ def projects(request):
 
         newProject.save()
         newProject.members.add(*request.POST.getlist('project-users', []))
-
-        allProjects = Project.object.filter(projectQuery).select_related('status', 'lead')
+        allProjects = Project.objects.filter(projectQuery).select_related('status', 'lead')
 
     context = {
         'projects': allProjects,
@@ -222,13 +254,14 @@ def project(request, url):
 
 
 def projectSettings(request, url):
+    # Create Component
     try:
-        thisProject = Project.object.get(url=url)
+        thisProject = Project.objects.get(url=url)
     except Project.DoesNotExist:
         raise Http404
 
-    allProfiles = Profile.object.all().select_related('user')
-    component = Component.object.filter(componentGroup__code='PROJECT_STATUS')
+    allProfiles = Profile.objects.all().select_related('user')
+    component = Component.objects.filter(componentGroup__code='PROJECT_STATUS')
 
     if request.method == "POST":
         thisProject.internalKey = request.POST['project-name']
