@@ -6,8 +6,11 @@ from jira.api import BoardColumnsBulkOrderChangeApiEventVersion1Component
 from jira.api import BoardSettingsViewBoardColumnsApiEventVersion1Component
 from jira.api import BoardSettingsViewBoardLabelsApiEventVersion1Component
 from jira.api import BoardSettingsViewGeneralDetailsApiEventVersion1Component
-from jira.api import TeamsViewApiEventVersion1Component
 from jira.api import TeamsObjectApiEventVersion1Component
+from jira.api import TeamsViewApiEventVersion1Component
+from jira.api import TicketObjectForEpicTicketApiEventVersion1Component
+from jira.api import TicketObjectForSubTasksApiEventVersion1Component
+from jira.api import TicketsForEpicTicketApiEventVersion1Component
 
 # from jira.api import KanbanBoardBacklogActiveTicketsApiEventVersion1Component
 # from jira.api import KanbanBoardBacklogActiveTicketsApiEventVersion2Component
@@ -71,11 +74,21 @@ urlpatterns += [
         TeamsObjectApiEventVersion1Component.as_view(),
         name='teamsObjectApiEventVersion1Component'
     ),
-    # path(
-    #     'api/v1/ticketObjectForIssuesInTheEpicTicketApiEventVersion1Component',
-    #     TicketObjectForIssuesInTheEpicTicketApiEventVersion1Component.as_view(),
-    #     name='ticketObjectForIssuesInTheEpicTicketApiEventVersion1Component'
-    # ),
+    path(
+        'api/v1/ticketObjectForSubTasksApiEventVersion1Component',
+        TicketObjectForSubTasksApiEventVersion1Component.as_view(),
+        name='ticketObjectForSubTasksApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/ticketsForEpicTicketApiEventVersion1Component/<int:ticketId>',
+        TicketsForEpicTicketApiEventVersion1Component.as_view(),
+        name='ticketsForEpicTicketApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/ticketObjectForEpicTicketApiEventVersion1Component/',
+        TicketObjectForEpicTicketApiEventVersion1Component.as_view(),
+        name='ticketObjectForEpicTicketApiEventVersion1Component'
+    ),
     # path(
     #     'api/v1/ticketObjectForSubTasksInStandardTicketApiEventVersion1Component',
     #     TicketObjectForSubTasksInStandardTicketApiEventVersion1Component.as_view(),

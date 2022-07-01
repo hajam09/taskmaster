@@ -22,7 +22,9 @@
                    reference="" orderNo="8"/>
         <Component componentGroup.code="TICKET_RESOLUTIONS" internalKey="Won't Do" code="WONT_DO"
                    reference="" orderNo="9"/>
-        <Component componentGroup.code="TICKET_RESOLUTIONS" internalKey="Resolved" code="RESOLVED"
+        <Component componentGroup.code="TICKET_RESOLUTIONS" internalKey="Closed" code="CLOSED"
                    reference="" orderNo="10"/>
+        <Component componentGroup.code="TICKET_RESOLUTIONS" internalKey="Resolved" code="RESOLVED"
+                   reference="" orderNo="11"/>
     </Components>
 </SeedData>

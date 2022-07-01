@@ -121,6 +121,56 @@ def ticketDetailView(request, internalKey):
         for i in ticket.ticketComments.all()
     ]
 
+    epicTickets = [
+        {
+            'id': i.pk,
+            'internalKey': i.internalKey,
+            'summary': i.summary,
+            'url': i.getTicketUrl(),
+            'assignee': {
+                'id': i.assignee.pk,
+                'fullName': i.assignee.get_full_name(),
+                'icon': i.assignee.profile.profilePicture.url
+            } if i.assignee is not None else {},
+            'issueType': {
+                'id': i.issueType.pk,
+                'icon': i.issueType.icon,
+                'internalKey': i.issueType.internalKey
+            },
+            'priority': {
+                'id': i.priority.pk,
+                'icon': i.priority.icon,
+                'internalKey': i.priority.internalKey
+            }
+        }
+        for i in ticket.epicTickets.all()
+    ]
+
+    subTaskTickets = [
+        {
+            'id': i.pk,
+            'internalKey': i.internalKey,
+            'summary': i.summary,
+            'url': i.getTicketUrl(),
+            'assignee': {
+                'id': i.assignee.pk,
+                'fullName': i.assignee.get_full_name(),
+                'icon': i.assignee.profile.profilePicture.url
+            } if i.assignee is not None else {},
+            'issueType': {
+                'id': i.issueType.pk,
+                'icon': i.issueType.icon,
+                'internalKey': i.issueType.internalKey
+            },
+            'priority': {
+                'id': i.priority.pk,
+                'icon': i.priority.icon,
+                'internalKey': i.priority.internalKey
+            }
+        }
+        for i in ticket.subTask.all()
+    ]
+
     context = {
         "ticket": ticket,
         "allProfiles": allProfiles,
@@ -128,6 +178,8 @@ def ticketDetailView(request, internalKey):
         "ticketPriorities": ticketPriorities,
         "projectComponents": projectComponents,
         "ticketComments": json.dumps(ticketComments),
+        "epicTickets": json.dumps(epicTickets),
+        "subTaskTickets": json.dumps(subTaskTickets),
     }
     return render(request, "jira/ticketDetailViewPage.html", context)
 

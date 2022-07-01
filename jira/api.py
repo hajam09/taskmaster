@@ -1,3 +1,4 @@
+import json
 from http import HTTPStatus
 
 from django.contrib import messages
@@ -6,8 +7,8 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from accounts.models import Team
-from jira.models import Board, Column, Label
+from accounts.models import Team, Component
+from jira.models import Board, Column, Label, Ticket
 from taskmaster.operations import databaseOperations
 
 
@@ -393,65 +394,166 @@ class TeamsObjectApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-# @method_decorator(csrf_exempt, name='dispatch')
-# class TicketObjectForSubTasksInStandardTicketApiEventVersion1Component(View):
-#
-#     def post(self, *args, **kwargs):
-#         projectId = self.request.POST.get("project-id", None)
-#         ticketSummary = self.request.POST.get("ticket-summary", None)
-#         standardTicketId = self.request.POST.get("ticket-id", None)
-#
-#         ticketIssueTypeComponents = cache.get("ticketIssueTypeComponents")
-#         ticketSecurityComponents = cache.get("ticketSecurityComponents")
-#         ticketPriorityComponents = cache.get("ticketPriorityComponents")
-#
-#         project = Project.objects.get(id=projectId)
-#         newTicketNumber = project.projectTickets.count() + 1
-#
-#         ticket = Ticket()
-#         ticket.internalKey = project.code + "-" + str(newTicketNumber)
-#         ticket.summary = ticketSummary
-#         ticket.project = project
-#         ticket.reporter = self.request.user
-#         ticket.issueType = next((i for i in ticketIssueTypeComponents if i.code == "SUB_TASK"), None)
-#         ticket.securityLevel = next((i for i in ticketSecurityComponents if i.code == "INTERNAL"), None)
-#         ticket.priority = next((i for i in ticketPriorityComponents if i.code == "MEDIUM"), None)
-#
-#         if standardTicketId is not None:
-#             standardTicket = Ticket.objects.get(id=standardTicketId)
-#             ticket.sprint = standardTicket.sprint
-#             ticket.status = standardTicket.status
-#             ticket.board = standardTicket.board
-#             ticket.column = standardTicket.column
-#
-#             ticket.save()
-#             standardTicket.subTask.add(ticket)
-#
-#             response = {
-#                 "success": True,
-#                 "data": {
-#                     "id": ticket.id,
-#                     "internalKey": ticket.internalKey,
-#                     "summary": ticket.summary,
-#                     "link": "/jira2/ticket/" + str(ticket.internalKey),
-#                     "issueType": {
-#                         "internalKey": ticket.issueType.internalKey,
-#                         "icon": "/static/" + ticket.issueType.icon,
-#                     },
-#                     "priority": {
-#                         "internalKey": ticket.priority.internalKey,
-#                         "icon": "/static/" + ticket.priority.icon
-#                     },
-#                 }
-#             }
-#             return JsonResponse(response, status=HTTPStatus.OK)
-#
-#         response = {
-#             "success": False,
-#             "message": "Unable to create a subtask."
-#         }
-#         return JsonResponse(response, status=HTTPStatus.BAD_REQUEST)
-#
+@method_decorator(csrf_exempt, name='dispatch')
+class TicketObjectForEpicTicketApiEventVersion1Component(View):
+
+    def post(self, *args, **kwargs):
+        body = json.loads(self.request.body.decode())
+        epicTicketId = body.get("ticketId")
+        summary = body.get("ticketSummary")
+        issueType = body.get("issueType")
+
+        try:
+            epicTicket = Ticket.objects.get(id=epicTicketId)
+        except Ticket.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a ticket with id: ".format(epicTicketId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        newTicketNumber = epicTicket.project.projectTickets.count() + 1
+
+        ticket = Ticket()
+        ticket.internalKey = epicTicket.project.code + "-" + str(newTicketNumber)
+        ticket.summary = summary
+        ticket.resolution = Component.objects.get(componentGroup__code='TICKET_RESOLUTIONS', code="UNRESOLVED")
+        ticket.project = epicTicket.project
+        ticket.reporter = self.request.user
+        ticket.issueType = Component.objects.get(componentGroup__code='TICKET_ISSUE_TYPE', code="IMPROVEMENT")  # TODO
+        ticket.priority = Component.objects.get(componentGroup__code='TICKET_PRIORITY', code="MEDIUM")
+        ticket.board = epicTicket.board
+        ticket.column = Column.objects.get(board=epicTicket.board, internalKey='TO DO')
+        ticket.epic = epicTicket
+        ticket.save()
+
+        # TODO: Update to the current sprint
+
+        data = {
+            'id': ticket.pk,
+            'internalKey': ticket.internalKey,
+            'summary': ticket.summary,
+            'url': ticket.getTicketUrl(),
+            'issueType': {
+                'id': ticket.issueType.pk,
+                'icon': ticket.issueType.icon,
+                'internalKey': ticket.issueType.internalKey
+            },
+            'priority': {
+                'id': ticket.priority.pk,
+                'icon': ticket.priority.icon,
+                'internalKey': ticket.priority.internalKey
+            }
+        }
+
+        response = {
+            'success': True,
+            'data': data
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TicketsForEpicTicketApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        ticketId = self.kwargs.get("ticketId", None)
+
+        try:
+            ticket = Ticket.objects.get(id=ticketId)
+        except Ticket.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a ticket with id: ".format(ticketId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        epicTickets = [
+            {
+                'id': i.pk,
+                'internalKey': i.internalKey,
+                'summary': i.summary,
+                'url': i.getTicketUrl(),
+                'assignee': {},
+                'issueType': {
+                    'id': i.issueType.pk,
+                    'icon': i.issueType.icon,
+                    'internalKey': i.issueType.internalKey
+                },
+                'priority': {
+                    'id': i.priority.pk,
+                    'icon': i.priority.icon,
+                    'internalKey': i.priority.internalKey
+                }
+            }
+            for i in ticket.epicTickets.all()
+        ]
+
+        response = {
+            "success": True,
+            "data": {
+                "tickets": epicTickets
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TicketObjectForSubTasksApiEventVersion1Component(View):
+
+    def post(self, *args, **kwargs):
+        ticketSummary = self.request.POST.get("ticketSummary")
+        parentTicketId = self.request.POST.get("ticketId")
+
+        try:
+            parentTicket = Ticket.objects.get(id=parentTicketId)
+        except Ticket.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a ticket with id: ".format(parentTicketId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        newTicketNumber = parentTicket.project.projectTickets.count() + 1
+
+        ticket = Ticket()
+        ticket.internalKey = parentTicket.project.code + "-" + str(newTicketNumber)
+        ticket.summary = ticketSummary
+        ticket.resolution = Component.objects.get(componentGroup__code='TICKET_RESOLUTIONS', code="UNRESOLVED")
+        ticket.project = parentTicket.project
+        ticket.reporter = self.request.user
+        ticket.issueType = Component.objects.get(componentGroup__code='TICKET_ISSUE_TYPE', code="SUB_TASK")
+        ticket.priority = Component.objects.get(componentGroup__code='TICKET_PRIORITY', code="MEDIUM")
+        ticket.board = parentTicket.board
+        ticket.column = Column.objects.get(board=parentTicket.board, internalKey='TO DO')
+        ticket.save()
+
+        # TODO: Update to the current sprint
+        parentTicket.subTask.add(ticket)
+
+        data = {
+            'id': ticket.pk,
+            'internalKey': ticket.internalKey,
+            'summary': ticket.summary,
+            'url': ticket.getTicketUrl(),
+            'issueType': {
+                'id': ticket.issueType.pk,
+                'icon': ticket.issueType.icon,
+                'internalKey': ticket.issueType.internalKey
+            },
+            'priority': {
+                'id': ticket.priority.pk,
+                'icon': ticket.priority.icon,
+                'internalKey': ticket.priority.internalKey
+            }
+        }
+
+        response = {
+            'success': True,
+            'data': data
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
 #
 # @method_decorator(csrf_exempt, name='dispatch')
 # class TicketObjectBaseDataUpdateApiEventVersion1Component(View):
