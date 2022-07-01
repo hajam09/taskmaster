@@ -6,11 +6,13 @@ from jira.api import BoardColumnsBulkOrderChangeApiEventVersion1Component
 from jira.api import BoardSettingsViewBoardColumnsApiEventVersion1Component
 from jira.api import BoardSettingsViewBoardLabelsApiEventVersion1Component
 from jira.api import BoardSettingsViewGeneralDetailsApiEventVersion1Component
+from jira.api import SubTaskTicketObjectForTicketApiEventVersion1Component
+from jira.api import SubTaskTicketsForTicketApiEventVersion1Component
 from jira.api import TeamsObjectApiEventVersion1Component
 from jira.api import TeamsViewApiEventVersion1Component
 from jira.api import TicketObjectForEpicTicketApiEventVersion1Component
-from jira.api import TicketObjectForSubTasksApiEventVersion1Component
 from jira.api import TicketsForEpicTicketApiEventVersion1Component
+from jira.api import TicketBulkOrderChangeApiEventVersion1Component
 
 # from jira.api import KanbanBoardBacklogActiveTicketsApiEventVersion1Component
 # from jira.api import KanbanBoardBacklogActiveTicketsApiEventVersion2Component
@@ -75,9 +77,9 @@ urlpatterns += [
         name='teamsObjectApiEventVersion1Component'
     ),
     path(
-        'api/v1/ticketObjectForSubTasksApiEventVersion1Component',
-        TicketObjectForSubTasksApiEventVersion1Component.as_view(),
-        name='ticketObjectForSubTasksApiEventVersion1Component'
+        'api/v1/subTaskTicketObjectForTicketApiEventVersion1Component',
+        SubTaskTicketObjectForTicketApiEventVersion1Component.as_view(),
+        name='subTaskTicketObjectForTicketApiEventVersion1Component'
     ),
     path(
         'api/v1/ticketsForEpicTicketApiEventVersion1Component/<int:ticketId>',
@@ -88,6 +90,16 @@ urlpatterns += [
         'api/v1/ticketObjectForEpicTicketApiEventVersion1Component/',
         TicketObjectForEpicTicketApiEventVersion1Component.as_view(),
         name='ticketObjectForEpicTicketApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/ticketBulkOrderChangeApiEventVersion1Component/',
+        TicketBulkOrderChangeApiEventVersion1Component.as_view(),
+        name='ticketBulkOrderChangeApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/subTaskTicketsForTicketApiEventVersion1Component/<int:ticketId>',
+        SubTaskTicketsForTicketApiEventVersion1Component.as_view(),
+        name='subTaskTicketsForTicketApiEventVersion1Component'
     ),
     # path(
     #     'api/v1/ticketObjectForSubTasksInStandardTicketApiEventVersion1Component',

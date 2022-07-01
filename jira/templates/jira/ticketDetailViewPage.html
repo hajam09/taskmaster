@@ -2,6 +2,22 @@
 {% load static %}
 {% block content %}
 
+    <style type="text/css">
+        .grabbable {
+            cursor: move; /* fallback if grab cursor is unsupported */
+            cursor: grab;
+            cursor: -moz-grab;
+            cursor: -webkit-grab;
+        }
+
+        /* (Optional) Apply a "closed-hand" cursor during drag operation. */
+        .grabbable:active {
+            cursor: grabbing;
+            cursor: -moz-grabbing;
+            cursor: -webkit-grabbing;
+        }
+    </style>
+
     <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
@@ -544,6 +560,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
     <script type="text/javascript">
         $('#priority').selectpicker();
+
+        $(function () {
+            $('#tickets-list-container').sortable(
+                {
+                    stop: function (e, ui) {
+                        const newOrder = $.map($('#tickets-list-container > div'), div => div.id);
+                        console.log(newOrder)
+
+                        $.ajax(
+                            {
+                                url: "{% url 'jira:ticketBulkOrderChangeApiEventVersion1Component' %}",
+                                data:
+                                    {
+                                        'newOrder': newOrder,
+                                    },
+                                type: 'PUT',
+                                dataType: 'json',
+                            }
+                        );
+                    }
+                }
+            );
+        });
     </script>
     <script type="text/babel">
 
@@ -572,7 +611,7 @@
                 }
 
                 return (
-                    <div className="card">
+                    <div className="card grabbable" id={this.props.ticket.id}>
                         <div className="card-body" style={style1}>
                             <div className="row">
                                 <div className="col-auto" style={style2}>
@@ -617,10 +656,24 @@
             }
 
             createNewTicket = () => {
-                console.log("createNewTicket");
-                console.log(this.refs.summaryInput.value);
-
                 fetch('{% url 'jira:ticketObjectForEpicTicketApiEventVersion1Component' %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        'ticketId': {{ ticket.id }},
+                        'ticketSummary': this.refs.summaryInput.value,
+                        'issueType': this.refs.issueTypeInput.value,
+                    })
+                }).then((response) => {
+                    this.props.fetchEpicTasks()
+                    this.props.switchCreateMode()
+                })
+            }
+
+            createSubTask = () => {
+                fetch('{% url 'jira:subTaskTicketObjectForTicketApiEventVersion1Component' %}', {
                     method: 'POST',
                     headers: {
                         'Content-type': 'application/json',
@@ -630,7 +683,8 @@
                         'ticketSummary': this.refs.summaryInput.value,
                     })
                 }).then((response) => {
-                    this.props.fetchEpicTasks()
+                    this.props.fetchSubTasks()
+                    this.props.switchCreateMode()
                 })
             }
 
@@ -643,12 +697,12 @@
                         <div id="new-ticket-creator">
                             <div className="row">
                                 <div className="col-4">
-                                    <select id="issueType" data-show-content="true" className="form-control">
+                                    <select id="issueType" data-show-content="true" className="form-control" ref="issueTypeInput">
                                         {% for ji in ticketIssueTypes.all %}
                                             {% if ji.code == "STORY" %}
                                                 <option
                                                     data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"
-                                                    selected="selected">{{ ji.internalKey }}</option>
+                                                    defaultValue="{{ ji.code }}" selected="selected">{{ ji.internalKey }}</option>
                                             {% else %}
                                                 <option
                                                     data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"
@@ -681,7 +735,9 @@
                                 <input className="form-control" id="new-sub-task-name" type="text" ref="summaryInput"
                                        placeholder="What needs to be done in this sub task?"></input>
                                 <br></br>
-                                <button type="button" className="btn btn-primary pull-right">Create</button>
+                                <button type="button" className="btn btn-primary pull-right"
+                                        onClick={this.createSubTask}>Create
+                                </button>
                                 <button type="button" className="btn btn-light pull-right" style={style1}
                                         onClick={this.props.switchCreateMode}>Cancel
                                 </button>
@@ -766,7 +822,11 @@
             }
 
             fetchSubTasks() {
-                // TODO;
+                fetch('{% url 'jira:subTaskTicketsForTicketApiEventVersion1Component' ticketId=ticket.id %}')
+                    .then(response => response.json())
+                    .then(data => this.setState({
+                        subTaskTickets: data.data.tickets
+                    }))
             }
 
             switchCreateMode = () => {
@@ -793,4 +853,6 @@
 
         ReactDOM.render(<LinkingModuleComponent/>, document.getElementById('linkingmodule'));
     </script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}

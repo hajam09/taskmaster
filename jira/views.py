@@ -143,7 +143,7 @@ def ticketDetailView(request, internalKey):
                 'internalKey': i.priority.internalKey
             }
         }
-        for i in ticket.epicTickets.all()
+        for i in ticket.epicTickets.all().order_by('orderNo')
     ]
 
     subTaskTickets = [
@@ -168,7 +168,7 @@ def ticketDetailView(request, internalKey):
                 'internalKey': i.priority.internalKey
             }
         }
-        for i in ticket.subTask.all()
+        for i in ticket.subTask.all().order_by('orderNo')
     ]
 
     context = {

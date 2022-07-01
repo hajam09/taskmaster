@@ -213,6 +213,29 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class TicketBulkOrderChangeApiEventVersion1Component(View):
+
+    def put(self, *args, **kwargs):
+        put = QueryDict(self.request.body)
+        newOrder = put.getlist('newOrder[]', None)
+
+        ticketList = Ticket.objects.filter(id__in=newOrder[:-1]).order_by('orderNo')
+        newOrderList = [databaseOperations.getObjectByIdOrNone(ticketList, i) for i in newOrder[:-1]]
+
+        i = 0
+        for j in newOrderList:
+            j.orderNo = ticketList[i].orderNo
+            i += 1
+
+        Ticket.objects.bulk_update(newOrderList, ['orderNo'])
+
+        response = {
+            "success": True
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class BoardColumnsBulkOrderChangeApiEventVersion1Component(View):
 
     def put(self, *args, **kwargs):
@@ -420,11 +443,12 @@ class TicketObjectForEpicTicketApiEventVersion1Component(View):
         ticket.resolution = Component.objects.get(componentGroup__code='TICKET_RESOLUTIONS', code="UNRESOLVED")
         ticket.project = epicTicket.project
         ticket.reporter = self.request.user
-        ticket.issueType = Component.objects.get(componentGroup__code='TICKET_ISSUE_TYPE', code="IMPROVEMENT")  # TODO
+        ticket.issueType = Component.objects.get(componentGroup__code='TICKET_ISSUE_TYPE', internalKey=issueType)
         ticket.priority = Component.objects.get(componentGroup__code='TICKET_PRIORITY', code="MEDIUM")
         ticket.board = epicTicket.board
         ticket.column = Column.objects.get(board=epicTicket.board, internalKey='TO DO')
         ticket.epic = epicTicket
+        ticket.orderNo = newTicketNumber
         ticket.save()
 
         # TODO: Update to the current sprint
@@ -499,11 +523,12 @@ class TicketsForEpicTicketApiEventVersion1Component(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class TicketObjectForSubTasksApiEventVersion1Component(View):
+class SubTaskTicketObjectForTicketApiEventVersion1Component(View):
 
     def post(self, *args, **kwargs):
-        ticketSummary = self.request.POST.get("ticketSummary")
-        parentTicketId = self.request.POST.get("ticketId")
+        body = json.loads(self.request.body.decode())
+        parentTicketId = body.get("ticketId")
+        summary = body.get("ticketSummary")
 
         try:
             parentTicket = Ticket.objects.get(id=parentTicketId)
@@ -518,7 +543,7 @@ class TicketObjectForSubTasksApiEventVersion1Component(View):
 
         ticket = Ticket()
         ticket.internalKey = parentTicket.project.code + "-" + str(newTicketNumber)
-        ticket.summary = ticketSummary
+        ticket.summary = summary
         ticket.resolution = Component.objects.get(componentGroup__code='TICKET_RESOLUTIONS', code="UNRESOLVED")
         ticket.project = parentTicket.project
         ticket.reporter = self.request.user
@@ -526,6 +551,7 @@ class TicketObjectForSubTasksApiEventVersion1Component(View):
         ticket.priority = Component.objects.get(componentGroup__code='TICKET_PRIORITY', code="MEDIUM")
         ticket.board = parentTicket.board
         ticket.column = Column.objects.get(board=parentTicket.board, internalKey='TO DO')
+        ticket.orderNo = newTicketNumber
         ticket.save()
 
         # TODO: Update to the current sprint
@@ -551,6 +577,51 @@ class TicketObjectForSubTasksApiEventVersion1Component(View):
         response = {
             'success': True,
             'data': data
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SubTaskTicketsForTicketApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        ticketId = self.kwargs.get("ticketId", None)
+
+        try:
+            ticket = Ticket.objects.get(id=ticketId)
+        except Ticket.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a ticket with id: ".format(ticketId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        subTasks = [
+            {
+                'id': i.pk,
+                'internalKey': i.internalKey,
+                'summary': i.summary,
+                'url': i.getTicketUrl(),
+                'assignee': {},
+                'issueType': {
+                    'id': i.issueType.pk,
+                    'icon': i.issueType.icon,
+                    'internalKey': i.issueType.internalKey
+                },
+                'priority': {
+                    'id': i.priority.pk,
+                    'icon': i.priority.icon,
+                    'internalKey': i.priority.internalKey
+                }
+            }
+            for i in ticket.subTask.all().order_by('orderNo')
+        ]
+
+        response = {
+            "success": True,
+            "data": {
+                "tickets": subTasks
+            }
         }
         return JsonResponse(response, status=HTTPStatus.OK)
 
