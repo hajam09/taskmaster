@@ -41,8 +41,8 @@ urlpatterns = [
     # path('kanbanBoard/<slug:url>/', views.kanbanBoard, name='kanban-board-page'),
     # path('board/<slug:url>/backlog/', views.backlog, name='board-backlog'),
     # path('kanbanBoard/<slug:url>/backlog/', views.kanbanBoardBacklog, name='kanban-board-backlog'),
-    path('people/teams/', views.teams, name='teams-page'),
-    path('people/teams/<slug:url>/', views.team, name='team-page'),
+    path('teams/', views.teams, name='teams-page'),
+    path('teams/<slug:url>/', views.team, name='team-page'),
 ]
 
 # api

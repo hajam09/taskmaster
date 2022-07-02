@@ -9,7 +9,7 @@ from django.http import Http404
 from django.shortcuts import render
 
 from accounts.models import Profile, Component, Team
-from jira.models import Board, Project, Column, Ticket, TicketAttachment
+from jira.models import Board, Project, Column, Ticket, TicketAttachment, TicketComment
 from taskmaster.operations import databaseOperations, emailOperations
 
 
@@ -52,8 +52,7 @@ def teams(request):
 
 @login_required
 def team(request, url):
-    # TODO: Fix modal colour visibility
-    # TODO: Create team activity session and display.
+    # TODO: Record team/user activity session and display.
     try:
         thisTeam = Team.objects.prefetch_related('members__profile').get(url=url)
     except Team.DoesNotExist:
@@ -105,11 +104,22 @@ def ticketDetailView(request, internalKey):
     TODO: Allow file attachment delete option
     """
     try:
-        ticket = Ticket.objects.get(internalKey__iexact=internalKey)
+        ticket = Ticket.objects.select_related(
+            'component',
+            'priority',
+            'issueType',
+            'reporter__profile',
+            'assignee__profile',
+            'resolution',
+        ).prefetch_related(
+            'label',
+            'subTask',
+        ).get(internalKey__iexact=internalKey)
     except Ticket.DoesNotExist:
         raise Http404
 
     components = Component.objects.all().select_related('componentGroup')
+    ticketComments = TicketComment.objects.filter(ticket=ticket).select_related('creator__profile').prefetch_related('likes', 'dislikes')
     ticketIssueTypes = [i for i in components if i.componentGroup.code == "TICKET_ISSUE_TYPE"]
     ticketPriorities = [i for i in components if i.componentGroup.code == "TICKET_PRIORITY"]
     projectComponents = [i for i in components if i.componentGroup.code == "PROJECT_COMPONENTS" and i.reference==f"Component_{ticket.project.code}"]
@@ -156,7 +166,7 @@ def ticketDetailView(request, internalKey):
             'canEdit': i.creator == request.user,
             'createdDttm': i.createdDttm.strftime('%b %d, %Y'),
         }
-        for i in ticket.ticketComments.all()
+        for i in ticketComments
     ]
 
     epicTickets = [
@@ -181,7 +191,7 @@ def ticketDetailView(request, internalKey):
                 'internalKey': i.priority.internalKey
             }
         }
-        for i in ticket.epicTickets.all().order_by('orderNo')
+        for i in ticket.epicTickets.all().select_related('priority', 'issueType', 'assignee__profile').order_by('orderNo')
     ]
 
     subTaskTickets = [
@@ -206,7 +216,7 @@ def ticketDetailView(request, internalKey):
                 'internalKey': i.priority.internalKey
             }
         }
-        for i in ticket.subTask.all().order_by('orderNo')
+        for i in ticket.subTask.all().select_related('priority', 'issueType', 'assignee__profile').order_by('orderNo')
     ]
 
     context = {
@@ -224,19 +234,11 @@ def ticketDetailView(request, internalKey):
 
 @login_required
 def boards(request):
-    """
-       TODO: Allow user to copy board on template and make changes before creating new board.
-       TODO: Inform that in some places the project will appear to other users.
-    """
     allBoards = Board.objects.all().prefetch_related('projects', 'admins', 'members')
     allProfiles = Profile.objects.all().select_related('user')
-    allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False))
+    allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)).distinct()
 
     if request.method == "POST":
-        boardAdmins = [i.user for i in allProfiles if str(i.user.pk) in request.POST.getlist('board-admins')]
-        boardMembers = [i.user for i in allProfiles if str(i.user.pk) in request.POST.getlist('board-members')]
-        boardProjects = [i for i in allProjects if str(i.pk) in request.POST.getlist('board-projects')]
-
         try:
             newBoard = Board.objects.create(
                 internalKey=request.POST['board-name'],
@@ -253,9 +255,9 @@ def boards(request):
                 ]
             )
 
-            newBoard.projects.add(*boardProjects)
-            newBoard.members.add(*boardMembers)
-            newBoard.admins.add(*boardAdmins)
+            newBoard.projects.add(*request.POST.getlist('board-projects'))
+            newBoard.members.add(*request.POST.getlist('board-members'))
+            newBoard.admins.add(*request.POST.getlist('board-admins'))
 
             allBoards = Board.objects.all().prefetch_related('projects', 'admins', 'members')
         except IntegrityError:
@@ -279,7 +281,7 @@ def boardSettings(request, url):
     except Board.DoesNotExist:
         raise Http404
 
-    allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False))
+    allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)).distinct()
     allProfiles = Profile.objects.all().select_related('user')
 
     context = {
@@ -323,30 +325,36 @@ def projects(request):
     TODO: Filter dropdown to filter projects by name, name contains, lead, status (show ongoing and terminated)...
     """
     projectQuery = Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)
-    allProjects = Project.objects.filter(projectQuery).select_related('status', 'lead')
+    allProjects = Project.objects.filter(projectQuery).distinct().select_related('status', 'lead')
     allProfiles = Profile.objects.all().select_related('user')
 
     if request.method == "POST":
-        newProject = Project()
-        newProject.internalKey = request.POST['project-name']
-        newProject.code = request.POST['project-code']
-        newProject.description = request.POST['project-description']
-        newProject.lead = request.user
-        newProject.isPrivate = request.POST['project-visibility'] == 'visibility-members'
-        newProject.status = Component.objects.get(componentGroup__code='PROJECT_STATUS', code='ON_GOING')
+        try:
+            newProject = Project()
+            newProject.internalKey = request.POST['project-name']
+            newProject.code = request.POST['project-code']
+            newProject.description = request.POST['project-description']
+            newProject.lead = request.user
+            newProject.isPrivate = request.POST['project-visibility'] == 'visibility-members'
+            newProject.status = Component.objects.get(componentGroup__code='PROJECT_STATUS', code='ON_GOING')
 
-        if request.FILES.get('project-icon'):
-            newProject.icon = request.FILES.get('project-icon')
+            if request.FILES.get('project-icon'):
+                newProject.icon = request.FILES.get('project-icon')
 
-        if request.POST['project-start']:
-            newProject.startDate = request.POST['project-start']
+            if request.POST['project-start']:
+                newProject.startDate = request.POST['project-start']
 
-        if request.POST['project-due']:
-            newProject.endDate = request.POST['project-due']
+            if request.POST['project-due']:
+                newProject.endDate = request.POST['project-due']
 
-        newProject.save()
-        newProject.members.add(*request.POST.getlist('project-users', []))
-        allProjects = Project.objects.filter(projectQuery).select_related('status', 'lead')
+            newProject.save()
+            newProject.members.add(*request.POST.getlist('project-users', []))
+            allProjects = Project.objects.filter(projectQuery).distinct().select_related('status', 'lead')
+        except IntegrityError:
+            messages.error(
+                request,
+                f'Project with code {request.POST["project-code"]} already exists.'
+            )
 
     context = {
         'projects': allProjects,
@@ -361,7 +369,11 @@ def project(request, url):
 
 
 def projectSettings(request, url):
-    # Create Component
+    """
+    TODO: Allow user to create PROJECT_COMPONENT
+    TODO: Fix startDate, endDate display on update
+    TODO: Display boards
+    """
     try:
         thisProject = Project.objects.get(url=url)
     except Project.DoesNotExist:
@@ -382,11 +394,8 @@ def projectSettings(request, url):
         if request.FILES.get('project-icon'):
             thisProject.icon = request.FILES.get('project-icon')
 
-        updatedProjectMembers = [
-            i.user for i in allProfiles if str(i.user.id) in request.POST.getlist('project-members')
-        ]
         thisProject.members.clear()
-        thisProject.members.add(*updatedProjectMembers)
+        thisProject.members.add(*request.POST.getlist('project-members'))
         thisProject.save()
 
     context = {
@@ -398,6 +407,7 @@ def projectSettings(request, url):
 
 
 def projectIssues(request, url):
+    # NEED TO COMPLETE THE TICKETPAGE
     pass
 
 

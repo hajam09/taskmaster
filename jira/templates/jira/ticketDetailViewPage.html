@@ -760,7 +760,7 @@
                                 <div className="col-4">
                                     <select id="issueType" data-show-content="true" className="form-control"
                                             ref="issueTypeInput">
-                                        {% for ji in ticketIssueTypes.all %}
+                                        {% for ji in ticketIssueTypes %}
                                             {% if ji.code == "STORY" %}
                                                 <option
                                                     data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"

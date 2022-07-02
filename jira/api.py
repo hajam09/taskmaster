@@ -203,8 +203,7 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
             }
             return JsonResponse(response)
 
-        column.deleteFl = True
-        column.save(update_fields=['deleteFl'])
+        column.delete()
 
         response = {
             "success": True

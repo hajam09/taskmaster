@@ -34,7 +34,8 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
-    def delete(self, using=None, keep_parents=False):
+    def _delete(self, using=None, keep_parents=False):
+        # NOT IN USE
         self.deleteFl = True
         self.save()
 

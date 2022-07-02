@@ -80,6 +80,12 @@
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            NOTE: The board may appear to other users. But don't worry, they won't be able to access it.
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -117,7 +123,8 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Admin</th>
+                            <th>Admins</th>
+                            <th>Members</th>
                             <th>Project</th>
                         </tr>
                     </thead>
@@ -166,6 +173,53 @@
                                                         <img alt="{{ admin.get_full_name }}"
                                                              class="avatar filter-by-alt"
                                                              src="{{ admin.developerProfile.profilePicture.url }}"
+                                                             data-filter-by="alt">
+                                                    {% endif %}
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                            {% endif %}
+                            {% if b.members.count == 1 %}
+                                <td>
+                                    {% for member in b.members.all %}
+                                        <span class="row">
+                                             <span class="col">
+                                                 <span class="d-flex align-items-center">
+                                                     {% if debug %}
+                                                         <img alt="{{ member.get_full_name }}" class="avatar filter-by-alt"
+                                                              src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
+                                                              data-filter-by="alt">
+                                                     {% elif member.profile.profilePicture %}
+                                                         <img alt="{{ member.get_full_name }}" class="avatar filter-by-alt"
+                                                              src="{{ member.profile.profilePicture.url }}"
+                                                              data-filter-by="alt">
+                                                     {% endif %}
+                                                     &nbsp;&nbsp;
+                                                     <a href="#">{{ member.get_full_name }}</a>
+                                                </span>
+                                            </span>
+                                        </span>
+                                    {% endfor %}
+                                </td>
+                            {% else %}
+                                <td>
+                                    <ul class="avatars">
+                                        {% for member in b.members.all %}
+                                            <li>
+                                                <a href="#" data-toggle="tooltip"
+                                                   data-original-title="{{ member.get_full_name }}"
+                                                   title="{{ member.get_full_name }}">
+                                                    {% if debug %}
+                                                        <img alt="{{ member.get_full_name }}"
+                                                             class="avatar filter-by-alt"
+                                                             src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
+                                                             data-filter-by="alt">
+                                                    {% elif member.developerProfile.profilePicture %}
+                                                        <img alt="{{ member.get_full_name }}"
+                                                             class="avatar filter-by-alt"
+                                                             src="{{ member.developerProfile.profilePicture.url }}"
                                                              data-filter-by="alt">
                                                     {% endif %}
                                                 </a>
