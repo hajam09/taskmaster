@@ -9,7 +9,7 @@ from django.http import Http404
 from django.shortcuts import render
 
 from accounts.models import Profile, Component, Team, ComponentGroup
-from jira.models import Board, Project, Column, Ticket, TicketAttachment
+from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label
 from taskmaster.operations import databaseOperations
 
 
@@ -59,24 +59,17 @@ def profileView(request, url):
 def ticketDetailView(request, internalKey):
     """
     TODO: remove unused css on the ticket css files
-    TODO: change fields onclick and udpate it via ajax
     TODO: Try to move the components to external files and import it.
     TODO: Fix spacing on the texts.
-    TODO: Update the fields dynamically.
     TODO: Implement the comment section.
-    TODO: Implement file attachment section
     TODO: Fix linked issue component.
-    TODO: Add sub tasks dynamically using React for issues !EPIC.
-    TODO: Add tickets dynamically using React for issues EPIC.
     TODO: Fix the style for right divs.
     TODO: Collapse items
+    TODO: Fix file attachment style
+    TODO: Allow file attachment delete option
     """
     try:
-        ticket = Ticket.objects.select_related('issueType', 'reporter', 'assignee').prefetch_related('watchers').get(
-            internalKey__iexact=internalKey)
-        # thisTicket = Ticket.objects.select_related('issueType', 'project', 'priority').prefetch_related(
-        #     'epicTickets__issueType', 'epicTickets__assignee', 'epicTickets__priority').get(
-        #     internalKey__iexact=internalKey)
+        ticket = Ticket.objects.get(internalKey__iexact=internalKey)
     except Ticket.DoesNotExist:
         raise Http404
 
@@ -88,15 +81,17 @@ def ticketDetailView(request, internalKey):
     if request.method == "POST":
         ticket.summary = request.POST['summary']
         ticket.description = request.POST['description']
-        # ticket.fixVersion = request.POST['description']
-        # ticket.component = request.POST['description'] # multiple values
-        # ticket.label = request.POST['label'] # multiple values
+        ticket.fixVersion = request.POST['fixVersion']
+        # ticket.component = request.POST['component'] # multiple values
         ticket.assignee = databaseOperations.getObjectByIdOrNone([i.user for i in allProfiles],
                                                                  request.POST['assignee'])
         ticket.storyPoints = request.POST['storyPoints']
         # ticket.manDays = request.POST['manDays']
         ticket.issueType = databaseOperations.getObjectByIdOrNone(ticketIssueTypes, request.POST['ticketIssueType'])
         ticket.priority = databaseOperations.getObjectByIdOrNone(ticketPriorities, request.POST['priority'])
+
+        ticket.label.clear()
+        ticket.label.add(*request.POST.getlist('labels'))
 
         TicketAttachment.objects.bulk_create(
             TicketAttachment(
@@ -106,6 +101,7 @@ def ticketDetailView(request, internalKey):
             )
             for attachment in request.FILES.getlist('attachments')
         )
+        ticket.save()
 
     ticketComments = [
         {
@@ -208,10 +204,10 @@ def boards(request):
             # mandatory columns for a board
             Column.objects.bulk_create(
                 [
-                    Column(board=newBoard, internalKey='BACKLOG', colour='#dfe1e5', orderNo=1),
-                    Column(board=newBoard, internalKey='TO DO', colour='#dfe1e5', orderNo=2),
-                    Column(board=newBoard, internalKey='IN PROGRESS', colour='#deebff', orderNo=3),
-                    Column(board=newBoard, internalKey='DONE', colour='#e3fcef', orderNo=4)
+                    Column(board=newBoard, internalKey='BACKLOG', colour='#42526e', orderNo=1),
+                    Column(board=newBoard, internalKey='TO DO', colour='#42526e', orderNo=2),
+                    Column(board=newBoard, internalKey='IN PROGRESS', colour='#0052cc', orderNo=3),
+                    Column(board=newBoard, internalKey='DONE', colour='#00875a', orderNo=4)
                 ]
             )
 

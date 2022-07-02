@@ -1,5 +1,9 @@
 def getObjectByIdOrNone(A, k):
-    A = A.order_by('id')
+    try:
+        A = A.order_by('id')
+    except AttributeError:
+        return next((o for o in A if o.id == int(k)))
+
     lo = 0
     hi = A.count() - 1
     while lo <= hi:

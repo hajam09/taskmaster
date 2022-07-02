@@ -97,23 +97,22 @@
                                     <dd class="col-sm-12">
                                         <label style="font-size: 85%; color: #6c757d;">Labels</label>
                                         <select class="form-control select2bs4" multiple="multiple" name="labels"
+                                                id="ticket-labels"
                                                 style="width: 100%">
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
+                                            {% for bl in ticket.board.boardLabels.all %}
+                                                <option value="{{ bl.id }}">{{ bl.internalKey }}</option>
+                                            {% endfor %}
                                         </select>
                                     </dd>
                                     <dd class="col-sm-12">
                                         <label style="font-size: 85%; color: #6c757d;">Story Points</label>
-                                        <input class="form-control col" type="text" placeholder="Story Points"
-                                               name="storyPoints" value="{{ ticket.storyPoints }}"
-                                               required>
+                                        <input class="form-control col" type="number" placeholder="Story Points"
+                                               name="storyPoints" value="{{ ticket.storyPoints }}">
                                     </dd>
                                     <dd class="col-sm-12">
                                         <label style="font-size: 85%; color: #6c757d;">Fix Version</label>
                                         <input class="form-control col" type="text" placeholder="Fix Version"
-                                               name="fixVersion" value="{{ ticket.fixVersion }}"
-                                               required>
+                                               name="fixVersion" value="{{ ticket.fixVersion }}">
                                     </dd>
                                     <dd class="col-sm-12">
                                         <label style="font-size: 85%; color: #6c757d;">Attachment</label>
@@ -192,9 +191,13 @@
                                 <h1 id="summary-val">{{ ticket.summary }} </h1>
                             </div>
                         </div>
+                        <button type="button" class="btn" data-toggle="modal" style="background-color: #f5f6f8"
+                                data-target="#editTicketModal">Edit
+                        </button>
                     </div>
                 </div>
             </header>
+
             <div class="issue-body-content">
                 <div class="aui-group issue-body">
                     <div class="aui-item issue-main-column">
@@ -226,7 +229,7 @@
                                             <strong class="name" title="Status">Status:</strong>
                                             <span id="status-val" class="value">
                                                 <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-yellow jira-issue-status-lozenge-indeterminate jira-issue-status-lozenge-max-width-medium"
-                                                      style="background-color: {{ ticket.column.colour }}; color: black;">
+                                                      style="background-color: {{ ticket.column.colour }}; color: white;">
                                                     {{ ticket.column.internalKey }}
                                                 </span>
                                             </span>
@@ -267,8 +270,16 @@
                                           </span>
                                         </div>
                                     </li>
-                                    <!-- TODO -->
-                                    <li class="item full-width">
+
+                                    <li class="item item-right">
+                                        <div class="wrap">
+                                            <strong class="name" title="StoryPoint">Story Point:</strong>
+                                            <span id="storyPoint-val"
+                                                  class="value {{ ticket.storyPoints }}"> {{ ticket.storyPoints }} </span>
+                                        </div>
+                                    </li>
+
+                                    <li class="item">
                                         <div class="wrap" id="wrap-labels">
                                             <strong class="name" title="Labels"> <label
                                                     for="labels-textarea">Labels:</label> </strong>
@@ -281,6 +292,14 @@
                                                     </a>
                                                 {% endfor %}
                                             </div>
+                                        </div>
+                                    </li>
+
+                                    <li class="item item-right">
+                                        <div class="wrap">
+                                            <strong class="name" title="fixVersion">Fix version:</strong>
+                                            <span id="fixVersion-val"
+                                                  class="value {{ ticket.fixVersion }}"> {{ ticket.fixVersion }} </span>
                                         </div>
                                     </li>
                                 </ul>
@@ -463,15 +482,27 @@
                                             <label for="assignee-field">Assignee:</label>
                                         </dt>
                                         <dd>
-                                            <span id="assignee-val" class="view-issue-field">
-                                                <span class="aui-avatar aui-avatar-small">
-                                                    <span class="aui-avatar-inner">
-                                                        <img src="{{ ticket.assignee.profile.profilePicture.url }}"
-                                                             alt="{{ ticket.assignee.get_full_name }}">
+                                            {% if ticket.assignee.profile.profilePicture %}
+                                                <span id="assignee-val" class="view-issue-field">
+                                                    <span class="aui-avatar aui-avatar-small">
+                                                        <span class="aui-avatar-inner">
+                                                            <img src="{{ ticket.assignee.profile.profilePicture.url }}"
+                                                                 alt="{{ ticket.assignee.get_full_name }}">
+                                                        </span>
                                                     </span>
-                                                </span>
                                                 {{ ticket.assignee.get_full_name }}
-                                            </span>
+                                                </span>
+                                            {% else %}
+                                                <span id="assignee-val" class="view-issue-field">
+                                                    <span class="aui-avatar aui-avatar-small">
+                                                        <span class="aui-avatar-inner">
+                                                            <img src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
+                                                                 alt="Unassigned">
+                                                        </span>
+                                                    </span>
+                                                    Unassigned
+                                                </span>
+                                            {% endif %}
                                         </dd>
                                     </dl>
                                     <dl>
@@ -557,9 +588,17 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
     <script type="text/javascript">
-        $('#priority').selectpicker();
+
+        $('.select2bs4').select2({});
+
+        var BOARD_LABELS = [];
+
+        {% for bl in ticket.label.all%}
+            BOARD_LABELS.push('{{ bl.id }}')
+        {% endfor %}
+
+        $('#ticket-labels').select2().val(BOARD_LABELS).trigger("change");
 
         $(function () {
             $('#tickets-list-container').sortable(
@@ -697,12 +736,14 @@
                         <div id="new-ticket-creator">
                             <div className="row">
                                 <div className="col-4">
-                                    <select id="issueType" data-show-content="true" className="form-control" ref="issueTypeInput">
+                                    <select id="issueType" data-show-content="true" className="form-control"
+                                            ref="issueTypeInput">
                                         {% for ji in ticketIssueTypes.all %}
                                             {% if ji.code == "STORY" %}
                                                 <option
                                                     data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"
-                                                    defaultValue="{{ ji.code }}" selected="selected">{{ ji.internalKey }}</option>
+                                                    defaultValue="{{ ji.code }}"
+                                                    selected="selected">{{ ji.internalKey }}</option>
                                             {% else %}
                                                 <option
                                                     data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"
@@ -854,5 +895,5 @@
         ReactDOM.render(<LinkingModuleComponent/>, document.getElementById('linkingmodule'));
     </script>
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}
