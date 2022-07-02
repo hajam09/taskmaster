@@ -48,8 +48,8 @@ class Board(BaseModel):
     internalKey = models.CharField(max_length=2048, blank=True, null=True, unique=True)
     url = models.SlugField(max_length=10, editable=settings.DEBUG, unique=True, default=generateString, db_index=True)
     projects = models.ManyToManyField(Project, blank=True, related_name='boardProjects')
-    members = models.ManyToManyField(User, blank=True, related_name='boardMembers')
     admins = models.ManyToManyField(User, blank=True, related_name='boardAdmins')
+    members = models.ManyToManyField(User, blank=True, related_name='boardMembers')
     isPrivate = models.BooleanField(default=False)
 
     class Meta:

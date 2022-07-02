@@ -22,7 +22,32 @@ def dashboard(request):
 
 
 def teams(request):
-    pass
+    allTeams = Team.objects.all().prefetch_related('admins', 'members')
+    allProfiles = Profile.objects.all().select_related('user')
+
+    if request.method == "POST":
+        try:
+            newTeam = Team.objects.create(
+                internalKey=request.POST['team-name'],
+                description=request.POST['team-description'],
+                isPrivate=request.POST['team-visibility'] == 'visibility-members'
+            )
+
+            newTeam.members.add(*request.POST.getlist('team-members'))
+            newTeam.admins.add(*request.POST.getlist('team-admins'))
+
+            allTeams = Team.objects.all().prefetch_related('admins', 'members')
+        except IntegrityError:
+            messages.error(
+                request,
+                f'Team with name {request.POST["team-name"]} already exists.'
+            )
+
+    context = {
+        'teams': allTeams,
+        'profiles': allProfiles,
+    }
+    return render(request, "jira/teams.html", context)
 
 
 @login_required
@@ -73,9 +98,10 @@ def ticketDetailView(request, internalKey):
     except Ticket.DoesNotExist:
         raise Http404
 
-    ticketIssueTypes = Component.objects.filter(componentGroup__code="TICKET_ISSUE_TYPE")
-    ticketPriorities = Component.objects.filter(componentGroup__code="TICKET_PRIORITY")
-    projectComponents = Component.objects.filter(componentGroup__code="PROJECT_COMPONENTS", reference__exact=f"Component_{ticket.project.code}")
+    components = Component.objects.all().select_related('componentGroup')
+    ticketIssueTypes = [i for i in components if i.componentGroup.code == "TICKET_ISSUE_TYPE"]
+    ticketPriorities = [i for i in components if i.componentGroup.code == "TICKET_PRIORITY"]
+    projectComponents = [i for i in components if i.componentGroup.code == "PROJECT_COMPONENTS" and i.reference==f"Component_{ticket.project.code}"]
     allProfiles = Profile.objects.all().select_related('user')
 
     if request.method == "POST":
@@ -106,13 +132,18 @@ def ticketDetailView(request, internalKey):
     ticketComments = [
         {
             'id': i.pk,
-            'creator': i.creator.get_full_name(),
+            'creator': {
+                'id': i.creator.id,
+                'firstName': i.creator.first_name,
+                'lastName': i.creator.last_name,
+                'icon': i.creator.profile.profilePicture.url
+            },
             'comment': i.comment.replace("\n", "<br />"),
             'edited': i.edited,
             'likeCount': i.likes.count(),
             'dislikeCount': i.dislikes.count(),
             'canEdit': i.creator == request.user,
-            'masterCommentId': i.reply.pk if i.reply else None
+            'createdDttm': i.createdDttm.strftime('%b %d, %Y'),
         }
         for i in ticket.ticketComments.all()
     ]
@@ -173,7 +204,7 @@ def ticketDetailView(request, internalKey):
         "ticketIssueTypes": ticketIssueTypes,
         "ticketPriorities": ticketPriorities,
         "projectComponents": projectComponents,
-        "ticketComments": json.dumps(ticketComments),
+        "ticketComments": json.dumps(ticketComments, default=str),
         "epicTickets": json.dumps(epicTickets),
         "subTaskTickets": json.dumps(subTaskTickets),
     }

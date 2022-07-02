@@ -16,6 +16,28 @@
             cursor: -moz-grabbing;
             cursor: -webkit-grabbing;
         }
+
+        .file-drop-area {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 450px;
+            max-width: 100%;
+            padding: 25px;
+            border: 1px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 3px;
+            transition: 0.2s;
+        }
+
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            cursor: pointer;
+            opacity: 0;
+        }
     </style>
 
     <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
@@ -117,8 +139,8 @@
                                     <dd class="col-sm-12">
                                         <label style="font-size: 85%; color: #6c757d;">Attachment</label>
                                         <div class="file-drop-area border justify-content-center" style="width: 100%;">
-                                            <span class="choose-file-button">Choose files</span>
-                                            <span class="file-message">or drag and drop files here</span>
+                                            <span class="choose-file-button">Choose files </span>
+                                            <span class="file-message">	&nbsp; or drag and drop files here</span>
                                             <input class="file-input" name="attachments" type="file" multiple>
                                         </div>
                                     </dd>
@@ -317,7 +339,7 @@
                             <div class="mod-content">
                                 <div id="description-val" class="field-ignore-highlight">
                                     <div class="user-content-block">
-                                        {{ ticket.description|linebreaks }}
+                                        {{ ticket.description|linebreaksbr }}
                                     </div>
                                 </div>
                             </div>
@@ -461,7 +483,7 @@
                                 <ul class="ops"></ul>
                             </div>
                             <div class="mod-content">
-                                <div id="div-id-forum-master-comment"></div>
+                                <div id="div-id-ticket-master-comment"></div>
                             </div>
                         </div>
                     </div>
@@ -871,7 +893,6 @@
             }
 
             switchCreateMode = () => {
-                // TODO: reset form
                 this.setState({
                     inCreateMode: !this.state.inCreateMode
                 })
@@ -892,7 +913,64 @@
             }
         }
 
+        class CommentComponent extends React.Component {
+            constructor(props) {
+                super(props);
+
+                this.state = {
+                    icon: this.props.comment.creator.icon ? this.props.comment.creator.icon : "https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png",
+                    edited: this.props.comment.edited ? "(edited)" : "",
+                }
+            }
+
+            render() {
+                const style2 = {
+                    maxWidth: "4%"
+                }
+                return (
+                    <div className="row">
+                        <div className="col-1" style={style2}>
+                            <span className="aui-avatar aui-avatar-small">
+                                <span className="aui-avatar-inner">
+                                    <img alt="Unassigned"
+                                         src={this.state.icon}>
+                                    </img>
+                                </span>
+                            </span>
+                        </div>
+                        <div className="col-11">
+                            <div className="row">
+                                {this.props.comment.creator.firstName} {this.props.comment.creator.lastName} {this.props.comment.createdDttm} {this.state.edited}
+                            </div>
+                            <div className="row">
+                                {this.props.comment.comment}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        }
+
+        class TicketCommentComponent extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = {
+                    ticketComments: eval('{{ ticketComments|safe }}'),
+                }
+            }
+
+            render() {
+                return (
+                    <div>
+                        {this.state.ticketComments.map((comment) => <CommentComponent key={comment.id}
+                                                                                      comment={comment}/>)}
+                    </div>
+                )
+            }
+        }
+
         ReactDOM.render(<LinkingModuleComponent/>, document.getElementById('linkingmodule'));
+        ReactDOM.render(<TicketCommentComponent/>, document.getElementById('div-id-ticket-master-comment'));
     </script>
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>

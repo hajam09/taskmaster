@@ -74,10 +74,10 @@ class Component(BaseModel):
 class Team(BaseModel):
     internalKey = models.CharField(max_length=2048, blank=True, null=True, unique=True)
     url = models.SlugField(max_length=10, editable=settings.DEBUG, unique=True, default=generateString, db_index=True)
-    isPrivate = models.BooleanField(default=False)
+    description = models.TextField()
     admins = models.ManyToManyField(User, related_name='teamAdmins')
     members = models.ManyToManyField(User, related_name='teamMembers')
-    description = models.TextField()
+    isPrivate = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Team"
