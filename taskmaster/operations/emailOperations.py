@@ -29,7 +29,7 @@ def sendEmailToActivateAccount(request, user: User):
         http://{}{}
         \n
         Thanks,
-        The OneTutor Team
+        The TaskMaster Team
     """.format(fullName, currentSite.domain, url)
 
     emailMessage = EmailMessage(emailSubject, message, settings.EMAIL_HOST_USER, [user.email])
@@ -54,8 +54,29 @@ def sendEmailToResetPassword(request, user: User):
             http://{}{}
             \n
             Thanks,
-            The OneTutor Team
+            The TaskMaster Team
         """.format(fullName, currentSite.domain, url)
+
+    emailMessage = EmailMessage(emailSubject, message, settings.EMAIL_HOST_USER, [user.email])
+    emailMessage.send()
+    return
+
+
+def sendEmailToNotifyUserAddedToTeam(request, user: User):
+    fullName = user.get_full_name()
+    emailSubject = "TaskMaster: You have been added to a team!"
+    message = """
+        Hi {},
+        \n
+        You have been added to a new team.
+        If you think it was a mistake, then don't worry.
+        Simply go to the team page and you can remove yourself from the team. Its that easy.
+        \n
+        Team link: {}
+        \n
+        Thanks,
+        The TaskMaster Team
+    """.format(fullName, request.get_raw_uri())
 
     emailMessage = EmailMessage(emailSubject, message, settings.EMAIL_HOST_USER, [user.email])
     emailMessage.send()

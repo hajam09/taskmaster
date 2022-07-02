@@ -377,6 +377,7 @@ class TeamsViewApiEventVersion1Component(View):
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
         thisTeam.members.remove(self.request.user)
+        thisTeam.admins.remove(self.request.user)
 
         response = {
             "success": True

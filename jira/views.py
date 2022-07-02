@@ -8,9 +8,9 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render
 
-from accounts.models import Profile, Component, Team, ComponentGroup
-from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label
-from taskmaster.operations import databaseOperations
+from accounts.models import Profile, Component, Team
+from jira.models import Board, Project, Column, Ticket, TicketAttachment
+from taskmaster.operations import databaseOperations, emailOperations
 
 
 def index(request):
@@ -52,7 +52,8 @@ def teams(request):
 
 @login_required
 def team(request, url):
-    # TODO: Add admins and members to the team.
+    # TODO: Fix modal colour visibility
+    # TODO: Create team activity session and display.
     try:
         thisTeam = Team.objects.prefetch_related('members__profile').get(url=url)
     except Team.DoesNotExist:
@@ -65,10 +66,20 @@ def team(request, url):
     excludedMembers = allProfiles.exclude(user__id__in=[i.id for i in thisTeam.members.all()])
     excludedAdmins = allProfiles.exclude(user__id__in=[i.id for i in thisTeam.admins.all()])
 
+    if request.method == "POST":
+        teamAdmins = request.POST.getlist('team-admins')
+        teamMembers = request.POST.getlist('team-members')
+        thisTeam.admins.add(*teamAdmins)
+        thisTeam.members.add(*teamMembers)
+
+        for user in set(thisTeam.admins.filter(id__in=teamAdmins) | thisTeam.members.filter(id__in=teamMembers)):
+            emailOperations.sendEmailToNotifyUserAddedToTeam(request, user)
+
     context = {
         "team": thisTeam,
         "members": excludedMembers,
         "admins": excludedAdmins,
+        "associates": set(thisTeam.admins.all() | thisTeam.members.all())
     }
     return render(request, "jira/team.html", context)
 
