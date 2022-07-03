@@ -12,7 +12,7 @@ from django.http import Http404
 from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team, ComponentGroup
-from jira.api import serializeTicketsIntoChunks
+from jira.api import serializeTicketsIntoChunks, serializeTickets
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, TicketComment
 from taskmaster.operations import databaseOperations, emailOperations
 
@@ -319,21 +319,18 @@ def board(request, url):
     backLogColumn = Column.objects.filter(board=thisBoard, internalKey__icontains="BACKLOG").first()
     otherColumns = Column.objects.filter(board=thisBoard).exclude(id=backLogColumn.id).prefetch_related('columnTickets')
 
-    boardDetails = {
-        "id": thisBoard.id,
-        "columns": [
-            {
-                "id": column.id,
-                "internalKey": column.internalKey,
-            }
-            for column in otherColumns
-        ]
-    }
+    def _serializeTickets(tickets):
+        data = []
+        serializeTickets(tickets, data)
+        return data
 
     columns = [
         {
             "id": column.id,
             "internalKey": column.internalKey,
+            # "tickets": serializeTicketsIntoChunks(column.columnTickets.filter(~Q(issueType__code="EPIC")))
+            #                 if column.columnTickets.filter(~Q(issueType__code="EPIC")).count() > 15
+            #                 else _serializeTickets(column.columnTickets.filter(~Q(issueType__code="EPIC")))
             "tickets": serializeTicketsIntoChunks(column.columnTickets.filter(~Q(issueType__code="EPIC")))
         }
         for column in otherColumns
@@ -341,7 +338,6 @@ def board(request, url):
 
     context = {
         "board": thisBoard,
-        "boardDetails": json.dumps(boardDetails),
         "columns": json.dumps(columns)
     }
     return render(request, TEMPLATE, context)

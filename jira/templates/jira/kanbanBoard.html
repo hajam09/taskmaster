@@ -155,9 +155,6 @@
     </div>
     </body>
 
-    <script type="text/javascript">
-    </script>
-
     <script type="text/babel">
 
         class TicketDetailsComponent extends React.Component {
@@ -259,8 +256,9 @@
                 return (
                     <div draggable="true"
                          className="js-detailview ghx-issue js-issue ghx-has-avatar ghx-avatar-not-empty js-parent-drag ghx-type-10001"
-                         data-issue-id="595675" data-issue-key="RWA-1396" role="listitem" tabIndex="0"
-                         aria-label="RWA-1396 Investigate DLQ alert on May 13, 2022 15:33:42 UTC">
+                         data-issue-id="595675" data-issue-key={this.props.ticket.internalKey} role="listitem"
+                         tabIndex="0"
+                         aria-label={this.props.ticket.internalKey + " " + this.props.ticket.summary}>
                         <div className="ghx-issue-content">
                             <div className="ghx-issue-fields">
                                 <div className="ghx-summary" title="summary"><span
@@ -282,12 +280,15 @@
         class Column extends React.Component {
             constructor(props) {
                 super(props);
+                this.state = {
+                    tickets: this.props.column.tickets
+                }
             }
 
             render() {
                 return (
                     <li className="ghx-column ui-sortable connectedSortable">
-                        {this.props.column.tickets.map((ticket) => <TicketComponent key={ticket.id} ticket={ticket}/>)}
+                        {this.state.tickets.map((ticket) => <TicketComponent key={ticket.id} ticket={ticket}/>)}
                     </li>
                 )
             }
@@ -306,7 +307,7 @@
                                 <h6 className="ghx-column-title"
                                     aria-describedby="aui-tooltip">{this.props.column.internalKey}</h6>
                                 <div className="ghx-qty">
-                                    <h6>X of {this.props.column.tickets.length}</h6>
+                                    <h6>{this.props.column.tickets.length}</h6>
                                 </div>
                             </div>
                             <div className="ghx-limits"></div>
@@ -354,5 +355,26 @@
     </script>
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <script type="text/javascript">
+        window.onload = function () {
+            $(".connectedSortable").sortable(
+                {
+                    // revert: true
+                    connectWith: ".connectedSortable"
+                }
+            ).disableSelection();
+
+            $("#draggable").draggable(
+                {
+                    connectToSortable: "#sortable",
+                    helper: "clone",
+                    revert: "invalid"
+                }
+            );
+
+            $("ul, li").disableSelection();
+        }
+    </script>
 
 {% endblock %}
