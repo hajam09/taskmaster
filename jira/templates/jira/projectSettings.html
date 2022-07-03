@@ -161,6 +161,23 @@
                     <!--  -->
 
                     <dd class="col-sm-3">
+                        <label style="color: #6c757d;">Project components</label>
+                    </dd>
+                    <dd class="col-sm-9">
+                        <div class="form-group">
+                            <select class="form-control select2bs4Tags " multiple="multiple"
+                                    name="project-components"
+                                    id="project-components" required>
+                                {% for dp in projectComponents %}
+                                    <option value="{{ dp.id }}">{{ dp.internalKey }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </dd>
+
+                    <!--  -->
+
+                    <dd class="col-sm-3">
                         <label style="color: #6c757d;">Project visibility</label>
                     </dd>
                     <dd class="col-sm-9">
@@ -411,6 +428,9 @@
 
     $(document).ready(function () {
         $('.select2bs4').select2();
+        $('.select2bs4Tags').select2({
+            tags: true
+        });
     });
 
     $(function () {
@@ -441,12 +461,18 @@
     });
 
     var PROJECT_MEMBERS_ID = [];
+    var PROJECT_COMPONENTS_ID = [];
 
     {% for member in project.members.all %}
         PROJECT_MEMBERS_ID.push({{member.id}});
     {% endfor %}
 
+    {% for comp in projectComponents %}
+        PROJECT_COMPONENTS_ID.push({{comp.id}});
+    {% endfor %}
+
     $('#project-members').select2().val(PROJECT_MEMBERS_ID).trigger("change")
+    $('#project-components').select2().val(PROJECT_COMPONENTS_ID).trigger("change")
 
 </script>
 {% endblock %}

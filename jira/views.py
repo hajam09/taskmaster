@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime
 
 from django.contrib import messages
@@ -10,7 +11,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render, redirect
 
-from accounts.models import Profile, Component, Team
+from accounts.models import Profile, Component, Team, ComponentGroup
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, TicketComment
 from taskmaster.operations import databaseOperations, emailOperations
 
@@ -385,16 +386,14 @@ def project(request, url):
 
 
 def projectSettings(request, url):
-    """
-    TODO: Allow user to create PROJECT_COMPONENT
-    """
     try:
         thisProject = Project.objects.get(url=url)
     except Project.DoesNotExist:
         raise Http404
 
     allProfiles = Profile.objects.all().select_related('user')
-    component = Component.objects.filter(componentGroup__code='PROJECT_STATUS')
+    projectStatusComponent = Component.objects.filter(componentGroup__code='PROJECT_STATUS')
+    projectComponents = Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS', reference__exact=thisProject.code)
 
     if request.method == "POST":
         thisProject.internalKey = request.POST['project-name']
@@ -402,7 +401,7 @@ def projectSettings(request, url):
         thisProject.lead = next(p.user for p in allProfiles if str(p.user.id) == request.POST['project-lead'])
         thisProject.startDate = datetime.strptime(request.POST['project-start'], "%Y-%m-%d").date()
         thisProject.endDate = datetime.strptime(request.POST['project-end'], "%Y-%m-%d").date()
-        thisProject.status = databaseOperations.getObjectByIdOrNone(component, request.POST['project-status'])
+        thisProject.status = databaseOperations.getObjectByIdOrNone(projectStatusComponent, request.POST['project-status'])
         thisProject.isPrivate = request.POST['project-visibility'] == 'visibility-members'
 
         if request.FILES.get('project-icon'):
@@ -410,12 +409,26 @@ def projectSettings(request, url):
 
         thisProject.members.clear()
         thisProject.members.add(*request.POST.getlist('project-members'))
+        componentGroup = ComponentGroup.objects.get(code='PROJECT_COMPONENTS')
+
+        Component.objects.bulk_create(
+            [
+                Component(
+                    componentGroup=componentGroup,
+                    internalKey=i,
+                    code=i.upper(),
+                    reference=thisProject.code
+                )
+                for i in request.POST.getlist('project-components') if re.search('[a-zA-Z]', i)
+            ]
+        )
         thisProject.save()
 
     context = {
         'project': thisProject,
         'profiles': allProfiles,
-        'projectStatusComponent': component
+        'projectStatusComponent': projectStatusComponent,
+        'projectComponents': projectComponents,
     }
     return render(request, 'jira/projectSettings.html', context)
 
