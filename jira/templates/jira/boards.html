@@ -56,6 +56,15 @@
                                     </select>
                                 </div>
                             </dd>
+                            <dd class="col-md-12">
+                                <label style="font-size: 85%; color: #6c757d;">Type</label>
+                                <div class="form-group">
+                                    <select class="form-control select2bs4" name="board-type" data-placeholder="Scrum or Kanban" style="width: 100%" required>
+                                        <option value="SCRUM">Scrum</option>
+                                        <option value="KANBAN" selected>Kanban</option>
+                                    </select>
+                                </div>
+                            </dd>
                         </dl>
                         <hr>
                         <h6>Visibility</h6>
@@ -125,6 +134,7 @@
                             <th>Name</th>
                             <th>Admins</th>
                             <th>Members</th>
+                            <th>Type</th>
                             <th>Project</th>
                         </tr>
                     </thead>
@@ -228,6 +238,13 @@
                                     </ul>
                                 </td>
                             {% endif %}
+                                <td>
+                                {% if b.type == 'KANBAN' %}
+                                    <span class="badge badge-primary" style="background-color: #7f45dd">{{ b.type }}</span>
+                                {% else %}
+                                    <span class="badge badge-primary" style="background-color: #00761b">{{ b.type }}</span>
+                                {% endif %}
+                                </td>
                             {% if b.projects.count == 1 %}
                                 <td>
                                     {% for project in b.projects.all %}

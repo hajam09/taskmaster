@@ -225,6 +225,7 @@
                                 <th>Name</th>
                                 <th>Admins</th>
                                 <th>Members</th>
+                                <th>Type</th>
                                 <th>Project</th>
                             </tr>
                             </thead>
@@ -333,6 +334,13 @@
                                             </ul>
                                         </td>
                                     {% endif %}
+                                        <td>
+                                        {% if b.type == 'KANBAN' %}
+                                            <span class="badge badge-primary" style="background-color: #7f45dd">{{ b.type }}</span>
+                                        {% else %}
+                                            <span class="badge badge-primary" style="background-color: #00761b">{{ b.type }}</span>
+                                        {% endif %}
+                                        </td>
                                     {% if b.projects.count == 1 %}
                                         <td>
                                             {% for project in b.projects.all %}

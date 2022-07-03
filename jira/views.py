@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -242,6 +243,7 @@ def boards(request):
         try:
             newBoard = Board.objects.create(
                 internalKey=request.POST['board-name'],
+                type=request.POST['board-type'],
                 isPrivate=request.POST['board-visibility'] == 'visibility-members'
             )
 
