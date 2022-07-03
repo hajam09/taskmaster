@@ -43,7 +43,6 @@ urlpatterns = [
     # path('kanbanBoard/<slug:url>/backlog/', views.kanbanBoardBacklog, name='kanban-board-backlog'),
     path('teams/', views.teams, name='teams-page'),
     path('teams/<slug:url>/', views.team, name='team-page'),
-    path('new-ticket-object', views.newTicketObject, name='new-ticket-object'),
 ]
 
 # api
