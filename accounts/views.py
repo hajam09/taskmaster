@@ -37,6 +37,7 @@ def login(request):
 
         if form.is_valid():
             cache.delete(uniqueVisitorId)
+            # TODO: If previous url is registration or login, then redirect to index view or board view
             redirectUrl = request.GET.get('next')
             if redirectUrl:
                 return redirect(redirectUrl)
