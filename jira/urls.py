@@ -21,15 +21,13 @@ from jira.api import TicketBulkOrderChangeApiEventVersion1Component
 # from jira.api import KanbanBoardDetailsAndItemsApiEventVersion1Component
 # from jira.api import KanbanBoardTicketColumnUpdateApiEventVersion1Component
 # from jira.api import TicketObjectBaseDataUpdateApiEventVersion1Component
-# from jira.api import TicketObjectBulkCreateApiEventVersion1Component
+from jira.api import TicketObjectBulkCreateApiEventVersion1Component
 # from jira.api import TicketObjectForIssuesInTheEpicTicketApiEventVersion1Component
 # from jira.api import TicketObjectForSubTasksInStandardTicketApiEventVersion1Component
 
 app_name = "jira"
 urlpatterns = [
     # path('', views.mainPage, name='main-page'),
-    # path('sprint-board/', views.sprintBoard, name='sprintBoard'),
-    # path('back-log/', views.backLog, name='backLog'),
     path('ticket/<slug:internalKey>/', views.ticketDetailView, name='ticket-detail-view'),
     path('projects/', views.projects, name='projects-page'),
     path('projects/<slug:url>/', views.project, name='project-page'),
@@ -38,9 +36,7 @@ urlpatterns = [
     path('boards/', views.boards, name='boards-page'),
     path('boards/<slug:url>/', views.board, name='board-page'),
     path('boards/<slug:url>/settings/', views.boardSettings, name='board-settings'),
-    # path('kanbanBoard/<slug:url>/', views.kanbanBoard, name='kanban-board-page'),
-    # path('board/<slug:url>/backlog/', views.backlog, name='board-backlog'),
-    # path('kanbanBoard/<slug:url>/backlog/', views.kanbanBoardBacklog, name='kanban-board-backlog'),
+    path('boards/<slug:url>/backlog/', views.backlog, name='board-backlog'),
     path('teams/', views.teams, name='teams-page'),
     path('teams/<slug:url>/', views.team, name='team-page'),
 ]
@@ -137,11 +133,11 @@ urlpatterns += [
     #     BoardObjectDetailsApiEventVersion1Component.as_view(),
     #     name='boardObjectDetailsApiEventVersion1Component'
     # ),
-    # path(
-    #     'api/v1/ticketObjectBulkCreateApiEventVersion1Component',
-    #     TicketObjectBulkCreateApiEventVersion1Component.as_view(),
-    #     name='ticketObjectBulkCreateApiEventVersion1Component'
-    # ),
+    path(
+        'api/v1/ticketObjectBulkCreateApiEventVersion1Component',
+        TicketObjectBulkCreateApiEventVersion1Component.as_view(),
+        name='ticketObjectBulkCreateApiEventVersion1Component'
+    ),
     # path(
     #     'api/v2/kanbanBoardBacklogActiveTicketsApiEventVersion2Component/<int:boardId>',
     #     KanbanBoardBacklogActiveTicketsApiEventVersion2Component.as_view(),
