@@ -303,32 +303,19 @@ def board(request, url):
         raise Http404
 
     if not thisBoard.hasAccessPermission(request.user):
+        # TODO: Show access denied page.
         raise PermissionDenied()
 
     context = {
+
         "board": thisBoard
     }
     return render(request, "jira/board.html", context)
 
 
 def backlog(request, url):
-    try:
-        thisBoard = Board.objects.get(url=url)
-    except Board.DoesNotExist:
-        raise Http404
-
-    if not thisBoard.hasAccessPermission(request.user):
-        raise PermissionDenied()
-
-    if thisBoard.type == "KANBAN":
-        TEMPLATE = "jira/kanbanBacklog.html"
-    else:
-        TEMPLATE = "jira/scrumBacklog.html"
-
-    context = {
-        "board": thisBoard
-    }
-    return render(request, TEMPLATE, context)
+    # url = boardUrl
+    pass
 
 
 def yourWork(request):
@@ -387,6 +374,8 @@ def project(request, url):
 def projectSettings(request, url):
     """
     TODO: Allow user to create PROJECT_COMPONENT
+    TODO: Fix startDate, endDate display on update
+    TODO: Display boards
     """
     try:
         thisProject = Project.objects.get(url=url)
@@ -400,8 +389,8 @@ def projectSettings(request, url):
         thisProject.internalKey = request.POST['project-name']
         thisProject.description = request.POST['project-description']
         thisProject.lead = next(p.user for p in allProfiles if str(p.user.id) == request.POST['project-lead'])
-        thisProject.startDate = datetime.strptime(request.POST['project-start'], "%Y-%m-%d").date()
-        thisProject.endDate = datetime.strptime(request.POST['project-end'], "%Y-%m-%d").date()
+        thisProject.startDate = request.POST['project-start']
+        thisProject.endDate = request.POST['project-end']
         thisProject.status = databaseOperations.getObjectByIdOrNone(component, request.POST['project-status'])
         thisProject.isPrivate = request.POST['project-visibility'] == 'visibility-members'
 
@@ -421,12 +410,13 @@ def projectSettings(request, url):
 
 
 def projectIssues(request, url):
-    # NEED TO COMPLETE THE TICKET_PAGE
+    # NEED TO COMPLETE THE TICKETPAGE
     pass
 
 
 def profileAndSettings(request):
     pass
+
 
 
 def newTicketObject(request):

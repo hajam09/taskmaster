@@ -2,14 +2,13 @@ import json
 from http import HTTPStatus
 
 from django.contrib import messages
-from django.contrib.auth.models import User
 from django.http import QueryDict, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from accounts.models import Team, Component
-from jira.models import Board, Column, Label, Ticket, Project
+from jira.models import Board, Column, Label, Ticket
 from taskmaster.operations import databaseOperations
 
 
@@ -1006,49 +1005,34 @@ class SubTaskTicketsForTicketApiEventVersion1Component(View):
 #         return JsonResponse(response, status=HTTPStatus.OK)
 #
 #
-@method_decorator(csrf_exempt, name='dispatch')
-class TicketObjectBulkCreateApiEventVersion1Component(View):
-
-    def post(self, *args, **kwargs):
-        body = json.loads(self.request.body)
-        resolution = Component.objects.get(componentGroup__code='TICKET_RESOLUTIONS', code="UNRESOLVED")
-        issueType = Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE')
-        priority = Component.objects.get(componentGroup__code='TICKET_PRIORITY', code="MEDIUM")
-        board = Board.objects.first()
-        column = Column.objects.get(board=board, internalKey='TO DO')
-
-        for ticket in body['data']['tickets']:
-            project = Project.objects.filter(code__icontains=ticket['projectCode']).first()
-
-            if project is None:
-                continue
-
-            newTicketNumber = project.projectTickets.count() + 1
-
-            newTicket = Ticket()
-            newTicket.internalKey = project.code + "-" + str(newTicketNumber)
-            newTicket.summary = ticket["summary"]
-            newTicket.description = ticket["description"]
-            # newTicket.fixVersion = None
-            # newTicket.component = None
-            newTicket.resolution = resolution
-            newTicket.project = project
-            # newTicket.assignee = None
-            newTicket.reporter = User.objects.first()
-            newTicket.storyPoints = ticket["storyPoints"]
-            # newTicket.manDays = None
-            newTicket.issueType = next((o for o in issueType if o.internalKey == ticket["issueType"]))
-            newTicket.priority = priority
-            newTicket.board = board
-            newTicket.column = column
-            # newTicket.watchers = None
-            # newTicket.subTask = None
-            # newTicket.label = None
-            # newTicket.epic = None
-            newTicket.orderNo = newTicketNumber
-            newTicket.save()
-        return JsonResponse({}, status=HTTPStatus.OK)
-
+# @method_decorator(csrf_exempt, name='dispatch')
+# class TicketObjectBulkCreateApiEventVersion1Component(View):
+#
+#     def post(self, *args, **kwargs):
+#         body = json.loads(self.request.body)
+#
+#         for ticket in body['data']['tickets']:
+#             project = Project.objects.filter(code__icontains=ticket['projectCode']).first()
+#
+#             if project is None or Ticket.objects.filter(internalKey=ticket["internalKey"]).exists():
+#                 continue
+#
+#             newTicket = Ticket()
+#             newTicket.internalKey = project.code + "-" + str(project.projectTickets.count() + 1)
+#             newTicket.summary = ticket["summary"]
+#             newTicket.description = ticket["description"]
+#             newTicket.project = project
+#             newTicket.reporter = User.objects.get(username="admin")
+#             newTicket.storyPoints = int(ticket["storyPoints"])
+#             newTicket.issueType = Component.objects.filter(componentGroup__code="TICKET_ISSUE_TYPE",
+#                                                           internalKey=ticket["issueType"]).first()
+#             newTicket.priority = Component.objects.filter(componentGroup__code="TICKET_PRIORITY",
+#                                                          internalKey=ticket["priority"]).first()
+#             newTicket.board = project.boardProjects.first()
+#             newTicket.column = project.boardProjects.first().boardColumns.first()
+#             newTicket.save()
+#         return JsonResponse({}, status=HTTPStatus.OK)
+#
 #
 # def serializeTickets(tickets, data):
 #     newData = [
