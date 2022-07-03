@@ -1,4 +1,5 @@
 import json
+import threading
 from http import HTTPStatus
 
 from django.contrib import messages
@@ -1040,68 +1041,68 @@ class TicketObjectBulkCreateApiEventVersion1Component(View):
         return JsonResponse({}, status=HTTPStatus.OK)
 
 #
-# def serializeTickets(tickets, data):
-#     newData = [
-#         {
-#             "id": ticket.id,
-#             "summary": ticket.summary,
-#             "internalKey": ticket.internalKey,
-#             "link": "/jira2/ticket/" + str(ticket.internalKey),
-#             "storyPoints": ticket.storyPoints if ticket.storyPoints is not None else "-",
-#             "column": ticket.column.name if ticket.column is not None else None,
-#             "issueType": {
-#                 "internalKey": ticket.issueType.internalKey,
-#                 "icon": "/static/" + ticket.issueType.icon,
-#             },
-#             "priority": {
-#                 "internalKey": ticket.priority.internalKey,
-#                 "icon": "/static/" + ticket.priority.icon
-#             },
-#             "epic": {
-#                 "id": ticket.epic.id,
-#                 "internalKey": ticket.epic.internalKey,
-#                 "summary": ticket.epic.summary,
-#                 "colour": ticket.epic.colour,
-#                 "link": "/jira2/ticket/" + str(ticket.epic.internalKey),
-#             } if ticket.epic is not None else None,
-#             "assignee": {
-#                 "id": ticket.assignee.pk,
-#                 "firstName": ticket.assignee.first_name,
-#                 "lastName": ticket.assignee.last_name,
-#                 "icon": ""  # ticket.assignee.developerProfile.profilePicture.url
-#             } if ticket.assignee is not None else None,
-#         }
-#         for ticket in tickets
-#     ]
-#
-#     for i in newData:
-#         data.append(i)
-#
-#     return
-#
-#
-# def serializeTicketsIntoChunks(tickets):
-#     if tickets.count() == 0:
-#         return []
-#
-#     data = []
-#     JOBS = []
-#     MAX_THREADS = 4
-#     chunkSize = tickets.count() // MAX_THREADS
-#
-#     if chunkSize == 0:
-#         serializeTickets(tickets, data)
-#         return data
-#
-#     ticketsChunks = [tickets[i:i + chunkSize] for i in range(0, len(tickets), chunkSize)]
-#
-#     for index in ticketsChunks:
-#         JOBS.append(threading.Thread(target=serializeTickets, args=(index, data,)))
-#
-#     for j in JOBS:
-#         j.start()
-#
-#     for j in JOBS:
-#         j.join()
-#
-#     return data
+def serializeTickets(tickets, data):
+    newData = [
+        {
+            "id": ticket.id,
+            "summary": ticket.summary,
+            "internalKey": ticket.internalKey,
+            "link": "/jira2/ticket/" + str(ticket.internalKey),
+            "storyPoints": ticket.storyPoints if ticket.storyPoints is not None else "-",
+            "column": ticket.column.internalKey if ticket.column is not None else None,
+            "issueType": {
+                "internalKey": ticket.issueType.internalKey,
+                "icon": ticket.issueType.icon,
+            },
+            "priority": {
+                "internalKey": ticket.priority.internalKey,
+                "icon": ticket.priority.icon
+            },
+            "epic": {
+                "id": ticket.epic.id,
+                "internalKey": ticket.epic.internalKey,
+                "summary": ticket.epic.summary,
+                "colour": ticket.epic.colour,
+                "link": "/jira2/ticket/" + str(ticket.epic.internalKey),
+            } if ticket.epic is not None else None,
+            "assignee": {
+                "id": ticket.assignee.pk,
+                "firstName": ticket.assignee.first_name,
+                "lastName": ticket.assignee.last_name,
+                "icon": ticket.assignee.profile.profilePicture.url
+            } if ticket.assignee is not None else None,
+        }
+        for ticket in tickets
+    ]
+
+    for i in newData:
+        data.append(i)
+
+    return
+
+
+def serializeTicketsIntoChunks(tickets):
+    if tickets.count() == 0:
+        return []
+
+    data = []
+    JOBS = []
+    MAX_THREADS = 4
+    chunkSize = tickets.count() // MAX_THREADS
+
+    if chunkSize == 0:
+        serializeTickets(tickets, data)
+        return data
+
+    ticketsChunks = [tickets[i:i + chunkSize] for i in range(0, len(tickets), chunkSize)]
+
+    for index in ticketsChunks:
+        JOBS.append(threading.Thread(target=serializeTickets, args=(index, data,)))
+
+    for j in JOBS:
+        j.start()
+
+    for j in JOBS:
+        j.join()
+
+    return data

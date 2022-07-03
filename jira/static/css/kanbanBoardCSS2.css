@@ -1,0 +1,1054 @@
+/*--- START - CSS for Execution status display-----*/
+dd {
+    display: block;
+    -webkit-margin-start: 0px;
+    /*Needed for JIRA 6.x*/
+}
+dt {
+    display: block;
+}
+/* Test Details History tab in issue [test] page */
+/* added zephyr class to prevent overriding on jira dialogs*/
+/**** Only for JIRA 6.x *****/
+/*For JIRA6x, version class is not defined*/
+div dl dd {
+    margin-left:0px
+}
+
+.aui-page-sidebar{
+    --aui-sidebar-width:280px
+}
+.aui-page-sidebar.aui-sidebar-collapsed{
+    --aui-sidebar-width:56px
+}
+.aui-sidebar{
+    box-sizing:border-box;
+    min-width:56px;
+    position:absolute;
+    z-index:3
+}
+.aui-sidebar .aui-sidebar-wrapper{
+    box-sizing:border-box;
+    border-right:0;
+    border-color:var(--aui-sidebar-bg-color);
+    background-color:var(--aui-sidebar-bg-color);
+    display:flex;
+    flex-direction:column;
+    width:var(--aui-sidebar-width);
+    position:absolute;
+    top:0;
+    bottom:auto
+}
+.aui-page-sidebar #content .aui-sidebar+main{
+    padding-left:var(--aui-sidebar-width)
+}
+.aui-sidebar+.aui-page-panel{
+    border-top-width:0;
+    margin-top:0
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.vendors--85718a7eef', location = 'aui.splitchunk.vendors--85718a7eef.css' */
+/*!* jQuery UI Resizable 1.12.1* http://jqueryui.com** Copyright jQuery Foundation and other contributors* Released under the MIT license.* http://jquery.org/license*/
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.vendors--7c76061134', location = 'aui.splitchunk.vendors--7c76061134.css' */
+/*!* jQuery UI Selectable 1.12.1* http://jqueryui.com** Copyright jQuery Foundation and other contributors* Released under the MIT license.* http://jquery.org/license*/
+/* module-key = 'com.atlassian.auiplugin:split_aui.component.form.select2', location = 'aui.component.form.select2.css' */
+.aui-select2-drop .select2-search input:focus-visible{
+    box-shadow:unset
+}
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto){
+}
+/* module-key = 'com.thed.zephyr.je:zephyr-je-test-board', location = 'includes/css/zephyr/testboard/testboard.css' */
+/*** Contains all the LESS for cards in both plan and work mode*/
+a {
+    cursor: pointer;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    /* Safari only override */
+    ::i-block-chrome {
+        max-height: 80% !important;
+    }
+}
+
+button {
+    outline: none !important;
+}
+* {
+    outline: none !important;
+}
+
+input:focus:-ms-input-placeholder {
+    color:transparent;
+}
+input:focus::-webkit-input-placeholder {
+    color:transparent;
+}
+input:focus:-moz-placeholder {
+    color:transparent;
+}
+input:focus::-moz-placeholder {
+    color:transparent;
+}
+/* .results-count {
+    display: block !important;
+}
+*/
+/* module-key = 'com.pyxis.greenhopper.jira:flexible-boards', location = 'includes/css/gh-details.less' */
+@supports ((position: sticky) or (position: -webkit-sticky)) and (display: grid){
+}
+/* module-key = 'com.pyxis.greenhopper.jira:flexible-boards', location = 'includes/css/gh-columns.less' */
+@supports ((position: sticky) or (position: -webkit-sticky)) and (display: grid){
+    .ghx-rapid-views #gh #ghx-work #ghx-pool-column{
+        overflow-x:auto
+}
+    .ghx-rapid-views #gh #ghx-work #ghx-pool-column #ghx-pool{
+        overflow:visible;
+        min-width:100%
+}
+    .ghx-rapid-views #gh #ghx-work #ghx-pool-column #ghx-column-header-group{
+        overflow:visible;
+        position:-webkit-sticky;
+        position:sticky;
+        top:0;
+        padding:0 10px;
+        margin:0
+}
+    .ghx-rapid-views #gh #ghx-work #ghx-pool-column #ghx-column-headers{
+        padding-top:0
+}
+    .ghx-rapid-views #gh #ghx-work #ghx-pool-column #ghx-column-headers .ghx-column{
+        padding-top:17px
+}
+    .ghx-rapid-views #gh #ghx-work #ghx-pool-column .ghx-columns,.ghx-rapid-views #gh #ghx-work #ghx-pool-column #ghx-column-headers{
+        display:grid;
+        grid-column-gap:10px;
+        grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+        overflow:visible
+}
+    .ghx-rapid-views #gh #ghx-work #ghx-pool-column .ghx-columns .ghx-column,.ghx-rapid-views #gh #ghx-work #ghx-pool-column #ghx-column-headers .ghx-column{
+        grid-row:1;
+        min-width:200px
+}
+    .ghx-rapid-views #gh #ghx-work #ghx-pool-column .ghx-swimlane{
+        display:grid
+}
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.vendors--f29b9b9def', location = 'aui.splitchunk.vendors--f29b9b9def.css' */
+/*!* jQuery UI Draggable 1.12.1* http://jqueryui.com** Copyright jQuery Foundation and other contributors* Released under the MIT license.* http://jquery.org/license*/
+/* module-key = 'com.pyxis.greenhopper.jira:gh-rapid-common-css', location = 'includes/css/gh-less-imports.css' */
+/* module-key = 'com.pyxis.greenhopper.jira:gh-rapid-common-css', location = 'includes/css/gh-layout.less' */
+html,body{
+    height:100%
+}
+.aui-page-sidebar #content .aui-sidebar+main#main{
+    padding-left:0
+}
+body.ghx-rapid-views{
+    overflow-y:hidden
+}
+body.ghx-rapid-views #page{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    overflow:auto
+}
+body.ghx-rapid-views #content{
+    flex-grow:1;
+    display:flex;
+    height:100%;
+    overflow:hidden
+}
+body.ghx-rapid-views .aui-sidebar:not(.sidebar-placeholder){
+    position:relative;
+    flex-basis:var(--aui-sidebar-width);
+    flex-shrink:0;
+    flex-grow:0
+}
+body.ghx-rapid-views #gh{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    overflow:hidden;
+    padding-left:0
+}
+body.ghx-rapid-views #ghx-header{
+    flex-shrink:0
+}
+body.ghx-rapid-views #ghx-content-main{
+    flex-grow:1;
+    height:100%;
+    overflow:hidden
+}
+body.ghx-rapid-views #ghx-rabid{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    overflow:hidden
+}
+body.ghx-rapid-views #ghx-operations{
+    flex-shrink:0
+}
+body.ghx-rapid-views #ghx-plan{
+    flex-grow:1;
+    height:100%;
+    overflow:auto
+}
+body.ghx-rapid-views #ghx-detail-view,body.ghx-rapid-views #ghx-pool-column{
+    height:100%
+}
+body.ghx-rapid-views #content,body.ghx-rapid-views #gh,body.ghx-rapid-views #ghx-content-main,body.ghx-rapid-views #ghx-plan,body.ghx-rapid-views #ghx-detail-view{
+    height:100%;
+    overflow:auto
+}
+body.ghx-rapid-views #ghx-detail-view{
+    width:400px;
+    flex-shrink:0;
+    flex-grow:0
+}
+body.ghx-rapid-views #ghx-detail-view[style]{
+    left:0 !important
+}
+body.ghx-rapid-views #ghx-work{
+    display:flex;
+    flex-grow:1;
+    height:100%;
+    overflow:hidden
+}
+body.ghx-rapid-views #ghx-work #ghx-pool-column{
+    display:flex;
+    flex-direction:column;
+    flex-grow:1;
+    width:calc(100% - 400px);
+    overflow-x:hidden
+}
+body.ghx-rapid-views #ghx-work #ghx-pool-column #ghx-pool{
+    flex-grow:0;
+    flex-shrink:5
+}
+body.ghx-rapid-views #ghx-report{
+    height:100%
+}
+@media print{
+    body.ghx-rapid-views{
+        overflow:visible;
+        height:auto
+}
+}
+/* module-key = 'com.pyxis.greenhopper.jira:gh-rapid-common-css', location = 'includes/css/gh-rapid.less' */
+.ghx-avatar-img{
+    -webkit-border-radius:50%;
+    border-radius:50%;
+    height:32px;
+    width:32px;
+    min-width:32px;
+    cursor:default;
+    display:inline-block;
+    vertical-align:middle;
+    overflow:hidden
+}
+.ghx-issue{
+    background:#fff;
+    color:#172b4d;
+    cursor:move;
+    display:block;
+    font-size:14px;
+    line-height:1.42857143;
+    position:relative;
+    box-shadow:0 0 1px 0 rgba(9,30,66,0.31),0 2px 4px -1px rgba(9,30,66,0.25);
+    border-radius:2px;
+    margin:5px;
+    padding:10px
+}
+.ghx-issue.ghx-has-avatar .ghx-issue-fields{
+    padding-right:37px
+}
+.ghx-issue:hover{
+    background:#ebecf0
+}
+.ghx-issue .ghx-card-footer{
+    display:flex;
+    flex-wrap:wrap;
+    margin-top:10px
+}
+.ghx-issue .ghx-card-footer div:not(:last-child){
+    margin-right:4px;
+    margin-bottom:4px
+}
+.ghx-issue .ghx-key-link{
+    color:#5e6c84;
+    font-size:12px;
+    font-weight:600;
+    line-height:1.66666667;
+    letter-spacing:0;
+    outline:0;
+    text-transform:none;
+    display:flex;
+    flex-wrap:nowrap
+}
+.ghx-issue .ghx-key-link .ghx-key-link-project-key{
+    flex:1 1 auto;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap
+}
+.ghx-issue .ghx-key-link .ghx-key-link-issue-num{
+    flex:1 0 auto;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap
+}
+.ghx-issue .ghx-avatar{
+    display:none;
+    position:absolute;
+    right:10px;
+    top:10px
+}
+.ghx-issue.ghx-has-avatar .ghx-avatar{
+    display:block
+}
+.ghx-issue .ghx-extra-fields{
+    margin-top:10px
+}
+.ghx-issue .ghx-extra-fields .ghx-extra-field-row{
+    line-height:0
+}
+.ghx-issue .ghx-extra-fields .ghx-extra-field{
+    display:inline-block;
+    line-height:1.42857143;
+    max-height:1.42857143em;
+    max-width:100%;
+    text-overflow:ellipsis;
+    overflow:hidden;
+    white-space:nowrap
+}
+.ghx-issue .ghx-highlighted-fields{
+    font-size:0;
+    margin-top:12px;
+    overflow:hidden;
+    padding-right:29px;
+    white-space:nowrap
+}
+.ghx-issue .ghx-highlighted-fields .ghx-highlighted-field{
+    max-width:90%
+}
+.ghx-issue .ghx-highlighted-fields .ghx-highlighted-field .aui-label{
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis
+}
+.ghx-issue:focus{
+    outline:none
+}
+.ghx-work .ghx-extra-field .ghx-extra-field-content{
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    pointer-events:none
+}
+.ghx-grabber{
+    background-color:#eee
+}
+.ghx-grabber{
+    height:100%;
+    left:0;
+    position:absolute;
+    text-indent:-9999em;
+    top:0;
+    width:3px;
+    border-top-left-radius:3px;
+    border-bottom-left-radius:3px
+}
+.ghx-grabber-transparent{
+    background-color:transparent
+}
+.ghx-move-count{
+    background:transparent url() no-repeat 0 0;
+    height:31px;
+    width:30px;
+    position:absolute;
+    right:-12px;
+    top:-14px;
+    visibility:hidden;
+    z-index:20
+}
+.ghx-move-count b{
+    color:#fff;
+    display:inline-block;
+    font-size:12px;
+    text-align:center;
+    line-height:2.5;
+    vertical-align:middle;
+    width:29px
+}
+.ghx-issue-fields{
+    padding-right:20px
+}
+.ghx-issue-fields .ghx-key{
+    display:inline-block;
+    line-height:1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    max-width:100%
+}
+.ghx-issue.ghx-done .ghx-key a{
+    text-decoration:line-through
+}
+.ghx-issue-fields .ghx-summary .ghx-inner{
+    display:block;
+    line-height:1.1em;
+    max-height:3.3em;
+    padding-bottom:1px;
+    overflow:hidden;
+    word-wrap:break-word
+}
+.ghx-issue .ghx-type,.ghx-issue .ghx-type img,.ghx-issue .ghx-flags,.ghx-issue .ghx-priority,.ghx-issue .ghx-priority img{
+    height:16px;
+    width:16px;
+    overflow:hidden
+}
+.ghx-gh{
+    font-size:14px;
+    line-height:1.42857143
+}
+main.ghx-gh{
+    height:100%;
+    overflow:auto
+}
+.ghx-agile #content{
+    padding:0
+}
+a{
+    cursor:pointer
+}
+.ghx-agile .aui-label{
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis
+}
+.ghx-throbber{
+    position:fixed;
+    left:50%;
+    top:50%
+}
+.ghx-cursor-help{
+    cursor:help
+}
+#ghx-work{
+    display:none
+}
+#ghx-pool{
+    background:#fff;
+    overflow-y:scroll;
+    position:relative;
+    z-index:1
+}
+#ghx-plan{
+    display:none;
+    position:relative
+}
+#ghx-plan ::-webkit-scrollbar{
+    width:6px
+}
+#ghx-plan ::-webkit-scrollbar-track{
+    background:rgba(9,30,66,0.08);
+    border-radius:4px
+}
+#ghx-plan ::-webkit-scrollbar-thumb{
+    background:#97a0af;
+    border-radius:4px
+}
+#ghx-work{
+    display:table;
+    table-layout:fixed;
+    width:100%
+}
+#ghx-pool{
+    height:inherit
+}
+#ghx-pool{
+    padding:0 10px 0;
+    -moz-box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+    box-sizing:border-box
+}
+#ghx-detail-view{
+    width:400px
+}
+@media print{
+    #ghx-plan,#ghx-report,#ghx-work{
+        height:auto !important
+}
+}
+#ghx-header{
+    -moz-box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+    box-sizing:border-box;
+    padding:20px 20px 10px 20px;
+    position:relative
+}
+#ghx-header h1{
+    color:#172b4d;
+    font-size:24px;
+    font-weight:normal;
+    line-height:1.25
+}
+#ghx-operations{
+    padding:0 20px;
+    border-bottom:2px solid #ebecf0
+}
+#ghx-modes-tools{
+    float:right;
+    padding-bottom:0.5em
+}
+#ghx-view-modes,#ghx-view-tools,#ghx-view-presentation,.ghx-view-section{
+    display:inline-block;
+    padding-left:10px;
+    vertical-align:top
+}
+.ghx-controls-list dl,.ghx-controls-list dt,.ghx-controls-list dd{
+    display:inline-block;
+    margin-top:0
+}
+.ghx-controls-list>div>dl{
+    margin-right:38px;
+    vertical-align:top
+}
+.ghx-controls-list>div>dl:last-child{
+    margin-right:0
+}
+.ghx-controls-list dt{
+    color:#5e6c84;
+    font-size:12px;
+    font-weight:600;
+    line-height:1.66666667;
+    letter-spacing:0;
+    text-transform:uppercase
+}
+.ghx-controls-plan,.ghx-controls-work{
+    min-height:40px;
+    position:relative
+}
+.ghx-controls-plan,.ghx-controls-work{
+    margin-bottom:-3px
+}
+.ghx-controls-filters #js-work-quickfilters{
+    padding:3px
+}
+.ghx-controls-filters #js-work-quickfilters #js-quickfilters-label{
+    margin-left:-3px
+}
+.ghx-controls-filters dt,.ghx-controls-filters dd{
+    margin:0 0 10px 0
+}
+.ghx-controls-filters dt{
+    padding-right:10px
+}
+.ghx-controls-filters dd .aui-button,.ghx-controls-filters dd.ghx-quickfilter-trigger>a{
+    border:1px solid transparent;
+    -webkit-border-radius:3px 3px 3px 3px;
+    border-radius:3px 3px 3px 3px;
+    display:inline-block;
+    line-height:1;
+    margin:0 5px 0 0;
+    padding:7px 10px
+}
+.ghx-controls-filters dd a,.ghx-controls-filters dd a:hover{
+    text-decoration:none
+}
+.ghx-controls-filters dd a:hover{
+    border-color:#c1c7d0
+}
+.ghx-controls-filters dd a.ghx-active,.ghx-controls-filters dd .js-quickfilter-button.ghx-active{
+    background:#344563;
+    border-color:transparent;
+    color:#fff
+}
+.ghx-controls-filters dd a.ghx-active:hover,.ghx-controls-filters dd .js-quickfilter-button.ghx-active:hover{
+    background:rgba(9,30,66,0.13);
+    color:#344563
+}
+.ghx-controls-filters dd a:focus{
+    text-decoration:none
+}
+.ghx-quick-content.aui-expander-content{
+    margin-bottom:10px;
+    min-height:30px;
+    position:relative
+}
+.ghx-quick-content .ghx-quickfilter-trigger{
+    position:absolute;
+    top:2px;
+    right:0
+}
+.ghx-column-headers,.ghx-columns{
+    -moz-box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+    box-sizing:border-box;
+    border-spacing:10px 0;
+    display:table;
+    list-style:none;
+    margin:0;
+    table-layout:fixed;
+    width:100%;
+    padding:0
+}
+#ghx-column-headers{
+    padding-top:5px
+}
+.ghx-column-headers .ghx-column,.ghx-columns .ghx-column{
+    background:#f4f5f7;
+    -moz-box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+    box-sizing:border-box;
+    display:table-cell;
+    list-style:none;
+    margin:0;
+    padding:1px 0 0;
+    position:relative;
+    vertical-align:top
+}
+.ghx-column-headers .ghx-column{
+    background:#fff;
+    border-bottom:5px solid #f4f5f7;
+    padding:12px 9px
+}
+.ghx-column-headers .ghx-column .ghx-column-header-content{
+    display:flex;
+    align-items:center;
+    overflow:hidden
+}
+.ghx-column-headers .ghx-column .ghx-column-header-content .ghx-column-header-left{
+    display:flex;
+    align-items:center;
+    flex-grow:1;
+    flex-basis:0;
+    min-width:1em
+}
+.ghx-column-headers .ghx-column .ghx-column-header-content .ghx-column-header-left .ghx-column-title{
+    min-width:1em;
+    cursor:default
+}
+.ghx-column-headers .ghx-qty{
+    display:flex;
+    color:#172b4d
+}
+.ghx-column-headers .ghx-limits{
+    display:flex;
+    margin-top:-1px
+}
+.ghx-column-headers h6{
+    color:#5e6c84;
+    text-transform:uppercase;
+    display:inline-block;
+    margin:0 5px 0 0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis
+}
+#ghx-column-header-group{
+    background:#fff;
+    z-index:2;
+    overflow-y:scroll;
+    flex-grow:1;
+    flex-shrink:0;
+    margin-right:-30px;
+    padding-right:40px;
+    padding-left:10px
+}
+.ghx-show-old{
+    padding:10px;
+    text-align:center
+}
+.ghx-show-old-description{
+    margin-bottom:10px;
+    color:#6b778c
+}
+.ghx-show-old .aui-iconfont-search{
+    padding-right:5px
+}
+#ghx-rabid{
+    position:relative
+}
+#ghx-report{
+    display:none
+}
+.ghx-swimlane:last-of-type{
+    margin-bottom:50px
+}
+#ghx-errors{
+    left:10%;
+    position:absolute;
+    top:0;
+    width:80%;
+    z-index:10000
+}
+#ghx-notify{
+    background:#fff;
+    padding:20px
+}
+.ghx-column-headers .ghx-release{
+    float:right
+}
+.ghx-column-headers .ghx-release.ghx-disabled{
+    color:#dee0e5;
+    cursor:default
+}
+.ghx-column-headers .ghx-release.ghx-disabled:hover{
+    text-decoration:none
+}
+@media print{
+    #ghx-modes-tools,.ghx-compact-toggle{
+        display:none
+}
+}
+#ghx-team{
+    display:none;
+    height:100%;
+    flex-flow:column nowrap
+}
+#ghx-controls .ghx-compact-toggle{
+    bottom:10px;
+    display:none;
+    position:absolute;
+    right:0
+}
+.ghx-fa{
+    color:#97a0af;
+    font-style:italic
+}
+/* module-key = 'com.pyxis.greenhopper.jira:gh-rapid-common-css', location = 'includes/css/backlog-show-more.less' */
+/* module-key = 'com.pyxis.greenhopper.jira:gh-rapid-common-css', location = 'includes/css/gh-dialog.less' */
+/* module-key = 'com.atlassian.auiplugin:split_aui.component.expander', location = 'aui.component.expander.css' */
+.aui-expander-content{
+    height:0;
+    overflow:hidden;
+    position:relative
+}
+.aui-expander-trigger{
+    cursor:pointer
+}
+
+/* module-key = 'com.atlassian.auiplugin:split_aui.component.dialog2', location = 'aui.component.dialog2.css' */
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto){
+}
+@supports (display:flex){
+}
+/* module-key = 'jira.webresources:change-project-type-dialog', location = '/ui/aui-layout/change-project-type.less' */
+/* module-key = 'jira.webresources:project-type-warning', location = '/static/projecttypes/warning/dialog/styles/styles.less' */
+/* module-key = 'com.atlassian.jira.jira-projects-plugin:footer-styles', location = '/sidebar/footer/styles.less' */
+/* module-key = 'com.atlassian.jira.jira-projects-plugin:sidebar-styles', location = '/sidebar/styles.less' */
+@media print{
+    .aui-sidebar{
+        display:none
+}
+}
+/* module-key = 'com.atlassian.jira.jira-projects-plugin:sidebar-styles', location = '/sidebar/common.less' */
+/* module-key = 'com.atlassian.jira.jira-projects-plugin:scope-filter', location = '/sidebar/scopefilter/styles.less' */
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.e8173e0382', location = 'aui.splitchunk.e8173e0382.css' */
+form.aui.aui-legacy-forms [data-aui-notification-error] .radio.radio input:checked:focus~label:not(:active):after{
+    content:" ";
+    border:2px solid var(--aui-form-notification-error-color)
+}
+form.aui.aui-legacy-forms [data-aui-notification-error] .radio.radio input:checked:not(focus)~label:not(:active):after{
+    content:" ";
+    border:2px solid var(--aui-form-notification-error-color);
+    border-radius:8px;
+    position:absolute;
+    top:2px;
+    left:0;
+    display:inline-block;
+    width:10px;
+    height:10px
+}
+form.aui.aui-legacy-forms [data-aui-notification-error] .radio.radio input:not(:checked)~label:not(:active):before{
+    border:2px solid var(--aui-form-notification-error-color)
+}
+
+@page{
+    margin:30px 0 0 30px
+}
+
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto){
+}
+
+.subnavigator-title{
+    float:left;
+    position:relative;
+    max-width:540px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis
+}
+#ghx-pool{
+    z-index:1
+}
+/* module-key = 'com.pyxis.greenhopper.jira:subnavigator', location = 'includes/js/sidebar/subnavigator/subnavigator.less' */
+span.subnav-page-header{
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    vertical-align:top;
+    padding-bottom:4px;
+    font-size:14px;
+    color:#6b778c
+}
+span.subnav-container{
+    display:block;
+    white-space:nowrap;
+    height:1.25em
+}
+
+/*--- START - CSS for Execution status display-----*/
+dd {
+    display: block;
+    -webkit-margin-start: 0px;
+    /*Needed for JIRA 6.x*/
+}
+dt {
+    display: block;
+}
+/* Test Details History tab in issue [test] page */
+/* added zephyr class to prevent overriding on jira dialogs*/
+/**** Only for JIRA 6.x *****/
+/*For JIRA6x, version class is not defined*/
+div dl dd {
+    margin-left:0px
+}
+
+/*--- START - CSS for Execution status display-----*/
+dd {
+    display: block;
+    -webkit-margin-start: 0px;
+    /*Needed for JIRA 6.x*/
+}
+dt {
+    display: block;
+}
+/* Test Details History tab in issue [test] page */
+/* added zephyr class to prevent overriding on jira dialogs*/
+/**** Only for JIRA 6.x *****/
+/*For JIRA6x, version class is not defined*/
+div dl dd {
+    margin-left:0px
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    /* Safari only override */
+    ::i-block-chrome {
+        max-height: 80% !important;
+    }
+}
+
+button {
+    outline: none !important;
+}
+* {
+    outline: none !important;
+}
+
+input:focus:-ms-input-placeholder {
+    color:transparent;
+}
+input:focus::-webkit-input-placeholder {
+    color:transparent;
+}
+input:focus:-moz-placeholder {
+    color:transparent;
+}
+input:focus::-moz-placeholder {
+    color:transparent;
+}
+
+
+/* module-key = 'com.atlassian.jira.project-templates-plugin:project-templates-plugin-resources', location = '/css/project-templates-plugin.less' */
+/* module-key = 'com.atlassian.jira-core-project-templates:jira-core-project-templates-resources', location = '/css/core-project-templates.css' */
+/* module-key = 'com.atlassian.auiplugin:split_aui.component.form.single-select', location = 'aui.component.form.single-select.css' */
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto){
+}
+.aui-popover ul:not(:hover) [role=option].aui-select-active{
+    background-color:var(--aui-item-focus-bg);
+    color:var(--aui-item-focus-text,inherit)
+}
+form.aui.aui-legacy-forms aui-select button.aui-button:not(:hover){
+    border-top-color:transparent;
+    border-right-color:transparent;
+    border-bottom-color:transparent
+}
+
+.dynamic-table:not(.ui-sortable-helper) tr:not(:hover) .versions-table__handle{
+    color:#c1c7d0
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    /* Safari only override */
+    ::i-block-chrome {
+        max-height: 80% !important;
+    }
+}
+
+button {
+    outline: none !important;
+}
+* {
+    outline: none !important;
+}
+
+input:focus:-ms-input-placeholder {
+    color:transparent;
+}
+input:focus::-webkit-input-placeholder {
+    color:transparent;
+}
+input:focus:-moz-placeholder {
+    color:transparent;
+}
+input:focus::-moz-placeholder {
+    color:transparent;
+}
+
+/*--- START - CSS for Execution status display-----*/
+dd {
+    display: block;
+    -webkit-margin-start: 0px;
+    /*JIRA 6.0 */
+}
+dt {
+    display: block;
+}
+
+a:hover{
+    /* text-decoration: none !important;
+    */
+}
+/* Safari */
+/* module-key = 'com.thed.zephyr.je:zephyr-je-traceability', location = 'includes/css/zephyr/project/zephyr-traceability.css' */
+/** Report page*/
+/*** Report tables using divs*/
+a {
+    cursor: pointer;
+}
+body{
+    min-height: 400px;
+}
+
+div.nowrap-group:last{
+    margin-bottom: 0px;
+}
+/**Feature "Bulk Changes"**/
+a {
+    cursor: pointer;
+}
+/**Feature "Bulk Changes eigentlich react app css"**/
+/*** XTFJ-264*.jira-dialog-content .form-body {
+    padding: 0 !important;
+}
+*/
+/**/
+div.nowrap-group:last{
+    margin-bottom: 0px;
+}
+/**Feature "Bulk Changes"**/
+/* Dropdown Button angleichen AUI */
+a {
+    cursor: pointer;
+}
+
+div.nowrap-group:last{
+    margin-bottom: 0px;
+}
+/**Feature "Bulk Changes"**/
+a {
+    cursor: pointer;
+}
+/**Feature "Bulk Changes eigentlich react app css"**/
+/*** XTFJ-264*.jira-dialog-content .form-body {
+    padding: 0 !important;
+}
+*/
+/**/
+div.nowrap-group:last{
+    margin-bottom: 0px;
+}
+/**Feature "Bulk Changes"**/
+/* Dropdown Button angleichen AUI */
+a {
+    cursor: pointer;
+}
+/* module-key = 'com.decadis.xtools-for-jira:xtools-resources-core', location = 'css/jquery.tablesorter.css' */
+/* module-key = 'com.decadis.xtools-for-jira:project-shuttle-web-resource', location = '/css/project-shuttle.less' */
+/* module-key = 'com.atlassian.jira.plugins.jira-quicksearch-plugin:entrypoint-jira-quicksearch-plugin', location = 'frontend/jira-quicksearch.css' */
+/* module-key = 'com.atlassian.auiplugin:split_aui.pattern.label', location = 'aui.pattern.label.css' */
+/*! AUI Label */
+.aui-label{
+    background:var(--aui-label-bg-color);
+    border:1px solid var(--aui-label-bg-color);
+    border-radius:3.01px;
+    display:inline-block;
+    font-size:14px;
+    font-weight:400;
+    line-height:1;
+    padding:1px 5px;
+    margin:0 5px 0 0;
+    text-align:left;
+    text-decoration:none
+}
+span.aui-label{
+    color:var(--aui-label-text-color)
+}
+/* module-key = 'jira.webresources:a11y-overrides', location = '/ui/aui-layout/a11y-overrides.less' */
+/* module-key = 'jira.webresources:global-static', location = '/ui/aui-layout/theme.less' */
+h1{
+    color:#091e42
+}
+body{
+    color:#172b4d
+}
+a{
+    color:#0052cc
+}
+a:hover,a:focus,a:active{
+    color:#0065ff
+}
+/* module-key = 'jira.webresources:global-static', location = '/ui/aui-layout/forms.less' */
+/* module-key = 'jira.webresources:global-static', location = '/ui/aui-layout/modules.less' */
+/* module-key = 'jira.webresources:global-static', location = '/ui/aui-layout/issue-view.less' */
+/* module-key = 'jira.webresources:global-static', location = '/ui/aui-layout/core.less' */
+body{
+    min-width:990px;
+    overflow-y:scroll
+}
+img{
+    border:0
+}
+/* module-key = 'jira.webresources:global-static', location = '/ui/aui-layout/aui-overrides.less' */
+/* module-key = 'jira.webresources:global-static', location = '/ui/aui-layout/layout.less' */
+/* module-key = 'jira.webresources:global-static', location = '/ui/aui-layout/deprecated/notifications.less' */
+#announcement-banner{
+    border-bottom:1px solid #c1c7d0;
+    padding:8px;
+    clear:both
+}
+
+@media print{
+    body{
+        background-color:#fff !important;
+        color:#000 !important;
+        font-size:11pt !important
+}
+    .aui-page-panel{
+        border:none !important;
+        clear:both !important;
+        display:block !important;
+        padding-left:0 !important;
+        padding-right:0 !important;
+        width:100% !important
+}
+    a{
+        text-decoration:none !important
+}
+}
+
+.adaptavist-sr div :focus-visible:focus:not(.aui-dropdown2){
+    box-shadow:none!important
+}

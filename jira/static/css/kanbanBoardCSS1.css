@@ -1,0 +1,736 @@
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.4b52f9e2be', location = 'aui.splitchunk.4b52f9e2be.css' */
+:root{
+	color-scheme:light;
+	--aui-shadow1:rgba(9,30,66,0.13);
+	--aui-shadow2:rgba(9,30,66,0.25);
+	--aui-blanket:rgba(23,43,77,0.45);
+	--aui-body-text:#172b4d;
+	--aui-lesser-body-text:#5e6c84;
+	--aui-lesser-header-text:#6b778c;
+	--aui-body-background:#f4f5f7;
+	--aui-page-background:#fff;
+	--aui-page-border:#dfe1e6;
+	--aui-border:#dfe1e6;
+	--aui-border-strong:#7a869a;
+	--aui-focus:#4c9aff;
+	--aui-link-color:#0052cc;
+	--aui-link-decoration:none;
+	--aui-link-hover-color:#0065ff;
+	--aui-link-active-color:#0747a6;
+	--aui-link-hover-decoration:underline;
+	--aui-link-visited-color:#403294;
+	--aui-itemheading-text:#5e6c84;
+	--aui-item-bg:transparent;
+	--aui-item-text:#42526e;
+	--aui-item-focus-bg:rgba(9,30,66,0.08);
+	--aui-item-focus-text:#42526e;
+	--aui-item-active-text:#0052cc;
+	--aui-item-active-bg:#deebff;
+	--aui-item-selected-bg:var(--aui-item-focus-bg);
+	--aui-item-selected-text:var(--aui-item-focus-text);
+	--aui-item-disabled-bg:transparent;
+	--aui-item-disabled-text:#7a869a;
+	--aui-tooltip-bg-color:#172b4d;
+	--aui-tooltip-border-color:#172b4d;
+	--aui-tooltip-content-text-color:#fff;
+	--aui-tooltip-title-text-color:#fff;
+	--aui-help-color:#5243aa;
+	--aui-badge-bg-color:rgba(9,30,66,0.13);
+	--aui-badge-text-color:#172b4d;
+	--aui-badge-primary-bg-color:#0052cc;
+	--aui-badge-primary-text-color:#fff;
+	--aui-badge-added-bg-color:#e3fcef;
+	--aui-badge-addded-text-color:#064;
+	--aui-badge-removed-bg-color:#ffebe6;
+	--aui-badge-removed-text-color:#bf2600;
+	--aui-badge-important-bg-color:#de350b;
+	--aui-badge-important-text-color:#fff;
+	--aui-badge-on-blue-text-color:#fff;
+	--aui-badge-on-blue-bg-color:hsla(0,0%,100%,0.25);
+	--aui-lozenge-bg-color:#42526e;
+	--aui-lozenge-text-color:#fff;
+	--aui-lozenge-subtle-bg-color:#dfe1e6;
+	--aui-lozenge-subtle-text-color:#42526e;
+	--aui-lozenge-success-bg-color:#00875a;
+	--aui-lozenge-success-text-color:#fff;
+	--aui-lozenge-success-subtle-bg-color:#e3fcef;
+	--aui-lozenge-success-subtle-text-color:#064;
+	--aui-lozenge-current-bg-color:#0052cc;
+	--aui-lozenge-current-text-color:#fff;
+	--aui-lozenge-current-subtle-bg-color:#deebff;
+	--aui-lozenge-current-subtle-text-color:#0747a6;
+	--aui-lozenge-moved-bg-color:#ff991f;
+	--aui-lozenge-moved-text-color:#172b4d;
+	--aui-lozenge-moved-subtle-bg-color:#fff0b3;
+	--aui-lozenge-moved-subtle-text-color:#172b4d;
+	--aui-lozenge-error-bg-color:#bf2600;
+	--aui-lozenge-error-text-color:#fff;
+	--aui-lozenge-error-subtle-bg-color:#ffebe6;
+	--aui-lozenge-error-subtle-text-color:#bf2600;
+	--aui-lozenge-new-bg-color:#5243aa;
+	--aui-lozenge-new-text-color:#fff;
+	--aui-lozenge-new-subtle-bg-color:#eae6ff;
+	--aui-lozenge-new-subtle-text-color:#403294;
+	--aui-message-info-bg-color:#deebff;
+	--aui-message-info-icon-color:#0052cc;
+	--aui-message-info-text-color:#344563;
+	--aui-message-success-bg-color:#e3fcef;
+	--aui-message-success-icon-color:#00875a;
+	--aui-message-success-text-color:#344563;
+	--aui-message-warning-bg-color:#fffae6;
+	--aui-message-warning-icon-color:#ff991f;
+	--aui-message-warning-text-color:#344563;
+	--aui-message-error-bg-color:#ffebe6;
+	--aui-message-error-icon-color:#de350b;
+	--aui-message-error-text-color:#344563;
+	--aui-message-change-bg-color:#eae6ff;
+	--aui-message-change-icon-color:#5243aa;
+	--aui-message-change-text-color:#344563;
+	--aui-banner-error-bg-color:#de350b;
+	--aui-banner-error-text-color:#fff;
+	--aui-flag-bg-color:var(--aui-dropdown-bg-color);
+	--aui-flag-info-color:#0052cc;
+	--aui-flag-success-color:#36b37e;
+	--aui-flag-warning-color:#ffab00;
+	--aui-flag-error-color:#ff5630;
+	--aui-button-default-bg-color:rgba(9,30,66,0.08);
+	--aui-button-default-text-color:#344563;
+	--aui-button-default-hover-bg-color:rgba(9,30,66,0.13);
+	--aui-button-default-active-bg-color:#deebff;
+	--aui-button-default-active-text-color:#0052cc;
+	--aui-button-default-selected-bg-color:#344563;
+	--aui-button-default-selected-text-color:#fff;
+	--aui-button-default-disabled-bg-color:rgba(9,30,66,0.04);
+	--aui-button-default-disabled-text-color:#a5adba;
+	--aui-button-primary-bg-color:#0052cc;
+	--aui-button-primary-text-color:#fff;
+	--aui-button-primary-hover-bg-color:#0065ff;
+	--aui-button-primary-active-bg-color:#0052cc;
+	--aui-button-primary-active-text-color:#fff;
+	--aui-button-primary-disabled-bg-color:var(--aui-button-default-disabled-bg-color);
+	--aui-button-primary-disabled-text-color:var(--aui-button-default-disabled-text-color);
+	--aui-button-light-bg-color:#fff;
+	--aui-button-subtle-text-color:#344563;
+	--aui-label-text-color:inherit;
+	--aui-label-link-color:inherit;
+	--aui-label-bg-color:#f4f5f7;
+	--aui-label-hover-bg-color:#f4f5f7;
+	--aui-label-close-hover-bg-color:#ffbdad;
+	--aui-label-close-hover-text-color:#172b4d;
+	--aui-form-placeholder-text-color:#7a869a;
+	--aui-form-placeholder-disabled-text-color:#a5adba;
+	--aui-form-label-text-color:#6b778c;
+	--aui-form-error-text-color:#de350b;
+	--aui-form-description-text-color:#6b778c;
+	--aui-form-disabled-field-bg-color:#f4f5f7;
+	--aui-form-disabled-field-text-color:#97a0af;
+	--aui-form-disabled-field-label-color:#97a0af;
+	--aui-form-field-border-color:#dfe1e6;
+	--aui-form-field-hover-border-color:#dfe1e6;
+	--aui-form-field-default-text-color:#172b4d;
+	--aui-form-field-default-bg-color:#fafbfc;
+	--aui-form-field-hover-text-color:var(--aui-form-field-default-text-color);
+	--aui-form-field-hover-bg-color:#ebecf0;
+	--aui-form-field-focus-bg-color:#fff;
+	--aui-form-select-bg-color:#ebecf0;
+	--aui-form-select-border-color:#ebecf0;
+	--aui-form-select-hover-bg-color:#dfe1e6;
+	--aui-form-checkbox-radio-hover-bg-color:#0065ff;
+	--aui-form-checkbox-radio-active-bg-color:#deebff;
+	--aui-form-optgroup-text-color:#7a869a;
+	--aui-form-optgroup-bg-color:#f4f5f7;
+	--aui-form-option-bg-color:#fff;
+	--aui-form-pre-bg-color:#f4f5f7;
+	--aui-form-field-autofilled-bg-color:#eae6ff;
+	--aui-form-field-autofilled-border-color:#6554c0;
+	--aui-form-field-autofilled-text-color:#403294;
+	--aui-form-glyph-disabled-icon-color:#a5adba;
+	--aui-form-glyph-disabled-fill-color:rgba(9,30,66,0.04);
+	--aui-form-glyph-icon-color:#fff;
+	--aui-form-glyph-fill-color:#0052cc;
+	--aui-form-checkbox-active-bg-color:#deebff;
+	--aui-form-checkbox-active-border-color:#deebff;
+	--aui-form-checkbox-active-icon-color:#0052cc;
+	--aui-form-radio-unchecked-bg-color:#fafbfc;
+	--aui-form-radio-unchecked-border-color:#dfe1e6;
+	--aui-form-radio-unchecked-hover-bg-color:#ebecf0;
+	--aui-form-radio-unchecked-hover-border-color:#dfe1e6;
+	--aui-toggle-default-bg-color:#6b778c;
+	--aui-toggle-default-bg-hover-color:#a5adba;
+	--aui-toggle-button-color:#fff;
+	--aui-toggle-on-color:#00875a;
+	--aui-toggle-on-hover-color:#36b37e;
+	--aui-toggle-disabled-overlay-color:hsla(0,0%,100%,0.5);
+	--aui-toggle-tick-color:#fff;
+	--aui-toggle-cross-color:#fff;
+	--aui-form-notification-info-color:#97a0af;
+	--aui-form-notification-error-color:var(--aui-message-error-icon-color);
+	--aui-form-notification-success-color:var(--aui-message-success-icon-color);
+	--aui-progressbar-color:#42526e;
+	--aui-progressbar-track-color:rgba(9,30,66,0.13);
+	--aui-spinner-color:#42526e;
+	--aui-nav-pagination-text-color:#172b4d;
+	--aui-nav-pagination-active-text-color:#97a0af;
+	--aui-appheader-bg-color:#0747a6;
+	--aui-appheader-text-color:#deebff;
+	--aui-appheader-item-focus-bg-color:rgba(9,30,66,0.48);
+	--aui-appheader-item-focus-text-color:#deebff;
+	--aui-appheader-item-active-bg-color:rgba(9,30,66,0.48);
+	--aui-appheader-item-active-text-color:#deebff;
+	--aui-appheader-quicksearch-bg-color:rgba(9,30,66,0.48);
+	--aui-appheader-quicksearch-border-color:transparent;
+	--aui-appheader-quicksearch-text-color:#deebff;
+	--aui-appheader-quicksearch-focus-bg-color:var(--aui-appheader-quicksearch-bg-color);
+	--aui-appheader-quicksearch-focus-text-color:#deebff;
+	--aui-sidebar-icon-color:#505f79;
+	--aui-sidebar-toggle-icon-color:#505f79;
+	--aui-sidebar-bg-color:#f4f5f7;
+	--aui-sidebar-dropdown-arrow-color:#505f79;
+	--aui-sidebar-tooltip-bg-color:rgba(9,30,66,0.95);
+	--aui-sidebar-badge-bg-color:#c1c7d0;
+	--aui-sidebar-badge-text-color:inherit;
+	--aui-tabs-tab-border-color:#ebecf0;
+	--aui-tabs-tab-text-color:#42526e;
+	--aui-tabs-tab-hover-text-color:#4c9aff;
+	--aui-tabs-tab-active-border-color:#0052cc;
+	--aui-tabs-tab-active-text-color:#0052cc;
+	--aui-progress-tracker-step-border-color:#f4f5f7;
+	--aui-progress-tracker-container-color:#f4f5f7;
+	--aui-progress-tracker-current-step-color:#0065ff;
+	--aui-progress-tracker-current-step-text-color:var(--aui-progress-tracker-visited-step-text-color);
+	--aui-progress-tracker-visited-step-text-color:#172b4d;
+	--aui-progress-tracker-visited-step-hover-text-color:#0052cc;
+	--aui-progress-tracker-visited-step-active-text-color:#0747a6;
+	--aui-progress-tracker-future-step-color:#a5adba;
+	--aui-progress-tracker-future-step-text-color:#5e6c84;
+	--aui-table-row-bg-color:transparent;
+	--aui-table-row-text-color:#172b4d;
+	--aui-table-header-bg-color:transparent;
+	--aui-table-heading-text-color:#6b778c;
+	--aui-table-border-color:#dfe1e6;
+	--aui-table-caption-bg-color:#f4f5f7;
+	--aui-table-caption-text-color:#7a869a;
+	--aui-table-list-row-hover-color:rgba(9,30,66,0.08);
+	--aui-table-list-row-subtle-color:#b3bac5;
+	--aui-table-sortable-hover-bg-color:rgba(9,30,66,0.08);
+	--aui-table-sortable-active-bg-color:#deebff;
+	--aui-table-sortable-active-border-color:#0747a6;
+	--aui-table-sortable-active-text-color:#0747a6;
+	--aui-table-sortable-selected-bg-color:transparent;
+	--aui-table-sortable-selected-border-color:#7a869a;
+	--aui-table-sortable-selected-text-color:#505f79;
+	--aui-restfultable-row-focused-border-color:#b3bac5;
+	--aui-restfultable-row-create-border-color:#dfe1e6;
+	--aui-restfultable-row-editable-hover-bg-color:var(--aui-form-field-hover-bg-color);
+	--aui-restfultable-error-text-color:var(--aui-form-notification-error-color);
+	--aui-restfultable-header-row-bg-color:#fff;
+	--aui-restfultable-header-row-text-color:#6b778c;
+	--aui-restfultable-row-moving-bg-color:#f4f5f7;
+	--aui-restfultable-editable-em-text-color:#97a0af;
+	--aui-restfultable-row-active-bg-color:#f4f5f7;
+	--aui-restfultable-row-hover-bg-color:#f4f5f7;
+	--aui-dropdown-bg-color:#fff;
+	--aui-dropdown-border-color:#dfe1e6;
+	--aui-select2-placeholder-text-color:#7a869a;
+	--aui-select2-chosen-bg-color:#fff;
+	--aui-select2-chosen-text-color:#172b4d;
+	--aui-select2-chosen-hover-bg-color:#fff;
+	--aui-select2-chosen-hover-text-color:#172b4d;
+	--aui-select2-active-chosen-bg-color:#dfe1e6;
+	--aui-select2-active-chosen-text-color:#172b4d;
+	--aui-select2-field-default-bg-color:var(--aui-form-select-bg-color);
+	--aui-select2-field-border-color:var(--aui-form-select-border-color);
+	--aui-select2-field-hover-bg-color:var(--aui-form-select-hover-bg-color);
+	--aui-select2-drop-bg-color:var(--aui-dropdown-bg-color);
+	--aui-dialog-bg-color:#fff;
+	--aui-dialog-border-color:#ebecf0;
+	--aui-dialog-header-bg-color:var(--aui-dialog-bg-color);
+	--aui-dialog-header-warning-bg-color:#de350b;
+	--aui-dialog-header-warning-text-color:#fff;
+	--aui-dialog-button-hover-border-color:#97a0af;
+	--aui-dialog-footer-hint-text-color:#505f79;
+	--aui-inline-dialog-bg-color:var(--aui-dropdown-bg-color);
+	--aui-inline-dialog-border-color:var(--aui-dropdown-border-color);
+	--aui-datepicker-panel-bg-color:#fff;
+	--aui-datepicker-panel-divider-color:#dfe1e6;
+	--aui-datepicker-heading-bg-color:#f4f5f7;
+	--aui-datepicker-heading-text-color:#344563;
+	--aui-datepicker-heading-weekdays-text-color:#5e6c84;
+	--aui-datepicker-option-bg-color:transparent;
+	--aui-datepicker-option-text-color:#0052cc;
+	--aui-datepicker-option-focus-bg-color:#f4f5f7;
+	--aui-datepicker-option-focus-text-color:#0052cc;
+	--aui-datepicker-option-selected-bg-color:#0052cc;
+	--aui-datepicker-option-selected-text-color:#fff;
+	--aui-datepicker-option-unselectable-bg-color:#f4f5f7;
+	--aui-datepicker-option-unselectable-text-color:#7a869a;
+	--aui-datepicker-disabled-text-color:#7a869a;
+	--aui-datepicker-hint-text-color:#505f79
+}
+body,div,h1,h6,html,img,p{
+	margin:0;
+	padding:0
+}
+dl,ul{
+	margin:0
+}
+img{
+	border:0
+}
+main{
+	display:block
+}
+button{
+	-webkit-appearance:button;
+	font-family:inherit
+}
+@media (min--moz-device-pixel-ratio:0){
+	img{
+		font-size:0
+}
+	img:-moz-broken{
+		font-size:inherit
+}
+}
+[hidden]{
+	display:none!important
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.056561461c', location = 'aui.splitchunk.056561461c.css' */
+html{
+	color:var(--aui-body-text);
+	font-size:14px;
+	font-style:normal;
+	font-variant:normal;
+	font-weight:400;
+	letter-spacing:0;
+	line-height:1.42857143;
+	text-align:left;
+	white-space:normal;
+	font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Fira Sans,Droid Sans,Helvetica Neue,sans-serif
+}
+dl,p,ul{
+	margin:10px 0 0
+}
+dl:first-child,p:first-child,ul:first-child{
+	margin-top:0
+}
+h1{
+	font-size:24px;
+	line-height:1.25;
+	letter-spacing:-.01em
+}
+h1{
+	font-weight:500;
+	text-transform:none;
+	margin:30px 0 0
+}
+h6{
+	font-size:12px;
+	line-height:1.66666667;
+	letter-spacing:0
+}
+h6{
+	color:var(--aui-lesser-header-text);
+	font-weight:600;
+	text-transform:none;
+	margin:20px 0 0
+}
+h1,h6{
+	color:var(--aui-body-text)
+}
+h1:first-child,h6:first-child{
+	margin-top:0
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.949297951c', location = 'aui.splitchunk.949297951c.css' */
+a{
+	color:var(--aui-link-color);
+	-webkit-text-decoration:var(--aui-link-decoration);
+	text-decoration:var(--aui-link-decoration)
+}
+a:hover{
+	color:var(--aui-link-hover-color);
+	-webkit-text-decoration:var(--aui-link-hover-decoration);
+	text-decoration:var(--aui-link-hover-decoration)
+}
+a:active,a:focus{
+	-webkit-text-decoration:var(--aui-link-decoration);
+	text-decoration:var(--aui-link-decoration)
+}
+a:active{
+	color:var(--aui-link-active-color)
+}
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto){
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.7da3927366', location = 'aui.splitchunk.7da3927366.css' */
+#content{
+	box-sizing:border-box;
+	clear:both;
+	margin:0;
+	padding:0;
+	position:relative
+}
+#content:before{
+	content:"";
+	clear:both;
+	display:table
+}
+body{
+	background:var(--aui-body-background);
+	color:var(--aui-body-text)
+}
+/*! AUI Page Panel */
+.aui-page-panel{
+	background:var(--aui-page-background);
+	border:solid var(--aui-page-border);
+	border-width:0 0 1px;
+	box-sizing:border-box;
+	clear:both;
+	display:block;
+	margin:0;
+	padding:0;
+	position:relative;
+	width:100%
+}
+*~.aui-page-panel{
+	border-top-width:1px;
+	margin-top:20px
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.d7c46c2734', location = 'aui.splitchunk.d7c46c2734.css' */
+.aui-icon{
+	--aui-icon-size:16px;
+	--aui-icon-font:"Adgs Icons";
+	background-repeat:no-repeat;
+	background-position:0 0;
+	border:none;
+	display:inline-flex;
+	font-size:0;
+	height:var(--aui-icon-size);
+	line-height:0;
+	margin:0;
+	padding:0;
+	position:relative;
+	text-align:left;
+	vertical-align:text-bottom;
+	width:var(--aui-icon-size)
+}
+.aui-icon:before{
+	-moz-osx-font-smoothing:grayscale;
+	-webkit-font-smoothing:antialiased;
+	-webkit-text-stroke-width:0;
+	font-family:var(--aui-icon-font);
+	font-weight:400;
+	font-style:normal;
+	speak:none;
+	color:inherit;
+	content:var(--aui-ig,unset);
+	font-size:var(--aui-icon-size);
+	line-height:1;
+	margin:auto;
+	text-indent:0
+}
+.aui-icon-small{
+	--aui-icon-size:16px
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.fb15cffa72', location = 'aui.splitchunk.fb15cffa72.css' */
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.56dfb54d0c', location = 'aui.splitchunk.56dfb54d0c.css' */
+
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.908fe798b4', location = 'aui.splitchunk.908fe798b4.css' */
+.aui-iconfont-vid-full-screen-on{
+	--aui-ig:"\f166"
+}
+.aui-iconfont-search{
+	--aui-ig:"\f18c"
+}
+.aui-iconfont-vid-full-screen-off{
+	--aui-ig:"\f1a8"
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.462ee5f9ef', location = 'aui.splitchunk.462ee5f9ef.css' */
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.50dca3e042', location = 'aui.splitchunk.50dca3e042.css' */
+form.aui.aui-legacy-forms .aui-select2-container.select2-container-active .select2-choices:focus-visible{
+	box-shadow:unset
+}
+form.aui:not(.aui-legacy-forms) .aui-select2-container .select2-choices:focus:focus-visible,form.aui:not(.aui-legacy-forms) .multi-select:focus:focus-visible,form.aui:not(.aui-legacy-forms) .password:focus:focus-visible,form.aui:not(.aui-legacy-forms) .select:focus:focus-visible,form.aui:not(.aui-legacy-forms) .text:focus:focus-visible,form.aui:not(.aui-legacy-forms) .textarea:focus:focus-visible{
+	box-shadow:unset
+}
+form.aui:not(.aui-legacy-forms) .aui-select2-container.select2-container-active .select2-choices:focus-visible{
+	box-shadow:unset
+}
+form.aui:not(.aui-legacy-forms) .radio input:checked:active:not(:disabled)+.aui-form-glyph:before{
+	height:14px;
+	width:14px;
+	background:url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbC1ydWxlPSJldmVub2RkIj48Y2lyY2xlIGZpbGw9IiNERUVCRkYiIGN4PSIxMiIgY3k9IjEyIiByPSI3Ii8+PGNpcmNsZSBmaWxsPSIjMDA1MkNDIiBjeD0iMTIiIGN5PSIxMiIgcj0iMi4zMzUiLz48L2c+PC9zdmc+") no-repeat -5px -5px;
+	line-height:1;
+	position:absolute;
+	top:3px;
+	left:0;
+	content:" "
+}
+form.aui:not(.aui-legacy-forms) .radio input:not(:checked)+.aui-form-glyph:before{
+	display:inline-block;
+	width:10px;
+	height:10px;
+	position:absolute;
+	left:0;
+	top:3px;
+	content:"";
+	border:2px solid var(--aui-form-radio-unchecked-border-color);
+	background-color:var(--aui-form-radio-unchecked-bg-color);
+	border-radius:10px
+}
+form.aui:not(.aui-legacy-forms) .radio input:not(:checked):active:not(:disabled)+.aui-form-glyph:before{
+	height:14px;
+	width:14px;
+	background:url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBmaWxsPSIjREVFQkZGIiBjeD0iMTIiIGN5PSIxMiIgcj0iNyIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+") no-repeat -5px -5px;
+	line-height:1;
+	position:absolute;
+	top:3px;
+	left:0;
+	content:" ";
+	border:none
+}
+form.aui:not(.aui-legacy-forms) .radio input:not(:checked):disabled~label{
+	color:var(--aui-form-disabled-field-label-color)
+}
+form.aui:not(.aui-legacy-forms) .radio input:not(:checked):disabled+.aui-form-glyph:before{
+	color:var(--aui-form-glyph-disabled-icon-color);
+	border-color:var(--aui-form-glyph-disabled-fill-color);
+	background:var(--aui-form-glyph-disabled-fill-color)
+}
+form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked)+.aui-form-glyph:before{
+	display:inline-block;
+	width:10px;
+	height:10px;
+	position:absolute;
+	left:0;
+	top:3px;
+	content:"";
+	border:2px solid var(--aui-form-radio-unchecked-border-color);
+	background-color:var(--aui-form-radio-unchecked-bg-color);
+	border-radius:4px
+}
+form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked):active+.aui-form-glyph:before{
+	background-color:var(--aui-form-checkbox-active-bg-color);
+	border-color:var(--aui-form-checkbox-active-bg-color)
+}
+form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked):disabled~label{
+	color:var(--aui-form-disabled-field-label-color)
+}
+form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked):disabled+.aui-form-glyph:before{
+	color:var(--aui-form-glyph-disabled-icon-color);
+	border-color:var(--aui-form-glyph-disabled-fill-color);
+	background:var(--aui-form-glyph-disabled-fill-color)
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.862f26d10a', location = 'aui.splitchunk.862f26d10a.css' */
+/*! AUI Button */
+.aui-button{
+	box-sizing:border-box;
+	transition:background-color .1s ease-out;
+	border-radius:3.01px;
+	border-style:solid;
+	border-width:1px;
+	cursor:pointer;
+	font-family:inherit;
+	font-size:14px;
+	font-variant:normal;
+	font-weight:400;
+	background-image:none;
+	background-color:var(--aui-btn-bg);
+	border:1px solid var(--aui-btn-border);
+	color:var(--aui-btn-text);
+	display:inline-block;
+	height:2.14285714em;
+	line-height:1.42857143em;
+	margin:0;
+	padding:4px 10px;
+	vertical-align:initial;
+	white-space:nowrap
+}
+html:not(.aui-no-focusvisible) .aui-button:focus:not(:focus-visible){
+	outline-style:none;
+	outline-offset:unset
+}
+html:not(.aui-no-focusvisible) .aui-button:focus-visible{
+	outline-style:none;
+	box-shadow:0 0 0 2px var(--aui-focus)
+}
+.aui-button{
+	--aui-btn-bg:var(--aui-button-default-bg-color);
+	--aui-btn-border:var(--aui-button-default-border-color,transparent);
+	--aui-btn-text:var(--aui-button-default-text-color);
+	text-decoration:none
+}
+.aui-button:link,.aui-button:visited,a.aui-button{
+	background-image:none;
+	background-color:var(--aui-btn-bg);
+	border:1px solid var(--aui-btn-border);
+	color:var(--aui-btn-text);
+	text-decoration:none
+}
+.aui-button:focus,.aui-button:hover{
+	--aui-btn-bg:var(--aui-button-default-hover-bg-color);
+	--aui-btn-text:var(--aui-button-default-text-color)
+}
+.aui-button:active{
+	--aui-btn-bg:var(--aui-button-default-active-bg-color);
+	--aui-btn-text:var(--aui-button-default-active-text-color)
+}
+.aui-button-link{
+	--aui-btn-bg:transparent;
+	--aui-btn-border:transparent;
+	--aui-btn-text:var(--aui-link-color);
+	cursor:pointer;
+	-webkit-text-decoration:var(--aui-link-decoration,none);
+	text-decoration:var(--aui-link-decoration,none)
+}
+.aui-button-link:focus,.aui-button-link:hover{
+	--aui-btn-bg:transparent;
+	--aui-btn-text:var(--aui-link-hover-color);
+	-webkit-text-decoration:var(--aui-link-hover-decoration,underline);
+	text-decoration:var(--aui-link-hover-decoration,underline)
+}
+.aui-button-link:active{
+	--aui-btn-bg:transparent;
+	--aui-btn-text:var(--aui-link-active-color);
+	-webkit-text-decoration:var(--aui-link-active-decoration,none);
+	text-decoration:var(--aui-link-active-decoration,none)
+}
+.aui-button.aui-button-link{
+	padding-left:0;
+	padding-right:0
+}
+.aui-button .aui-icon{
+	color:inherit
+}
+
+.aui-layer{
+	color:var(--aui-body-text);
+	font-size:14px;
+	font-style:normal;
+	font-variant:normal;
+	font-weight:400;
+	letter-spacing:0;
+	line-height:1.42857143;
+	text-align:left;
+	white-space:normal;
+	position:fixed
+}
+.aui-layer:not([open]),.aui-layer[hidden]{
+	display:none
+}
+html:not(.aui-no-focusvisible) .aui-layer:focus:not(:focus-visible){
+	outline-style:none;
+	outline-offset:unset
+}
+html:not(.aui-no-focusvisible) .aui-layer:focus-visible{
+	outline-style:none;
+	box-shadow:0 0 0 2px var(--aui-focus)
+}
+
+.aui-dropdown2{
+	box-sizing:border-box;
+	max-width:300px;
+	min-width:160px
+}
+.aui-dropdown2{
+	--aui-item-border-radius:0
+}
+.aui-dropdown2{
+	box-shadow:0 4px 8px -2px var(--aui-shadow2),0 0 1px var(--aui-shadow2);
+	background:var(--aui-dropdown-bg-color);
+	border:0 solid var(--aui-dropdown-border-color);
+	border-radius:3px;
+	color:var(--aui-item-text);
+	padding:3px 0
+}
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto){
+	.aui-dropdown2{
+		box-shadow:0 4px 8px -2px var(--aui-shadow2),0 0 1px var(--aui-shadow1),1px 0 1px var(--aui-shadow1),-1px 0 1px var(--aui-shadow1),0 -1px 1px var(--aui-shadow1)
+}
+}
+.aui-dropdown2-trigger{
+	--aui-dropdown-ig:"\f15b"
+}
+.aui-dropdown2-trigger:not(.aui-dropdown2-trigger-arrowless){
+	padding-right:var(--aui-dropdown-icon-gutter,24px)!important;
+	position:relative
+}
+.aui-dropdown2-trigger:not(.aui-dropdown2-trigger-arrowless):before{
+	-moz-osx-font-smoothing:grayscale;
+	-webkit-font-smoothing:antialiased;
+	-webkit-text-stroke-width:0;
+	font-family:Adgs Icons;
+	font-weight:400;
+	font-style:normal;
+	speak:none;
+	content:"\f15b";
+	font-size:16px;
+	height:16px;
+	line-height:1;
+	margin-top:-8px;
+	position:absolute;
+	right:3.5px;
+	top:50%;
+	text-indent:0;
+	width:16px;
+	content:var(--aui-dropdown-ig)
+}
+.aui-dropdown2.aui-layer{
+	-webkit-height:auto;
+	height:auto
+}
+aui-dropdown-menu{
+	display:block
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.f5244b0828', location = 'aui.splitchunk.f5244b0828.css' */
+.aui-header .aui-quicksearch input:focus:focus-visible{
+	box-shadow:unset
+}
+
+/*! AUI Inline Dialog */
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto){
+}
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto){
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.deprecated.component.dropdown1', location = 'aui.deprecated.component.dropdown1.css' */
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto){
+}
+/* module-key = 'com.atlassian.auiplugin:split_aui.deprecated.component.dialog1', location = 'aui.deprecated.component.dialog1.css' */
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto){
+}
+
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto){
+}
+
+:root{
+	--jira-issue-status-uncategorized-color:#172b4d;
+	--jira-issue-status-uncategorized-bgcolor:#ebecf0;
+	--jira-issue-status-hover-uncategorized-color:#172b4d;
+	--jira-issue-status-hover-uncategorized-bgcolor:#dfe1e5;
+	--jira-issue-status-default-color:#172b4d;
+	--jira-issue-status-default-bgcolor:#dfe1e5;
+	--jira-issue-status-hover-default-color:#172b4d;
+	--jira-issue-status-hover-default-bgcolor:#c1c7d0;
+	--jira-issue-status-inprogress-color:#fff;
+	--jira-issue-status-inprogress-bgcolor:#0052cc;
+	--jira-issue-status-hover-inprogress-color:#fff;
+	--jira-issue-status-hover-inprogress-bgcolor:#0747a6;
+	--jira-issue-status-success-color:#fff;
+	--jira-issue-status-success-bgcolor:#00875a;
+	--jira-issue-status-hover-success-color:#fff;
+	--jira-issue-status-hover-success-bgcolor:#064
+}
+
+
+.jira-multi-select>textarea.text:not(:focus){
+	background:#ebecf0;
+	border-color:transparent
+}
+.jira-multi-select>textarea.text:not(:focus):hover{
+	background-color:#dfe1e5
+}
+.jira-multi-select:hover textarea:not(:focus){
+	background-color:#dfe1e5
+}
+.jira-multi-select:hover textarea:not(:focus)~.representation button{
+	background-color:#fff
+}

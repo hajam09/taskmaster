@@ -12,6 +12,7 @@ from django.http import Http404
 from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team, ComponentGroup
+from jira.api import serializeTicketsIntoChunks
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, TicketComment
 from taskmaster.operations import databaseOperations, emailOperations
 
@@ -298,6 +299,9 @@ def boardSettings(request, url):
 
 @login_required
 def board(request, url):
+    """
+    TODO: Remove unused css files from kanbanBoardCSS1-5
+    """
     try:
         thisBoard = Board.objects.get(url=url)
     except Board.DoesNotExist:
@@ -306,10 +310,41 @@ def board(request, url):
     if not thisBoard.hasAccessPermission(request.user):
         raise PermissionDenied()
 
-    context = {
-        "board": thisBoard
+    if thisBoard.type == "KANBAN":
+        TEMPLATE = "jira/kanbanBoard.html"
+    else:
+        TEMPLATE = "jira/scrumBoard.html"
+
+    # Move to KanbanBoardDetailsAndItemsApiEventVersion1Component
+    backLogColumn = Column.objects.filter(board=thisBoard, internalKey__icontains="BACKLOG").first()
+    otherColumns = Column.objects.filter(board=thisBoard).exclude(id=backLogColumn.id).prefetch_related('columnTickets')
+
+    boardDetails = {
+        "id": thisBoard.id,
+        "columns": [
+            {
+                "id": column.id,
+                "internalKey": column.internalKey,
+            }
+            for column in otherColumns
+        ]
     }
-    return render(request, "jira/board.html", context)
+
+    columns = [
+        {
+            "id": column.id,
+            "internalKey": column.internalKey,
+            "tickets": serializeTicketsIntoChunks(column.columnTickets.filter(~Q(issueType__code="EPIC")))
+        }
+        for column in otherColumns
+    ]
+
+    context = {
+        "board": thisBoard,
+        "boardDetails": json.dumps(boardDetails),
+        "columns": json.dumps(columns)
+    }
+    return render(request, TEMPLATE, context)
 
 
 def backlog(request, url):
@@ -442,10 +477,10 @@ def profileAndSettings(request):
     pass
 
 
+@login_required
 def newTicketObject(request):
     thisProject = Project.objects.filter(id=request.POST['project']).first()
-    issueType = Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE',
-                                         id=request.POST["ticketIssueType"]).first()
+    issueType = Component.objects.get(componentGroup__code='TICKET_ISSUE_TYPE', id=request.POST["ticketIssueType"])
     priority = Component.objects.get(componentGroup__code='TICKET_PRIORITY', id=request.POST["ticketPriority"])
     newTicketNumber = thisProject.projectTickets.count() + 1
     thisBoard = Board.objects.get(id=request.POST['board'])
