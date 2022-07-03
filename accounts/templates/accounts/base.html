@@ -1,4 +1,5 @@
 {% load static %}
+{% load jiraTags %}
 <!DOCTYPE html>
 <html lang="en-GB">
 	<head>
@@ -31,9 +32,116 @@
 		}
 
 	</style>
+
+    <!-- Ticket Modal -->
+    {% ticketIssueTypes as ticketIssueTypes %}
+    {% ticketPriorities as ticketPriorities %}
+    {% projects as projects %}
+    {% boards as boards %}
+    {% profiles as profiles %}
+
+    <div class="modal fade bd-example-modal-lg" id="newTicketModal" tabindex="-1" role="dialog"
+         aria-labelledby="myLargeModalLabel" aria-hidden="true" style="color: black;">
+        <div class="modal-dialog" role="document" style="max-width: 1000px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Create Issue</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="post" enctype="multipart/form-data" action={% url 'jira:new-ticket-object' %}>
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="project-add-details" role="tabpanel">
+                                <dl class="row">
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Project</label>
+                                        <select id="projects" data-show-content="true" class="form-control"
+                                                name="project">
+                                            {% for t in projects %}
+                                                <option data-content="<img src='{{ t.icon }}' width='20' height='20'>&nbsp; {{ t.internalKey }}"
+                                                        value="{{ t.id }}">{{ t.internalKey }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </dd>
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Issue type</label>
+                                        <select id="ticketIssueType" data-show-content="true"
+                                                class="form-control" name="ticketIssueType">
+                                            {% for t in ticketIssueTypes %}
+                                                <option data-content="<img src='{{ t.icon }}' width='20' height='20'>&nbsp; {{ t.internalKey }}"
+                                                        value="{{ t.id }}">{{ t.internalKey }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </dd>
+                                </dl>
+                                <hr>
+                                <dl class="row">
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Summary</label>
+                                        <input class="form-control col" type="text" placeholder="Summary" name="summary"
+                                               required>
+                                    </dd>
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Priority</label>
+                                        <select id="ticketPriorities" data-show-content="true" class="form-control"
+                                                name="ticketPriority">
+                                            {% for t in ticketPriorities %}
+                                                <option data-content="<img src='{{ t.icon }}' width='20' height='20'>&nbsp; {{ t.internalKey }}"
+                                                        value="{{ t.id }}">{{ t.internalKey }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </dd>
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Story Points</label>
+                                        <input class="form-control col" type="number" placeholder="Story Points"
+                                               name="storyPoints">
+                                    </dd>
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Description</label>
+                                        <textarea class="form-control col" rows="5" name="description"></textarea>
+                                    </dd>
+                                </dl>
+                                <dl class="row">
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Board</label>
+                                        <select id="board" data-show-content="true" class="form-control" name="board">
+                                            {% for t in boards %}
+                                                <option value="{{ t.id }}">{{ t.internalKey }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </dd>
+                                </dl>
+                                <dl class="row">
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Assignee</label>
+                                        <select id="assignee" data-show-content="true" class="form-control"
+                                                name="assignee">
+                                            {% for t in profiles %}
+                                                <option value="{{ t.user.id }}">{{ t.user.get_full_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input class="btn btn-primary" type="submit" value="Create Project">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- End of ticket modal -->
+
 	<body>
 		<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
 			<a class="navbar-brand" href="#">TaskMaster</a>
+            <button type="button" class="btn btn-primary float-left pull-left" data-toggle="modal" data-target="#newTicketModal">Create</button>
 			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 			</button>

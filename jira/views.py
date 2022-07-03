@@ -3,6 +3,7 @@ from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.db.models import Q
@@ -302,19 +303,32 @@ def board(request, url):
         raise Http404
 
     if not thisBoard.hasAccessPermission(request.user):
-        # TODO: Show access denied page.
         raise PermissionDenied()
 
     context = {
-
         "board": thisBoard
     }
     return render(request, "jira/board.html", context)
 
 
 def backlog(request, url):
-    # url = boardUrl
-    pass
+    try:
+        thisBoard = Board.objects.get(url=url)
+    except Board.DoesNotExist:
+        raise Http404
+
+    if not thisBoard.hasAccessPermission(request.user):
+        raise PermissionDenied()
+
+    if thisBoard.type == "KANBAN":
+        TEMPLATE = "jira/kanbanBacklog.html"
+    else:
+        TEMPLATE = "jira/scrumBacklog.html"
+
+    context = {
+        "board": thisBoard
+    }
+    return render(request, TEMPLATE, context)
 
 
 def yourWork(request):
@@ -373,8 +387,6 @@ def project(request, url):
 def projectSettings(request, url):
     """
     TODO: Allow user to create PROJECT_COMPONENT
-    TODO: Fix startDate, endDate display on update
-    TODO: Display boards
     """
     try:
         thisProject = Project.objects.get(url=url)
@@ -388,8 +400,8 @@ def projectSettings(request, url):
         thisProject.internalKey = request.POST['project-name']
         thisProject.description = request.POST['project-description']
         thisProject.lead = next(p.user for p in allProfiles if str(p.user.id) == request.POST['project-lead'])
-        thisProject.startDate = request.POST['project-start']
-        thisProject.endDate = request.POST['project-end']
+        thisProject.startDate = datetime.strptime(request.POST['project-start'], "%Y-%m-%d").date()
+        thisProject.endDate = datetime.strptime(request.POST['project-end'], "%Y-%m-%d").date()
         thisProject.status = databaseOperations.getObjectByIdOrNone(component, request.POST['project-status'])
         thisProject.isPrivate = request.POST['project-visibility'] == 'visibility-members'
 
@@ -409,7 +421,7 @@ def projectSettings(request, url):
 
 
 def projectIssues(request, url):
-    # NEED TO COMPLETE THE TICKETPAGE
+    # NEED TO COMPLETE THE TICKET_PAGE
     pass
 
 
