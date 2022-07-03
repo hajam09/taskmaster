@@ -3,11 +3,12 @@ from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.db.models import Q
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, TicketComment
@@ -427,3 +428,33 @@ def projectIssues(request, url):
 def profileAndSettings(request):
     pass
 
+
+def newTicketObject(request):
+    thisProject = Project.objects.filter(id=request.POST['project']).first()
+    issueType = Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE',
+                                         id=request.POST["ticketIssueType"]).first()
+    priority = Component.objects.get(componentGroup__code='TICKET_PRIORITY', id=request.POST["ticketPriority"])
+    newTicketNumber = thisProject.projectTickets.count() + 1
+    thisBoard = Board.objects.get(id=request.POST['board'])
+    assignee = User.objects.get(id=request.POST['assignee'])
+
+    newTicket = Ticket()
+    newTicket.internalKey = thisProject.code + "-" + str(newTicketNumber)
+    newTicket.summary = request.POST["summary"]
+    newTicket.description = request.POST["description"]
+    newTicket.resolution = Component.objects.get(componentGroup__code='TICKET_RESOLUTIONS', code="UNRESOLVED")
+    newTicket.project = thisProject
+    newTicket.assignee = assignee
+    newTicket.reporter = request.user
+
+    if request.POST['storyPoints']:
+        newTicket.storyPoints = request.POST["storyPoints"]
+
+    newTicket.issueType = issueType
+    newTicket.priority = priority
+    newTicket.board = thisBoard
+    newTicket.column = Column.objects.get(board=thisBoard, internalKey='TO DO')
+    newTicket.orderNo = newTicketNumber
+    newTicket.save()
+
+    return redirect(request.META.get('HTTP_REFERER'))

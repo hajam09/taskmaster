@@ -39,6 +39,7 @@ urlpatterns = [
     path('boards/<slug:url>/backlog/', views.backlog, name='board-backlog'),
     path('teams/', views.teams, name='teams-page'),
     path('teams/<slug:url>/', views.team, name='team-page'),
+    path('new-ticket-object', views.newTicketObject, name='new-ticket-object'),
 ]
 
 # api
