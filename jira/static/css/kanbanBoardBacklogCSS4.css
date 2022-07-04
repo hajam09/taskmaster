@@ -1,0 +1,25 @@
+/* module-key = 'com.atlassian.jira.jira-project-config-plugin:look-and-feel-affected-styles', location = 'issuetypes/navigation/styles.lf.less' */
+/* module-key = 'com.atlassian.jira.jira-project-config-plugin:look-and-feel-affected-styles', location = 'customfields/css/customfields.lf.less' */
+/* module-key = 'com.atlassian.jira.jira-issue-link-remote-jira-plugin:look-and-feel-affected-styles', location = 'css/issuelink-jira-search.lf.less' */
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/includes/ajs/list/list.lf.less' */
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/includes/ajs/select/CheckboxMultiSelect.lf.less' */
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/includes/jira/dialog/dialog.lf.less' */
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/ui/aui-layout/deprecated/calendar.lf.less' */
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/includes/jira/autocomplete/AutoComplete.lf.less' */
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/ui/aui-layout/theme.lf.less' */
+h1,h2,h3{color:#172b4d}a{color:#0052cc}a:hover,a:focus,a:active{color:#0065ff}.aui-button.aui-button-link{color:#0052cc}.aui-button.aui-button-link:visited{color:#0052cc}.aui-button.aui-button-link:hover,.aui-button.aui-button-link:focus,.aui-button.aui-button-link:active{color:#0065ff}.aui-dropdown2.aui-style-default:hover .aui-dropdown2-radio:not(.aui-dropdown2-disabled):hover,.aui-dropdown2.aui-style-default:hover a:not(.aui-dropdown2-disabled):hover{background-color:#ebecf0;color:#42526e}.aui-navgroup-vertical .aui-nav>li>a{color:#42526e}.aui-navgroup-vertical .aui-nav>li>a:focus,.aui-navgroup-vertical .aui-nav>li>a:hover{color:#42526e}.aui-navgroup-vertical .aui-nav>li>a:active{background-color:#deebff;color:#42526e}.aui-navgroup-vertical .aui-nav .aui-nav-selected a:active{background-color:#deebff;color:#42526e}.aui-sidebar .aui-navgroup-vertical .aui-nav .aui-nav-selected a{color:#42526e}.aui-sidebar .aui-navgroup-vertical .aui-nav .aui-nav-selected a:active{color:#42526e}
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/ui/aui-layout/layout.lf.less' */
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/ui/aui-layout/navigation.lf.less' */
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/ui/aui-layout/deprecated/issue-actions.lf.less' */
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/ui/aui-layout/deprecated/userhover.lf.less' */
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/includes/jira/wikipreview/wiki-renderer.lf.less' */
+/* module-key = 'jira.webresources:look-and-feel-affected-styles', location = '/ui/aui-layout/workflows.lf.less' */
+/* module-key = 'com.atlassian.jira.jira-header-plugin:look-and-feel-affected-styles', location = 'css/header-theme.lf.less' */
+#header>.aui-header.aui-dropdown2-trigger-group{--aui-appheader-bg-color:#0747a6;--aui-appheader-text-color:#deebff;--aui-button-primary-text-color:#deebff;--aui-button-primary-bg-color:#0065ff;--aui-button-primary-hover-bg-color:#2e81ff;--aui-button-primary-active-bg-color:#005be6;--aui-button-primary-active-text-color:#fafafa;border-bottom:1px solid #2e3d54}#header>.aui-header.aui-dropdown2-trigger-group .aui-nav>li>a{--aui-item-focus-bg:#296ca3;--aui-item-active-bg:#296ca3;--aui-item-focus-text:#deebff;--aui-item-active-text:#deebff;--aui-appheader-item-focus-bg-color:#296ca3;--aui-appheader-item-focus-text-color:#deebff;--aui-appheader-item-active-bg-color:#296ca3;--aui-appheader-item-active-text-color:#deebff}
+/* module-key = 'com.atlassian.jira.gadgets:look-and-feel-affected-styles', location = 'style/common.lf.less' */
+/* module-key = 'com.atlassian.jira.gadgets:look-and-feel-affected-styles', location = 'style/gadget-colours.lf.less' */
+/* module-key = 'com.atlassian.jira.gadgets:look-and-feel-affected-styles', location = 'static/dashboarditem/two-dimensional-stats/TwoDimensionalStats.lf.less' */
+/* module-key = 'com.atlassian.jira.jira-issue-nav-plugin:look-and-feel-affected-styles', location = 'content/css/colouring.lf.less' */
+/* module-key = 'com.atlassian.jira.jira-issue-nav-components:look-and-feel-affected-styles', location = 'detailslayout/styles/colours.lf.less' */
+/* module-key = 'com.atlassian.jira.jira-issue-link-confluence-plugin:look-and-feel-affected-styles', location = 'css/confluencepagelink.lf.less' */
+/* module-key = 'com.atlassian.jira.lookandfeel:look-and-feel-affected-styles', location = 'css/look-and-feel.lf.less' */

@@ -1,0 +1,855 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block content %}
+    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS1.css' %}" media="all">
+    <link type="text/css" rel="stylesheet"
+          href="{% static 'css/kanbanBoardBacklogCSS5.css' %}?agile_global_admin_condition=true&amp;flexboards=true&amp;jag=true&amp;jaguser=true&amp;slack-enabled=true&amp;user-logged-in=true"
+          data-wrm-key="gh-rapid-plan,atl.general,greenhopper-rapid-non-gadget,jira.project.sidebar,atl.global,jira.global,jira.general,com.atlassian.jira.projects.sidebar.init,-_super"
+          data-wrm-batch-type="context" media="all">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS2.css' %}"
+          data-wrm-key="gh-rapid-charts,-_super" data-wrm-batch-type="context" media="all">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS3.css' %}"
+          data-wrm-key="com.atlassian.jira.jira-tzdetect-plugin:tzdetect-banner-component"
+          data-wrm-batch-type="resource" media="all">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS4.css' %}"
+          data-wrm-key="jira.global.look-and-feel,-_super" data-wrm-batch-type="context" media="all">
+
+
+    <body id="jira"
+          class="aui-layout aui-theme-default ghx-agile ghx-rapid-views aui-page-sidebar aui-sidebar-collapsed ghx-scroll-columns ghx-sprint-support ghx-days-in-column-enabled ghx-mode-planning"
+          data-version="8.22.1" data-aui-version="9.3.6-77c6140b3">
+    <div id="page">
+        <header id="header" role="banner">
+            <a class="aui-skip-link" href="#main">Skip to main content</a><a class="aui-skip-link" href="#sidebar">Skip
+            to sidebar</a>
+        </header>
+        <div id="announcement-banner" class="alertHeader">
+            <style type="text/css">
+                .aui-inline-dialog.jira-help-tip.aui-help.js-kanplan-enable-inline-dialog {
+                    display: none !important;
+                }
+            </style>
+        </div>
+        <div id="content">
+            <section class="aui-sidebar projects-sidebar fade-in" resolved="" aria-expanded="false" id="sidebar"
+                     aria-label="Sidebar">
+                <div class="aui-sidebar-wrapper" style="height: 583px;">
+                    <div class="col" style="margin-top: 10px">
+                        <a href="{% url 'jira:board-settings' url=board.url %}" data-toggle="tooltip"
+                           data-placement="right" title="Settings"><i style="font-size:24px" class="fa">&#xf085;</i></a>
+                        <hr>
+                        <a href="#" data-toggle="tooltip"
+                           data-placement="right" title="Backlog"><i style="font-size:24px"
+                                                                     class="fas fa-tasks"></i></a>
+                    </div>
+                </div>
+            </section>
+            <main role="main" id="main" class="ghx-gh  aui-page-panel">
+                <div id="gh" class="ghx-no-touch">
+                    <div id="ghx-header">
+                        <div id="ghx-modes-tools">
+                            <div class="ghx-sprint-meta" data-sprint-id="9951" style="display: none;"><span
+                                    class="time"><span class="aui-icon aui-icon-small aui-iconfont-time"></span><span
+                                    class="days-left">2 days remaining</span></span><span
+                                    class="complete-sprint-container"
+                                    title="To complete a sprint, you must have Manage or Start/complete Sprints permissions for all projects on the source board. <a class=&quot;manage-sprint-permission-help&quot; href=&quot;#&quot;>Learn more</a>"><a
+                                    id="ghx-complete-sprint" class="aui-button js-complete-sprint disabled" tabindex="0"
+                                    role="button" aria-haspopup="dialog" aria-pressed="false" aria-disabled="true"
+                                    resolved="">Complete sprint</a></span></div>
+                            <div id="ghx-view-modes" style=""></div>
+                            <span id="ghx-view-pluggable" style="visibility: visible;">
+                                <div class="ghx-view-section ">
+                                    <button id="zephyr-je.test.board.tool.section-button"
+                                            class="aui-button aui-dropdown2-trigger"
+                                            aria-controls="zephyr-je.test.board.tool.section-content" resolved=""
+                                            aria-haspopup="true" aria-expanded="false">Test View</button>
+                                    <aui-dropdown-menu id="zephyr-je.test.board.tool.section-content" hidden=""
+                                                       resolved="" role="menu" class="aui-dropdown2 aui-layer"
+                                                       tabindex="-1"></aui-dropdown-menu>
+                                </div>
+                                <div class="ghx-view-section ">
+                                    <button id="board-tools-section-button" class="aui-button aui-dropdown2-trigger"
+                                            aria-controls="board-tools-section-content" resolved="" aria-haspopup="true"
+                                            aria-expanded="false">Board</button>
+                                    <aui-dropdown-menu id="board-tools-section-content" hidden="" resolved=""
+                                                       role="menu" class="aui-dropdown2 aui-layer"
+                                                       tabindex="-1"></aui-dropdown-menu>
+                                </div>
+                            </span>
+                            <div id="ghx-view-tools"></div>
+                            <div id="ghx-view-presentation">
+                                <button class="aui-button ghx-compact-toggle js-compact-toggle"
+                                        title="Hide the header ( Z )" aria-label="Hide the header" resolved=""><span
+                                        class="aui-icon aui-icon aui-icon-small aui-iconfont-vid-full-screen-on"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="ghx-view-selector">
+                            <h1>
+                                <span class="subnav-container">
+                                    <span id="subnav-title">
+                                        <span class="subnavigator-title" title="Backlog"> {{ board.internalKey }} Backlog</span>
+                                    </span>
+                                    <span id="subnav-trigger"></span>
+                                    <span id="subnav-opts"></span>
+                                </span>
+                            </h1>
+                        </div>
+                    </div>
+                    <div id="ghx-content-main" class="ghx-content-main">
+                        <div id="ghx-errors"></div>
+                        <div id="ghx-notify" style="display: none;"></div>
+                        <div id="ghx-rabid" style="">
+                            <div id="ghx-operations">
+                                <div id="ghx-controls">
+                                    <div id="ghx-controls-plan" class="ghx-controls-plan ghx-controls-list"
+                                         style="display: none;"></div>
+                                    <div id="ghx-controls-work" class="ghx-controls-work ghx-controls-list">
+                                        <div class="ghx-controls-filters js-quickfilter-selector">
+                                            <dl id="js-work-quickfilters"
+                                                class="aui-expander-content ghx-quick-content">
+                                                <dt id="js-quickfilters-label" class="ghx-cursor-help"
+                                                    title="Use Quick Filters to view a subset of issues. Board owners can add more.">
+                                                    Quick Filters:
+                                                </dt>
+                                                <dd><a role="button" href="#"
+                                                       class="js-quickfilter-button aui-button aui-button-link first  "
+                                                       title="Displays only WA_PET Tickets for specific duration (PET_LIVE_SUPPORT + PET_TECH_IMPROVMENT"
+                                                       data-filter-id="13911" resolved="">Reports - Created in Last
+                                                    week</a></dd>
+                                                <dd><a role="button" href="#"
+                                                       class="js-quickfilter-button aui-button aui-button-link   "
+                                                       title="assignee = Name.Name " data-filter-id="13090" resolved="">Name</a>
+                                                </dd>
+                                                <dd><a role="button" href="#"
+                                                       class="js-quickfilter-button aui-button aui-button-link   "
+                                                       title="assignee = Name.Name " data-filter-id="13009" resolved="">Name</a>
+                                                </dd>
+                                                <dd><a role="button" href="#"
+                                                       class="js-quickfilter-button aui-button aui-button-link   "
+                                                       title="Displays issues which are currently assigned to the current user"
+                                                       data-filter-id="12956" resolved="">Only My Issues</a></dd>
+                                                <dd><a role="button" href="#"
+                                                       class="js-quickfilter-button aui-button aui-button-link  last "
+                                                       title="Displays issues which have been updated in the last day"
+                                                       data-filter-id="12957" resolved="">Recently Updated</a></dd>
+                                                <dd class="ghx-quickfilter-trigger" style="display: none;"><a
+                                                        id="js-work-quickfilters-trigger"
+                                                        data-replace-text="Ã¢â‚¬Â¦ Show fewer"
+                                                        class="aui-expander-trigger"
+                                                        aria-controls="js-work-quickfilters">Ã¢â‚¬Â¦ Show more</a></dd>
+                                            </dl>
+                                        </div>
+                                        <button class="aui-button ghx-compact-toggle js-compact-toggle"
+                                                title="Show the header ( Z )" aria-label="Show the header" resolved="">
+                                            <span class="aui-icon aui-icon aui-icon-small aui-iconfont-vid-full-screen-off"></span>
+                                        </button>
+                                    </div>
+                                    <div id="ghx-controls-report" class="ghx-controls-report"
+                                         style="display: none;"></div>
+                                </div>
+                            </div>
+                            <div id="ghx-plan" style="display: block;">
+                                <div id="ghx-plan-group" class="ghx-plan-group ghx-epic-expanded">
+                                    <div id="ghx-classification-menu-column">
+                                        <ul id="ghx-classification-menu" class="ghx-ide-menu ghx-classification-menu">
+                                            <li role="button" class="js-release-toggle ghx-release-toggle"
+                                                title="Show versions panel<b>Use versions to keep track of code releases.</b>">
+                                                <span class="ghx-inner">Versions</span></li>
+                                            <li role="button" class="js-epic-toggle ghx-epic-toggle ghx-active"
+                                                aria-describedby="aui-tooltip"><span class="ghx-inner">Epics</span></li>
+                                        </ul>
+                                    </div>
+                                    <div id="ghx-version-column"
+                                         class="ghx-version-column ghx-classification-column ghx-hidden"
+                                         data-skate-ignore=""></div>
+                                    <div id="ghx-epic-column" class="ghx-epic-column ghx-classification-column"
+                                         data-skate-ignore="">
+                                        <div class="ghx-classification-group">
+                                            <div class="ghx-classification-header">
+                                                <div class="ghx-actions">
+                                                    <div class="ghx-close js-epic-search" title="Filter epics"><span
+                                                            class="aui-icon aui-icon-small aui-iconfont-search">Filter epics</span>
+                                                    </div>
+                                                    <div class="ghx-add-button js-create-epic" title="Create epic"><span
+                                                            class="aui-icon aui-icon-small aui-iconfont-add">Create epic</span>
+                                                    </div>
+                                                    <div class="ghx-close js-epic-toggle" title="Hide epics panel"><span
+                                                            class="aui-icon aui-icon-small aui-iconfont-cross">Hide epics panel</span>
+                                                    </div>
+                                                </div>
+                                                <h2>Epics</h2>
+                                            </div>
+                                            <div class="ghx-progress-indicator ghx-initial"></div>
+                                            <form class="aui epic-search-wrapper">
+                                                <div class="gh-input-with-icon"><input class="text long-field"
+                                                                                       type="text"
+                                                                                       id="epic-search"><span
+                                                        id="js-epic-search-icon"
+                                                        class="aui-icon ghx-iconfont aui-icon-small aui-iconfont-search-small"></span>
+                                                </div>
+                                            </form>
+                                            <div class="ghx-classification-scrollview">
+                                                <div class="ghx-classification-item ghx-classification-all  ghx-selected">
+                                                    <div class="ghx-inner">
+                                                        <div class="ghx-header">
+                                                            <h3 class="ghx-name"><span class="js-epic-name"
+                                                                                       role="button">All issues</span>
+                                                            </h3>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="ghx-classification-cards ui-sortable">
+                                                    <div class="js-sortable ghx-classification-item ghx-label-4-border ghx-closed ui-droppable"
+                                                         data-epic-key="RWA-7" data-epic-id="367560">
+                                                        <div class="ghx-inner">
+                                                            <button class="aui-button aui-button-subtle ghx-expander ghx-heading-expander js-epic-details-toggle"
+                                                                    aria-expanded="false"
+                                                                    title="Hide/show epic information">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14"
+                                                                     height="14">
+                                                                    <g fill="none" fill-rule="evenodd">
+                                                                        <path d="M3.29175 4.793c-.389.392-.389 1.027 0 1.419l2.939 2.965c.218.215.5.322.779.322s.556-.107.769-.322l2.93-2.955c.388-.392.388-1.027 0-1.419-.389-.392-1.018-.392-1.406 0l-2.298 2.317-2.307-2.327c-.194-.195-.449-.293-.703-.293-.255 0-.51.098-.703.293z"
+                                                                              fill="#344563"></path>
+                                                                    </g>
+                                                                </svg>
+                                                            </button>
+                                                            <div class="ghx-header">
+                                                                <h3 class="ghx-name">
+                                                                    <span class="js-epic-name" role="button"><span
+                                                                            class="field-value js-editable-field js-edit-epicLabel-trigger"
+                                                                            data-fieldname="epicLabel"
+                                                                            data-fieldvalue="Task Management POC">Task Management POC</span></span>
+                                                                    <div id="dd-trigger-RWA-7"
+                                                                         class="epic-more-button js-epic-actions"
+                                                                         aria-controls="dd-trigger-RWA-7_drop"
+                                                                         aria-haspopup="true" aria-expanded="false">
+                                                                        <span class="aui-icon aui-icon-small aui-iconfont-more"></span>
+                                                                    </div>
+                                                                </h3>
+                                                            </div>
+                                                            <div class="ghx-subheader">
+                                                                <ul class="ghx-classification-progress"
+                                                                    title="100% of estimated work done (40 of 40 Story Points)">
+                                                                    <li class="ghx-implemented"
+                                                                        style="width:100%;"></li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="js-sortable ghx-classification-item ghx-label-4-border ghx-closed ui-droppable"
+                                                         data-epic-key="RWA-1359" data-epic-id="592528">
+                                                        <div class="ghx-inner">
+                                                            <button class="aui-button aui-button-subtle ghx-expander ghx-heading-expander js-epic-details-toggle"
+                                                                    aria-expanded="false"
+                                                                    title="Hide/show epic information">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14"
+                                                                     height="14">
+                                                                    <g fill="none" fill-rule="evenodd">
+                                                                        <path d="M3.29175 4.793c-.389.392-.389 1.027 0 1.419l2.939 2.965c.218.215.5.322.779.322s.556-.107.769-.322l2.93-2.955c.388-.392.388-1.027 0-1.419-.389-.392-1.018-.392-1.406 0l-2.298 2.317-2.307-2.327c-.194-.195-.449-.293-.703-.293-.255 0-.51.098-.703.293z"
+                                                                              fill="#344563"></path>
+                                                                    </g>
+                                                                </svg>
+                                                            </button>
+                                                            <div class="ghx-header">
+                                                                <h3 class="ghx-name">
+                                                                    <span class="js-epic-name" role="button"><span
+                                                                            class="field-value js-editable-field js-edit-epicLabel-trigger"
+                                                                            data-fieldname="epicLabel"
+                                                                            data-fieldvalue="Next Hearing Date">Next Hearing Date</span></span>
+                                                                    <div id="dd-trigger-RWA-1359"
+                                                                         class="epic-more-button js-epic-actions"
+                                                                         aria-controls="dd-trigger-RWA-1359_drop"
+                                                                         aria-haspopup="true" aria-expanded="false">
+                                                                        <span class="aui-icon aui-icon-small aui-iconfont-more"></span>
+                                                                    </div>
+                                                                </h3>
+                                                            </div>
+                                                            <div class="ghx-subheader">
+                                                                <ul class="ghx-classification-progress"
+                                                                    title="0% of estimated work done (0 of 16 Story Points)">
+                                                                    <li class="ghx-implemented" style="width:0%;"></li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="js-sortable ghx-classification-item ghx-label-4-border ghx-closed ui-droppable"
+                                                         data-epic-key="RWA-1404" data-epic-id="596460">
+                                                        <div class="ghx-inner">
+                                                            <button class="aui-button aui-button-subtle ghx-expander ghx-heading-expander js-epic-details-toggle"
+                                                                    aria-expanded="false"
+                                                                    title="Hide/show epic information">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14"
+                                                                     height="14">
+                                                                    <g fill="none" fill-rule="evenodd">
+                                                                        <path d="M3.29175 4.793c-.389.392-.389 1.027 0 1.419l2.939 2.965c.218.215.5.322.779.322s.556-.107.769-.322l2.93-2.955c.388-.392.388-1.027 0-1.419-.389-.392-1.018-.392-1.406 0l-2.298 2.317-2.307-2.327c-.194-.195-.449-.293-.703-.293-.255 0-.51.098-.703.293z"
+                                                                              fill="#344563"></path>
+                                                                    </g>
+                                                                </svg>
+                                                            </button>
+                                                            <div class="ghx-header">
+                                                                <h3 class="ghx-name">
+                                                                    <span class="js-epic-name" role="button"><span
+                                                                            class="field-value js-editable-field js-edit-epicLabel-trigger"
+                                                                            data-fieldname="epicLabel"
+                                                                            data-fieldvalue="Next Hearing Date">Next Hearing Date</span></span>
+                                                                    <div id="dd-trigger-RWA-1404"
+                                                                         class="epic-more-button js-epic-actions"
+                                                                         aria-controls="dd-trigger-RWA-1404_drop"
+                                                                         aria-haspopup="true" aria-expanded="false">
+                                                                        <span class="aui-icon aui-icon-small aui-iconfont-more"></span>
+                                                                    </div>
+                                                                </h3>
+                                                            </div>
+                                                            <div class="ghx-subheader">
+                                                                <ul class="ghx-classification-progress"
+                                                                    title="0% of estimated work done (0 of 0 Story Points)">
+                                                                    <li class="ghx-implemented" style="width:0%;"></li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="ghx-classification-item ghx-classification-pending ui-droppable"
+                                                     data-epic-key="none">
+                                                    <div class="ghx-inner">
+                                                        <div class="ghx-header">
+                                                            <h3 class="ghx-name"><span class="js-epic-name"
+                                                                                       role="button">Issues without epics</span>
+                                                            </h3>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="ghx-backlog-column" class="ghx-backlog-column">
+                                        <div id="ghx-backlog" class="ghx-backlog" data-loaded="1653826422372"
+                                             data-load-time="385" data-rendered="1653826422484" data-draw-time="149">
+                                            <div id="ghx-content-group" data-card-color-strategy="none"
+                                                 class="ui-sortable">
+                                                <div class="ghx-sprint-group">
+                                                    <div data-sprint-id="9951"
+                                                         class="ghx-backlog-container ghx-sprint-active js-sprint-container ghx-open ui-droppable">
+                                                        <div class="ghx-backlog-header js-sprint-header"
+                                                             data-sprint-id="9951">
+                                                            <button class="aui-button ghx-expander ghx-heading-expander"
+                                                                    aria-expanded="true"
+                                                                    title="Toggle swimlane visibility" resolved=""
+                                                                    data-toggle="collapse"
+                                                                    data-target="#listOfActiveTicketsContainer">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14"
+                                                                     height="14">
+                                                                    <g fill="none" fill-rule="evenodd">
+                                                                        <path d="M3.29175 4.793c-.389.392-.389 1.027 0 1.419l2.939 2.965c.218.215.5.322.779.322s.556-.107.769-.322l2.93-2.955c.388-.392.388-1.027 0-1.419-.389-.392-1.018-.392-1.406 0l-2.298 2.317-2.307-2.327c-.194-.195-.449-.293-.703-.293-.255 0-.51.098-.703.293z"
+                                                                              fill="#344563"></path>
+                                                                    </g>
+                                                                </svg>
+                                                            </button>
+                                                            <div class="ghx-name"><span class="field-value ghx-readonly"
+                                                                                        data-fieldname="sprintName"
+                                                                                        data-fieldvalue="PI26 Sprint 2"
+                                                                                        data-maxdisplaylength="">PI26 Sprint 2</span>
+                                                            </div>
+                                                            <div class="ghx-issue-count"><span
+                                                                    id="activeTicketsCounter"> 0 </span> issues
+                                                            </div>
+                                                            <span class="active-sprint-lozenge aui-lozenge aui-lozenge-success">Active</span>
+                                                            <div class="ghx-controls aui-group">
+                                                                <div class="aui-item"><a
+                                                                        class="aui-button js-sprint-actions-trigger"
+                                                                        href="/jira/rest/greenhopper/1.0/xboard/plan/sprints/actions?sprintId=9951"
+                                                                        data-sprint-id="9951" aria-label="More actions"
+                                                                        tabindex="0" resolved="" id="AJS_DROPDOWN__50"
+                                                                        aria-controls="AJS_DROPDOWN__50_drop"
+                                                                        aria-haspopup="true" aria-expanded="false"><span
+                                                                        class="aui-icon ghx-iconfont aui-icon-small aui-iconfont-more"></span></a>
+                                                                </div>
+                                                            </div>
+                                                            <div class="ghx-badge-group ghx-right">
+                                                                <aui-badge class="  ghx-not-started"
+                                                                           title="Not Started: 20 of 140 (Story Points)">
+                                                                    20
+                                                                </aui-badge>
+                                                                <aui-badge class="  ghx-in-progress"
+                                                                           title="In Progress: 67 of 140 (Story Points)">
+                                                                    67
+                                                                </aui-badge>
+                                                                <aui-badge class="  ghx-done"
+                                                                           title="Done: 53 of 140 (Story Points)">53
+                                                                </aui-badge>
+                                                            </div>
+                                                            <div class="ghx-sprint-info">
+                                                                <div class="ghx-assigned-work-stats">
+                                                                    <span class="ghx-avatar-img ghx-auto-avatar"
+                                                                          style="background-color: #f1a257; "
+                                                                          title="Oguz Akin<table><tr><td>25</td><td>Story Points</td></tr><tr><td>9</td><td>Issues</td></tr></table>">O</span><img
+                                                                        src="https://tools.hmcts.net/jira/secure/useravatar?ownerId=dhamendra.kumar&amp;avatarId=29300"
+                                                                        class="ghx-avatar-img"
+                                                                        alt="Dharmendra Kumar's avatar"
+                                                                        title="Dharmendra Kumar<table><tr><td>21</td><td>Story Points</td></tr><tr><td>5</td><td>Issues</td></tr></table>"
+                                                                        loading="lazy"><img
+                                                                        src="https://tools.hmcts.net/jira/secure/useravatar?avatarId=14929"
+                                                                        class="ghx-avatar-img"
+                                                                        alt="Rasika Abeyrathna's avatar" loading="lazy"
+                                                                        aria-describedby="aui-tooltip"><img
+                                                                        src="https://tools.hmcts.net/jira/secure/useravatar?ownerId=JIRAUSER48103&amp;avatarId=38908"
+                                                                        class="ghx-avatar-img"
+                                                                        alt="Vamshi Gulapally's avatar"
+                                                                        title="Vamshi Gulapally<table><tr><td>20</td><td>Story Points</td></tr><tr><td>4</td><td>Issues</td></tr></table>"
+                                                                        loading="lazy"><img
+                                                                        src="https://tools.hmcts.net/jira/secure/useravatar?ownerId=moussa.kayad&amp;avatarId=32828"
+                                                                        class="ghx-avatar-img"
+                                                                        alt="Moussa Kayad's avatar"
+                                                                        title="Moussa Kayad<table><tr><td>18</td><td>Story Points</td></tr><tr><td>4</td><td>Issues</td></tr></table>"
+                                                                        loading="lazy"><span
+                                                                        class="remaining-assignee-count">+7</span>
+                                                                    <button class="aui-button js-assigned-work-dialog-trigger aui-button-subtle aui-button-compact"
+                                                                            resolved="" aria-describedby="aui-tooltip">
+                                                                        <span class="aui-icon ghx-iconfont aui-icon-small aui-iconfont-more">View summary of assigned work </span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="ghx-meta ghx-disabled">
+                                                            <div class="ghx-issues js-issue-list ghx-has-issues tickets connectedSortable ui-sortable"
+                                                                 data-skate-ignore="" id="listOfActiveTicketsContainer">
+
+                                                                <!-- ACTIVE TICKETS -->
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <br><br>
+                                                <div class="ghx-backlog-group">
+                                                    <div data-sprint-id="9951"
+                                                         class="ghx-backlog-container ghx-sprint-active js-sprint-container ghx-open ui-droppable">
+                                                        <div class="ghx-backlog-header js-sprint-header"
+                                                             data-sprint-id="9951">
+                                                            <button class="aui-button ghx-expander ghx-heading-expander"
+                                                                    aria-expanded="true"
+                                                                    title="Toggle swimlane visibility" resolved=""
+                                                                    data-toggle="collapse"
+                                                                    data-target="#listOfActiveTicketsContainer">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14"
+                                                                     height="14">
+                                                                    <g fill="none" fill-rule="evenodd">
+                                                                        <path d="M3.29175 4.793c-.389.392-.389 1.027 0 1.419l2.939 2.965c.218.215.5.322.779.322s.556-.107.769-.322l2.93-2.955c.388-.392.388-1.027 0-1.419-.389-.392-1.018-.392-1.406 0l-2.298 2.317-2.307-2.327c-.194-.195-.449-.293-.703-.293-.255 0-.51.098-.703.293z"
+                                                                              fill="#344563"></path>
+                                                                    </g>
+                                                                </svg>
+                                                            </button>
+                                                            <div class="ghx-name"><span class="field-value ghx-readonly"
+                                                                                        data-fieldname="sprintName"
+                                                                                        data-fieldvalue="PI26 Sprint 2"
+                                                                                        data-maxdisplaylength="">Backlog</span>
+                                                            </div>
+                                                            <div class="ghx-issue-count"><span
+                                                                    id="inActiveTicketsCounter"> 0 </span> issues
+                                                            </div>
+                                                            <div class="ghx-controls aui-group">
+                                                                <div class="aui-item"><a
+                                                                        class="aui-button js-sprint-actions-trigger"
+                                                                        href="/jira/rest/greenhopper/1.0/xboard/plan/sprints/actions?sprintId=9951"
+                                                                        data-sprint-id="9951" aria-label="More actions"
+                                                                        tabindex="0" resolved="" id="AJS_DROPDOWN__50"
+                                                                        aria-controls="AJS_DROPDOWN__50_drop"
+                                                                        aria-haspopup="true" aria-expanded="false"><span
+                                                                        class="aui-icon ghx-iconfont aui-icon-small aui-iconfont-more"></span></a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="ghx-meta ghx-disabled">
+                                                            <div class="ghx-issues js-issue-list ghx-has-issues tickets connectedSortable ui-sortable"
+                                                                 data-skate-ignore=""
+                                                                 id="listOfInActiveTicketsContainer">
+
+                                                                <!-- INACTIVE TICKETS -->
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <br><br><br><br><br><br>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="ghx-detail-view" class="ghx-detail-view gh-editable-detail-view"
+                                         style="display: none; width: 400px;"></div>
+                                </div>
+                            </div>
+                            <div id="ghx-report" class="ghx-chart" style="display: none;"></div>
+                            <div id="ghx-work" class="ghx-work" style="display: none;"></div>
+                            <div id="ghx-team"></div>
+                        </div>
+                    </div>
+                    <div class="ghx-throbber"></div>
+                </div>
+            </main>
+            <div class="hidden js-issueaction-container-dot">
+                <a id="edit-issue" class="js-issueaction issueaction-edit-issue"
+                   href="/jira/secure/EditIssue!default.jspa?id={0}" title=" ( Type 'e' )"></a>
+                <a id="assign-issue" class="js-issueaction issueaction-assign-issue"
+                   href="/jira/secure/AssignIssue!default.jspa?id={0}"></a>
+                <a id="assign-to-me" class="js-issueaction issueaction-assign-to-me hide-from-opsbar"
+                   href="/jira/secure/AssignIssue.jspa?atl_token=B8YO-FLDM-36UO-7500_3c2051f0cebdafed587a4ffecb376002d84b8989_lin&amp;id={0}&amp;assignee=mohamed.hajamohideen"
+                   title=" ( Type 'i' )"></a>
+                <a id="comment-issue" class="js-issueaction issueaction-comment-issue add-issue-comment"
+                   href="/jira/secure/AddComment!default.jspa?id={0}" title=" ( Type 'm' )"></a>
+                <a id="appliger-save-as-template-link" class="js-issueaction trigger-appliger-save-as-dialog"
+                   href="/jira/secure/save-as-template.jspa"></a>
+                <a id="appliger-apply-template-link" class="js-issueaction trigger-appliger-apply-template-dialog"
+                   href="/jira/secure/save-as-template.jspa"></a>
+                <a id="log-work" class="js-issueaction issueaction-log-work"
+                   href="/jira/secure/CreateWorklog!default.jspa?id={0}"></a>
+                <a id="greenhopper-rapidboard-operation"
+                   class="js-issueaction issueaction-greenhopper-rapidboard-operation js-rapidboard-operation-issue"
+                   href="/jira/secure/GHGoToBoard.jspa?issueId={0}"></a>
+                <a id="greenhopper-rank-top-operation" class="js-issueaction issueaction-greenhopper-rank-top-operation"
+                   href="/jira/secure/RankTop.jspa?issueId={0}"></a>
+                <a id="greenhopper-rank-bottom-operation"
+                   class="js-issueaction issueaction-greenhopper-rank-bottom-operation"
+                   href="/jira/secure/RankBottom.jspa?issueId={0}"></a>
+                <a id="archive-issue" class="js-issueaction issueaction-archive-issue"
+                   href="/jira/secure/ArchiveIssue!default.jspa?id={0}"></a>
+                <a id="attach-file" class="js-issueaction unified-attach-file"
+                   href="/jira/secure/AttachFile!default.jspa?id={0}"></a>
+                <a id="attach-screenshot-html5" class="js-issueaction issueaction-attach-screenshot-html5"
+                   href="/jira/secure/ShowAttachScreenshotFormAction!default.jspa?id={0}"></a>
+                <a id="toggle-vote-issue" class="js-issueaction issueaction-vote-issue"
+                   href="/jira/secure/VoteOrWatchIssue.jspa?atl_token=B8YO-FLDM-36UO-7500_3c2051f0cebdafed587a4ffecb376002d84b8989_lin&amp;id={0}&amp;vote=vote"></a>
+                <a id="toggle-unvote-issue" class="js-issueaction issueaction-unvote-issue"
+                   href="/jira/secure/VoteOrWatchIssue.jspa?atl_token=B8YO-FLDM-36UO-7500_3c2051f0cebdafed587a4ffecb376002d84b8989_lin&amp;id={0}&amp;vote=unvote"></a>
+                <a id="view-voters" class="js-issueaction issueaction-view-voters"
+                   href="/jira/secure/ViewVoters!default.jspa?id={0}"></a>
+                <a id="toggle-watch-issue" class="js-issueaction issueaction-watch-issue"
+                   href="/jira/secure/VoteOrWatchIssue.jspa?atl_token=B8YO-FLDM-36UO-7500_3c2051f0cebdafed587a4ffecb376002d84b8989_lin&amp;id={0}&amp;watch=watch"></a>
+                <a id="toggle-unwatch-issue" class="js-issueaction issueaction-unwatch-issue"
+                   href="/jira/secure/VoteOrWatchIssue.jspa?atl_token=B8YO-FLDM-36UO-7500_3c2051f0cebdafed587a4ffecb376002d84b8989_lin&amp;id={0}&amp;watch=unwatch"></a>
+                <a id="manage-watchers" class="js-issueaction issueaction-manage-watchers"
+                   href="/jira/secure/ManageWatchers!default.jspa?id={0}"></a>
+                <a id="create-subtask" class="js-issueaction issueaction-create-subtask"
+                   href="/jira/secure/CreateSubTaskIssue!default.jspa?parentIssueId={0}"></a>
+                <a id="subtask-to-issue" class="js-issueaction issueaction-subtask-to-issue"
+                   href="/jira/secure/ConvertSubTask.jspa?id={0}"></a>
+                <a id="issue-to-subtask" class="js-issueaction issueaction-issue-to-subtask"
+                   href="/jira/secure/ConvertIssue.jspa?id={0}"></a>
+                <a id="cta-create-branch" class="js-issueaction devstatus-cta-link"
+                   href="#devstatus.cta.createbranch"></a>
+                <a id="create-linked-issue" class="js-issueaction issueaction-create-linked-issue" href="#"></a>
+                <a id="move-issue" class="js-issueaction issueaction-move-issue"
+                   href="/jira/secure/MoveIssue!default.jspa?id={0}"></a>
+                <a id="move-subtask" class="js-issueaction issueaction-move-subtask"
+                   href="/jira/secure/MoveSubTaskChooseOperation!default.jspa?id={0}"></a>
+                <a id="link-issue" class="js-issueaction issueaction-link-issue"
+                   href="/jira/secure/LinkJiraIssue!default.jspa?id={0}"></a>
+                <a id="clone-issue" class="js-issueaction issueaction-clone-issue"
+                   href="/jira/secure/CloneIssueDetails!default.jspa?id={0}"></a>
+                <a id="edit-labels" class="js-issueaction issueaction-edit-labels"
+                   href="/jira/secure/EditLabels!default.jspa?id={0}"></a>
+                <a id="clone-epic-pro-links" class="js-issueaction ijs-clone-epic-pro-link"
+                   href="/jira/plugins/servlet/cloneepic?epicKey=${issue.key}"></a>
+                <a id="delete-issue" class="js-issueaction issueaction-delete-issue"
+                   href="/jira/secure/DeleteIssue!default.jspa?id={0}"></a>
+            </div>
+            <fieldset class="hidden parameters">
+                <input type="hidden" id="thanks_issue_updated" value="{0} has been updated.">
+                <input type="hidden" id="thanks_issue_transitioned" value="{0} has been updated.">
+                <input type="hidden" id="thanks_issue_assigned" value="{0} has been assigned.">
+                <input type="hidden" id="thanks_issue_commented" value="{0} has been updated with your comment.">
+                <input type="hidden" id="thanks_issue_worklogged" value="Work has been logged on {0}.">
+                <input type="hidden" id="thanks_issue_voted" value="Your vote on {0} has been updated.">
+                <input type="hidden" id="thanks_issue_watched" value="Your watcher status on {0} has been updated.">
+                <input type="hidden" id="thanks_issue_moved" value="{0} has been moved.">
+                <input type="hidden" id="thanks_issue_linked" value="The links on {0} have been updated.">
+                <input type="hidden" id="thanks_issue_cloned" value="{0} has been cloned.">
+                <input type="hidden" id="thanks_issue_labelled" value="The labels on {0} have been updated.">
+                <input type="hidden" id="thanks_issue_deleted" value="{0} has been deleted.">
+                <input type="hidden" id="thanks_issue_archived" value="Issue successfully archived.">
+                <input type="hidden" id="thanks_issue_attached" value="The file(s) have been attached to {0}.">
+            </fieldset>
+        </div>
+        <footer id="footer" role="contentinfo">
+            <section class="footer-body">
+                <ul id="ghx-footer" style="display: none" class="gh-build-version">
+                    <li>
+                        <a class="seo-link" href="http://www.atlassian.com/software/jira/?utm_source=gh_footer">Agile
+                            project management</a> for <a class="seo-link"
+                                                          href="http://www.atlassian.com/software/jira/?utm_source=gh_footer">Kanban</a>
+                        and <a class="seo-link" href="http://www.atlassian.com/software/jira/?utm_source=gh_footer">Scrum
+                        software development</a> powered by <a class="seo-link"
+                                                               href="http://www.atlassian.com/software/jira/?utm_source=gh_footer">Jira
+                        Software</a>
+                        (v8.22.1)
+                    </li>
+                </ul>
+                <ul class="atlassian-footer">
+                    <li>
+                        Atlassian Jira <a class="seo-link" rel="nofollow"
+                                          href="https://www.atlassian.com/software/jira">Project Management Software</a>
+                        <span id="footer-build-information">(v8.22.1#822001-<span
+                                title="d584a1e5af9752a5d8b59b41fdf410e866d38003"
+                                data-commit-id="d584a1e5af9752a5d8b59b41fdf410e866d38003}">sha1:d584a1e</span>:node1)</span>
+                    </li>
+                    <li>
+                        <a id="about-link" rel="nofollow" href="/jira/secure/AboutPage.jspa/secure/AboutPage.jspa">About
+                            Jira</a>
+                    </li>
+                    <li>
+                        <a id="footer-report-problem-link" rel="nofollow" href="/jira/secure/CreateIssue!default.jspa">Report
+                            a problem</a>
+                    </li>
+                </ul>
+                <p class="atlassian-footer">
+                    <span class="licensemessage">
+                    </span>
+                </p>
+                <div id="footer-logo"><a rel="nofollow" href="http://www.atlassian.com/">Atlassian</a></div>
+            </section>
+            <fieldset class="hidden parameters">
+                <input type="hidden" title="loggedInUser" value="mohamed.hajamohideen">
+                <input type="hidden" title="ajaxTimeout"
+                       value="The call to the Jira server did not complete within the timeout period.  We are unsure of the result of this operation.">
+                <input type="hidden" title="JiraVersion" value="8.22.1">
+                <input type="hidden" title="ajaxUnauthorised"
+                       value="You are not authorised to perform this operation. Please log in.">
+                <input type="hidden" title="baseURL" value="https://tools.hmcts.net/jira">
+                <input type="hidden" title="ajaxCommsError"
+                       value="The Jira server could not be contacted. This may be a temporary glitch or the server may be down. ">
+                <input type="hidden" title="ajaxServerError"
+                       value="The Jira server was contacted but has returned an error response. We are unsure of the result of this operation.">
+                <input type="hidden" title="ajaxErrorCloseDialog"
+                       value="Close this dialog and press refresh in your browser">
+                <input type="hidden" title="ajaxErrorDialogHeading" value="Communications Breakdown">
+                <input type="hidden" title="dirtyMessage"
+                       value="You have entered new data on this page. If you navigate away from this page without first saving your data, the changes will be lost.">
+                <input type="hidden" title="dirtyDialogMessage"
+                       value="You have entered new data in this dialog. If you navigate away from this dialog without first saving your data, the changes will be lost. Click cancel to return to the dialog.">
+                <input type="hidden" title="keyType" value="Type">
+                <input type="hidden" title="keyThen" value="then">
+                <input type="hidden" title="dblClickToExpand" value="Double click to expand">
+                <input type="hidden" title="actions" value="Actions">
+                <input type="hidden" title="removeItem" value="Remove">
+                <input type="hidden" title="workflow" value="Workflow">
+                <input type="hidden" title="labelNew" value="New Label">
+                <input type="hidden" title="issueActionsHint"
+                       value="Begin typing for available operations or press down to see all">
+                <input type="hidden" title="closelink" value="Close">
+                <input type="hidden" title="dotOperations" value="Operations">
+                <input type="hidden" title="dotLoading" value="Loading...">
+                <input type="hidden" title="frotherSuggestions" value="Suggestions">
+                <input type="hidden" title="frotherNomatches" value="No Matches">
+                <input type="hidden" title="multiselectVersionsError" value="{0} is not a valid version.">
+                <input type="hidden" title="multiselectComponentsError" value="{0} is not a valid component.">
+                <input type="hidden" title="multiselectGenericError" value="The value {0} is invalid.">
+            </fieldset>
+        </footer>
+    </div>
+    <form id="jira_request_timing_info" class="dont-default-focus">
+        <fieldset class="parameters hidden">
+            <input type="hidden" title="jira.request.start.millis" value="1653826418539">
+            <input type="hidden" title="jira.request.server.time" value="198">
+            <input type="hidden" title="jira.request.id" value="733x103059x2">
+            <input type="hidden" title="jira.session.expiry.time" value="1653844418522">
+            <input type="hidden" title="jira.session.expiry.in.mins" value="299">
+            <input id="jiraConcurrentRequests" type="hidden" name="jira.request.concurrent.requests" value="2">
+            <input type="hidden" title="db.reads.time.in.ms" value="27">
+            <input type="hidden" title="db.conns.time.in.ms" value="128">
+        </fieldset>
+        <input type="hidden" name="__ncforminfo"
+               value="HKtlvdis6oR1eWNCjm723FgAHYDnnX4Lh_o-gYSU0cYUXsd4YW9xPrCxNWOfb3la1_qdof3XTCBlRX4VR4DWkNUQ3yQJu2ED">
+    </form>
+    <!--
+        REQUEST ID : 733x103059x2
+        REQUEST TIMESTAMP : [29/May/2022:12:13:38 +0000]
+        REQUEST TIME : 0.1980
+        ASESSIONID : 1mliqn5
+        CONCURRENT REQUESTS : 2
+           NODE ID : node1
+
+             db.reads : OpSnapshot{name='db.reads', invocationCount=13, elapsedTotal=27196368, elapsedMin=1522315, elapsedMax=3052930, resultSetSize=0, cpuTotal=0, cpuMin=0, cpuMax=0}
+             db.conns : OpSnapshot{name='db.conns', invocationCount=49, elapsedTotal=128489278, elapsedMin=1568416, elapsedMax=6603266, resultSetSize=0, cpuTotal=0, cpuMin=0, cpuMax=0}
+        -->
+    <aui-inline-dialog id="sidebar-submenu0" alignment="right top" hidden="" contained-by="viewport"
+                       class="aui-sidebar-submenu-dialog aui-layer" resolved="" tabindex="0" role="dialog"
+                       responds-to="hover">
+        <div class="aui-inline-dialog-contents"></div>
+    </aui-inline-dialog>
+    <div id="appliger-templates__new-issue-dialog"></div>
+    <div id="aui-tooltip" class="aui-tooltip assistive" role="tooltip" style="margin: 0px;">
+        <p class="aui-tooltip-content">Show epics panel<b>Use epics to plan features across multiple sprints.</b></p>
+    </div>
+    <section id="create-epic-issue-dialog" class="aui-dialog2 aui-layer jira-dialog2 jira-dialog-core aui-dialog2-large"
+             role="dialog" aria-labelledby="jira-dialog2__heading" style="display: none;"></section>
+    </body>
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script type="text/javascript">
+
+        function renderTicketEpicComponent(ticket) {
+            if (ticket.epic == null)
+                return "";
+
+            return `
+        <span class="aui-label ghx-label ghx-label-single ghx-label-11" title="${ticket.epic.summary}" data-epickey="R${ticket.epic.internalKey}">${ticket.epic.summary}</span>
+        `;
+        }
+
+        function renderAssigneeComponent(ticket) {
+            if (ticket.assignee == null)
+                return "";
+
+            return `
+        <img src="https://tools.hmcts.net/jira/secure/useravatar?avatarId=14929" class="ghx-avatar-img" alt="Assignee: ${ticket.assignee.firstName} ${ticket.assignee.lastName}" title="Assignee: ${ticket.assignee.firstName} ${ticket.assignee.lastName}" loading="lazy">`
+        }
+
+        function renderTicketInternalKey(ticket) {
+            // text-decoration: line-through;
+
+            if (ticket.column == "DONE")
+                return `<div class="ghx-key"><a style="text-decoration: line-through;" href="${ticket.link}" title="${ticket.internalKey}" class="js-key-link">${ticket.internalKey}</a></div>`
+
+            return `<div class="ghx-key"><a href="${ticket.link}" title="${ticket.internalKey}" class="js-key-link">${ticket.internalKey}</a></div>`;
+        }
+
+        function renderTickets(data) {
+            var result = "";
+
+            for (const ticket of data.tickets) {
+                // https://tools.hmcts.net/jira/images/icons/priorities/high.svg
+                var ticketEpicComponent = renderTicketEpicComponent(ticket);
+                var ticketAssigneeComponent = renderAssigneeComponent(ticket);
+                var ticketInternalKey = renderTicketInternalKey(ticket);
+                result += `
+                <div class="js-issue js-sortable js-parent-drag ghx-issue-compact ghx-type-10900" data-issue-id="${ticket.id}" data-issue-key="${ticket.internalKey}" ticketId="${ticket.id}">
+                    <div class="ghx-issue-content">
+                        <div class="ghx-row">
+                            <span class="ghx-type" title="${ticket.issueType.internalKey}"><img alt="Issue Type: ${ticket.issueType.internalKey}" src="${ticket.issueType.icon}" loading="lazy"></span>
+                            <div class="ghx-flags"><span class="ghx-priority" title="${ticket.priority.internalKey}"><img src="${ticket.priority.icon}" alt="Priority: ${ticket.priority.internalKey}" loading="lazy"></span></div>
+                            ${ticketInternalKey}
+                            <div class="ghx-summary" title="${ticket.summary}"><span class="ghx-inner">${ticket.summary}</span></div>
+                            ${ticketEpicComponent}
+                            <span class="ghx-end ghx-estimate">
+                            ${ticketAssigneeComponent}
+                                <aui-badge class=" ghx-statistic-badge" title="Story Points">${ticket.storyPoints}</aui-badge>
+                            </span>
+                        </div>
+
+                    </div>
+                    <div class="ghx-grabber ghx-grabber-transparent"></div>
+                    <div class="ghx-move-count"><b></b></div>
+                </div>
+            `;
+            }
+
+            return result;
+        }
+
+        function updateIssueCounter() {
+            var active = document.getElementById("listOfActiveTicketsContainer");
+            var inActive = document.getElementById("listOfInActiveTicketsContainer");
+            $('#activeTicketsCounter').text(active.children.length);
+            $('#inActiveTicketsCounter').text(inActive.children.length);
+        }
+
+        function domNodeInsertionListerner(elemendId) {
+            $(elemendId).on('DOMNodeInserted', function (e) {
+                var anchorElement = e.target;
+
+                if (anchorElement.hasAttribute('ticketId')) {
+                    var ticketIdToMove = anchorElement.getAttribute('ticketId');
+                    var columnId = $(elemendId).attr("columnId");
+
+                    $.ajax(
+                        {
+                            url: `#`,
+                            data:
+                                {
+                                    'column-id': columnId,
+                                    'ticket-id': ticketIdToMove,
+                                },
+                            type: 'PUT',
+                            dataType: 'json',
+                            success: function () {
+                                updateIssueCounter();
+                            }
+                        }
+                    );
+                }
+            });
+        }
+
+
+        function renderBacklogActiveTicketsComponent() {
+            $.ajax(
+                {
+                    url: "#}",
+                    type: "GET",
+                    dataType: 'json',
+                    success: function (response) {
+                        if (!response.success)
+                            return;
+
+                        $('#listOfActiveTicketsContainer').append(renderTickets(response.data));
+                        $('#listOfActiveTicketsContainer').attr("columnId", response.data.columns.active.id);
+
+                        domNodeInsertionListerner("#listOfActiveTicketsContainer");
+
+                        updateIssueCounter();
+                    }
+                }
+            );
+        }
+
+        function renderBacklogInActiveTicketsComponent() {
+            $.ajax(
+                {
+                    url: "#",
+                    type: "GET",
+                    dataType: 'json',
+                    success: function (response) {
+                        if (!response.success)
+                            return;
+
+                        $('#listOfInActiveTicketsContainer').append(renderTickets(response.data));
+                        $('#listOfInActiveTicketsContainer').attr("columnId", response.data.columns.inActive.id);
+
+                        domNodeInsertionListerner("#listOfInActiveTicketsContainer");
+
+                        updateIssueCounter();
+                    }
+                }
+            );
+        }
+
+        window.onload = function (e) {
+            // KanbanBoardBacklogInActiveTicketsApiEventVersion2Component
+
+            renderBacklogActiveTicketsComponent();
+            renderBacklogInActiveTicketsComponent();
+
+
+            $(".connectedSortable").sortable(
+                {
+                    // revert: true
+                    connectWith: ".connectedSortable"
+                }
+            ).disableSelection();
+
+            $("#draggable").draggable(
+                {
+                    connectToSortable: "#sortable",
+                    helper: "clone",
+                    revert: "invalid"
+                }
+            );
+
+            $("ul, li").disableSelection();
+        }
+
+    </script>
+{% endblock %}

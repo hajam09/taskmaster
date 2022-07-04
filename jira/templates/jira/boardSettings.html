@@ -41,7 +41,7 @@ body {
                 <dd class="col-sm-9">
                     <div class="form-group">
                         <select class="form-control select2bs4" multiple="multiple" name="board-projects" id="board-projects" data-placeholder="Select project(s) this board will be used for." required>
-	                        {% for project in projects.all %}
+	                        {% for project in projects %}
 	                    		<option value="{{project.id}}">{{project.internalKey}}</option>
 	                    	{% endfor %}
                         </select>

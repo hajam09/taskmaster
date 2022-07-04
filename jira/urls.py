@@ -19,7 +19,7 @@ from jira.api import TicketBulkOrderChangeApiEventVersion1Component
 # from jira.api import KanbanBoardBacklogInActiveTicketsApiEventVersion1Component
 # from jira.api import KanbanBoardBacklogInActiveTicketsApiEventVersion2Component
 # from jira.api import KanbanBoardDetailsAndItemsApiEventVersion1Component
-# from jira.api import KanbanBoardTicketColumnUpdateApiEventVersion1Component
+from jira.api import KanbanBoardTicketColumnUpdateApiEventVersion1Component
 # from jira.api import TicketObjectBaseDataUpdateApiEventVersion1Component
 from jira.api import TicketObjectBulkCreateApiEventVersion1Component
 # from jira.api import TicketObjectForIssuesInTheEpicTicketApiEventVersion1Component
@@ -38,6 +38,7 @@ urlpatterns = [
     path('boards/', views.boards, name='boards-page'),
     path('boards/<slug:url>/', views.board, name='board-page'),
     path('boards/<slug:url>/settings/', views.boardSettings, name='board-settings'),
+    path('boards/<slug:url>/backlog/', views.backlog, name='board-backlog'),
     # path('kanbanBoard/<slug:url>/', views.kanbanBoard, name='kanban-board-page'),
     # path('board/<slug:url>/backlog/', views.backlog, name='board-backlog'),
     # path('kanbanBoard/<slug:url>/backlog/', views.kanbanBoardBacklog, name='kanban-board-backlog'),
@@ -118,11 +119,11 @@ urlpatterns += [
     #     KanbanBoardDetailsAndItemsApiEventVersion1Component.as_view(),
     #     name='kanbanBoardDetailsAndItemsApiEventVersion1Component'
     # ),
-    # path(
-    #     'api/v1/kanbanBoardTicketColumnUpdateApiEventVersion1Component',
-    #     KanbanBoardTicketColumnUpdateApiEventVersion1Component.as_view(),
-    #     name='kanbanBoardTicketColumnUpdateApiEventVersion1Component'
-    # ),
+    path(
+        'api/v1/kanbanBoardTicketColumnUpdateApiEventVersion1Component',
+        KanbanBoardTicketColumnUpdateApiEventVersion1Component.as_view(),
+        name='kanbanBoardTicketColumnUpdateApiEventVersion1Component'
+    ),
     # path(
     #     'api/v1/kanbanBoardBacklogInActiveTicketsApiEventVersion1Component/<int:boardId>',
     #     KanbanBoardBacklogInActiveTicketsApiEventVersion1Component.as_view(),

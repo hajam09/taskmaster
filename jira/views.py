@@ -281,6 +281,10 @@ def boards(request):
 
 @login_required
 def boardSettings(request, url):
+    """
+    TODO: Only admins can edit.
+    // Contact a TaskMaster or the board administrator to configure this board
+    """
     try:
         thisBoard = Board.objects.prefetch_related('boardColumns', 'boardLabels').get(url=url)
     except Board.DoesNotExist:
@@ -328,10 +332,9 @@ def board(request, url):
         {
             "id": column.id,
             "internalKey": column.internalKey,
-            # "tickets": serializeTicketsIntoChunks(column.columnTickets.filter(~Q(issueType__code="EPIC")))
-            #                 if column.columnTickets.filter(~Q(issueType__code="EPIC")).count() > 15
-            #                 else _serializeTickets(column.columnTickets.filter(~Q(issueType__code="EPIC")))
-            "tickets": serializeTicketsIntoChunks(column.columnTickets.filter(~Q(issueType__code="EPIC")))
+            "tickets": _serializeTickets(
+                Ticket.objects.filter(board=thisBoard, column=column).filter(~Q(issueType__code="EPIC")).select_related(
+                    'priority', 'issueType', 'assignee__profile', 'column', 'epic', 'resolution'))
         }
         for column in otherColumns
     ]

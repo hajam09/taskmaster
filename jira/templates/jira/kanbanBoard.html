@@ -29,6 +29,13 @@
             <section class="aui-sidebar projects-sidebar fade-in" resolved="" aria-expanded="false" id="sidebar"
                      aria-label="Sidebar">
                 <div class="aui-sidebar-wrapper" style="height: 583px;">
+                    <div class="col" style="margin-top: 10px">
+                        <a href="{% url 'jira:board-settings' url=board.url %}" data-toggle="tooltip"
+                           data-placement="right" title="Settings"><i style="font-size:24px" class="fa">&#xf085;</i></a>
+                        <hr>
+                        <a href="#" data-toggle="tooltip"
+                           data-placement="right" title="Backlog"><i style="font-size:24px" class="fas fa-tasks"></i></a>
+                    </div>
                 </div>
             </section>
             <main role="main" id="main" class="ghx-gh  aui-page-panel">
@@ -37,15 +44,16 @@
                         <div id="ghx-modes-tools">
                             <div id="ghx-view-modes" style=""></div>
                             <span id="ghx-view-pluggable" style="visibility: visible;">
-                                <div class="ghx-view-section ">
-                                    <button type="button" class="aui-button aui-dropdown2-trigger" data-toggle="modal"
-                                            data-target=".bd-example-modal-lg">New Ticket</button>
-                                    <button id="board-tools-section-button" class="aui-button aui-dropdown2-trigger"
-                                            aria-controls="board-tools-section-content" resolved="" aria-haspopup="true"
-                                            aria-expanded="false">Board</button>
-                                    <aui-dropdown-menu id="board-tools-section-content" hidden="" resolved=""
-                                                       role="menu" class="aui-dropdown2 aui-layer"
-                                                       tabindex="-1"></aui-dropdown-menu>
+                                <div class="btn-group ghx-view-section">
+                                    <button id="board-tools-section-button" type="button"
+                                            class="btn aui-button dropdown-toggle" data-toggle="dropdown"
+                                            aria-haspopup="true"
+                                            aria-expanded="false">
+                                        Board
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="{% url 'jira:board-settings' url=board.url %}">Settings</a>
+                                    </div>
                                 </div>
                             </span>
                             <div id="ghx-view-tools"></div>
@@ -57,11 +65,17 @@
                             </div>
                         </div>
                         <div id="ghx-view-selector">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb" style="background-color: transparent;">
+                                    <li class="breadcrumb-item"><a href="{% url 'jira:boards-page' %}">Boards</a></li>
+                                    <li class="breadcrumb-item" active><a href="{{ board.getUrl }}">{{ board.internalKey }} Board</a></li>
+                                </ol>
+                            </nav>
                             <h1>
                                 <!-- <span id="ghx-board-name" class="subnav-page-header">WA PET Board</span> -->
                                 <span class="subnav-container">
                                 <span id="subnav-title">
-                                  <span class="subnavigator-title" title="Kanban board">{{ board.name }} board</span>
+                                  <span class="subnavigator-title" title="Kanban board">{{ board.internalKey }} board</span>
                                 </span>
                                 <span id="subnav-trigger"></span>
                                 <span id="subnav-opts"></span>
@@ -179,7 +193,6 @@
 
                 const style5 = {
                     height: "22px",
-                    marginRight: "8px"
                 }
 
                 return (
@@ -197,9 +210,16 @@
                             <a href={this.props.ticket.link} title={this.props.ticket.internalKey} tabIndex="-1"
                                className="js-key-link ghx-key-link" style={style3}>
                                 <span className="ghx-issue-key-link">
-                                    <span
-                                        className="js-key-link ghx-key-link-project-key">{this.props.ticket.internalKey}
-                                    </span>
+                                    {
+                                        this.props.ticket.resolution.code === "RESOLVED" ?
+                                            <span className="js-key-link ghx-key-link-project-key">
+                                                <del>{this.props.ticket.internalKey}</del>
+                                            </span>
+                                            :
+                                            <span className="js-key-link ghx-key-link-project-key">
+                                                {this.props.ticket.internalKey}
+                                            </span>
+                                    }
                                 </span>
                             </a>&nbsp;&nbsp;
                             {this.props.ticket.assignee ? <img className="avatar" src={this.props.ticket.assignee.icon}
@@ -256,7 +276,8 @@
                 return (
                     <div draggable="true"
                          className="js-detailview ghx-issue js-issue ghx-has-avatar ghx-avatar-not-empty js-parent-drag ghx-type-10001"
-                         data-issue-id="595675" data-issue-key={this.props.ticket.internalKey} role="listitem"
+                         data-issue-id={this.props.ticket.id} data-issue-key={this.props.ticket.internalKey}
+                         role="listitem"
                          tabIndex="0"
                          aria-label={this.props.ticket.internalKey + " " + this.props.ticket.summary}>
                         <div className="ghx-issue-content">
@@ -287,7 +308,7 @@
 
             render() {
                 return (
-                    <li className="ghx-column ui-sortable connectedSortable">
+                    <li className="ghx-column ui-sortable connectedSortable droppable" columnid={this.props.column.id}>
                         {this.state.tickets.map((ticket) => <TicketComponent key={ticket.id} ticket={ticket}/>)}
                     </li>
                 )
@@ -372,6 +393,25 @@
                     revert: "invalid"
                 }
             );
+
+            $(".droppable").droppable({
+                drop: function (event, ui) {
+                    var columnId = $(event.target).attr('columnid');
+                    var ticketId = ui.draggable.attr('data-issue-id');
+                    $.ajax(
+                        {
+                            url: "{% url 'jira:kanbanBoardTicketColumnUpdateApiEventVersion1Component' %}",
+                            data:
+                                {
+                                    'column-id': columnId,
+                                    'ticket-id': ticketId,
+                                },
+                            type: 'PUT',
+                            dataType: 'json',
+                        }
+                    );
+                }
+            });
 
             $("ul, li").disableSelection();
         }

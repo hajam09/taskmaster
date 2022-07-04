@@ -8,6 +8,7 @@ register = template.Library()
 
 @register.simple_tag
 def projects():
+    # Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)).distinct()
     return Project.objects.all()
 
 

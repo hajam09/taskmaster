@@ -772,22 +772,34 @@ class SubTaskTicketsForTicketApiEventVersion1Component(View):
 #         return JsonResponse(response, status=HTTPStatus.OK)
 #
 #
-# @method_decorator(csrf_exempt, name='dispatch')
-# class KanbanBoardTicketColumnUpdateApiEventVersion1Component(View):
-#
-#     def put(self, *args, **kwargs):
-#         put = QueryDict(self.request.body)
-#
-#         columnId = put.get("column-id")
-#         ticketId = put.get("ticket-id")
-#
-#         Ticket.objects.filter(id=ticketId).update(column_id=columnId)
-#         # TODO: Need to update the ticket status.
-#
-#         response = {
-#             "success": True,
-#         }
-#         return JsonResponse(response, status=HTTPStatus.OK)
+@method_decorator(csrf_exempt, name='dispatch')
+class KanbanBoardTicketColumnUpdateApiEventVersion1Component(View):
+
+    def put(self, *args, **kwargs):
+        put = QueryDict(self.request.body)
+
+        columnId = put.get("column-id")
+        ticketId = put.get("ticket-id")
+
+        column = Column.objects.get(id=columnId)
+        ticket = Ticket.objects.select_related('column').get(id=ticketId)
+
+        if column.internalKey == "DONE":
+            ticket.resolution = Component.objects.get(componentGroup__code="TICKET_RESOLUTIONS", code="RESOLVED")
+        else:
+            if ticket.column.internalKey == "DONE":
+                ticket.resolution = Component.objects.get(componentGroup__code="TICKET_RESOLUTIONS", code="REOPENED")
+
+        ticket.column = column
+
+        ticket.save()
+
+        response = {
+            "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
 #
 #
 # @method_decorator(csrf_exempt, name='dispatch')
@@ -1047,7 +1059,7 @@ def serializeTickets(tickets, data):
             "id": ticket.id,
             "summary": ticket.summary,
             "internalKey": ticket.internalKey,
-            "link": "/jira2/ticket/" + str(ticket.internalKey),
+            "link": f"/jira/ticket/{ticket.internalKey}",
             "storyPoints": ticket.storyPoints if ticket.storyPoints is not None else "-",
             "column": ticket.column.internalKey if ticket.column is not None else None,
             "issueType": {
@@ -1058,12 +1070,16 @@ def serializeTickets(tickets, data):
                 "internalKey": ticket.priority.internalKey,
                 "icon": ticket.priority.icon
             },
+            "resolution": {
+                "internalKey": ticket.resolution.internalKey,
+                "code": ticket.resolution.code,
+            },
             "epic": {
                 "id": ticket.epic.id,
                 "internalKey": ticket.epic.internalKey,
                 "summary": ticket.epic.summary,
                 "colour": ticket.epic.colour,
-                "link": "/jira2/ticket/" + str(ticket.epic.internalKey),
+                "link": f"/jira/ticket/{ticket.epic.internalKey}",
             } if ticket.epic is not None else None,
             "assignee": {
                 "id": ticket.assignee.pk,
