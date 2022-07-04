@@ -1036,8 +1036,10 @@ class TicketObjectBulkCreateApiEventVersion1Component(View):
             if project is None:
                 continue
 
+            newTicketNumber = project.projectTickets.count() + 1
+
             newTicket = Ticket()
-            newTicket.internalKey = project.code + "-" + str(project.projectTickets.count() + 1)
+            newTicket.internalKey = project.code + "-" + str(newTicketNumber)
             newTicket.summary = ticket["summary"]
             newTicket.description = ticket["description"]
             newTicket.resolution = resolution
@@ -1049,6 +1051,7 @@ class TicketObjectBulkCreateApiEventVersion1Component(View):
             newTicket.priority = priority
             newTicket.board = board
             newTicket.column = Column.objects.get(board=board, internalKey='TO DO')
+            newTicket.orderNo = newTicketNumber
             newTicket.save()
         return JsonResponse({}, status=HTTPStatus.OK)
 
@@ -1059,6 +1062,7 @@ def serializeTickets(tickets, data):
             "id": ticket.id,
             "summary": ticket.summary,
             "internalKey": ticket.internalKey,
+            "fixVersion": ticket.fixVersion if ticket.fixVersion else None,
             "link": f"/jira/ticket/{ticket.internalKey}",
             "storyPoints": ticket.storyPoints if ticket.storyPoints is not None else "-",
             "column": ticket.column.internalKey if ticket.column is not None else None,

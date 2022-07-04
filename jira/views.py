@@ -360,8 +360,38 @@ def backlog(request, url):
     else:
         TEMPLATE = "jira/scrumBacklog.html"
 
+    # TODO: Move to API
+    backlogColumn = Column.objects.get(board=thisBoard, internalKey__icontains="BACKLOG")
+    todoColumn = Column.objects.get(board=thisBoard, internalKey__icontains="TO DO")
+    activeColumns = Column.objects.filter(board=thisBoard).filter(~Q(internalKey="BACKLOG"))
+
+    def _serializeTickets(tickets):
+        data = []
+        serializeTickets(tickets, data)
+        return data
+
+    activeTickets = []
+    inActiveTickets = _serializeTickets(
+        Ticket.objects.filter(board=thisBoard, column=backlogColumn).filter(~Q(issueType__code="EPIC")).select_related(
+            'priority', 'issueType', 'assignee__profile', 'column', 'epic', 'resolution').order_by('orderNo')
+    )
+
+    for column in activeColumns:
+        activeTickets.extend(
+            _serializeTickets(
+                Ticket.objects.filter(board=thisBoard, column=column).filter(~Q(issueType__code="EPIC")).select_related(
+                    'priority', 'issueType', 'assignee__profile', 'column', 'epic', 'resolution').order_by('orderNo')
+            )
+        )
+
     context = {
-        "board": thisBoard
+        "board": thisBoard,
+        "activeTickets": json.dumps(activeTickets),
+        "inActiveTickets": json.dumps(inActiveTickets),
+        "columns": {
+            "active": todoColumn,
+            "inActive": backlogColumn,
+        }
     }
     return render(request, TEMPLATE, context)
 
