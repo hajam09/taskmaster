@@ -12,7 +12,7 @@ from django.http import Http404
 from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team, ComponentGroup
-from jira.api import serializeTicketsIntoChunks, serializeTickets
+from jira.api import serializeTickets
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, TicketComment
 from taskmaster.operations import databaseOperations, emailOperations
 
@@ -360,29 +360,32 @@ def backlog(request, url):
     else:
         TEMPLATE = "jira/scrumBacklog.html"
 
-    # TODO: Move to API
-    backlogColumn = Column.objects.get(board=thisBoard, internalKey__icontains="BACKLOG")
-    todoColumn = Column.objects.get(board=thisBoard, internalKey__icontains="TO DO")
-    activeColumns = Column.objects.filter(board=thisBoard).filter(~Q(internalKey="BACKLOG"))
-
     def _serializeTickets(tickets):
         data = []
         serializeTickets(tickets, data)
         return data
 
+    # TODO: Move to API
+    columns = Column.objects.filter(board=thisBoard).prefetch_related('columnTickets')
     activeTickets = []
-    inActiveTickets = _serializeTickets(
-        Ticket.objects.filter(board=thisBoard, column=backlogColumn).filter(~Q(issueType__code="EPIC")).select_related(
-            'priority', 'issueType', 'assignee__profile', 'column', 'epic', 'resolution').order_by('orderNo')
-    )
+    inActiveTickets = []
+    todoColumn = None
+    backlogColumn = None
 
-    for column in activeColumns:
-        activeTickets.extend(
-            _serializeTickets(
-                Ticket.objects.filter(board=thisBoard, column=column).filter(~Q(issueType__code="EPIC")).select_related(
-                    'priority', 'issueType', 'assignee__profile', 'column', 'epic', 'resolution').order_by('orderNo')
-            )
-        )
+    for column in columns:
+        allColumnTickets = column.columnTickets.filter(~Q(issueType__code="EPIC")).select_related('assignee__profile',
+                                                                                                  'column',
+                                                                                                  'epic', 'issueType',
+                                                                                                  'priority',
+                                                                                                  'resolution')
+
+        if column.internalKey == "BACKLOG":
+            backlogColumn = column
+            inActiveTickets.extend(_serializeTickets(allColumnTickets))
+        else:
+            if column.internalKey == "TO DO":
+                todoColumn = column
+            activeTickets.extend(_serializeTickets(allColumnTickets))
 
     context = {
         "board": thisBoard,
