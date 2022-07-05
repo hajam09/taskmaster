@@ -37,6 +37,9 @@
                         <a href="{% url 'jira:board-settings' url=board.url %}" data-toggle="tooltip"
                            data-placement="right" title="Settings"><i style="font-size:24px" class="fa">&#xf085;</i></a>
                         <hr>
+                        <a href="{% url 'jira:board-page' url=board.url %}" data-toggle="tooltip"
+                           data-placement="right" title="Board"><i style='font-size:24px' class='far'>&#xf24d;</i></a>
+                        <hr>
                         <a href="{% url 'jira:board-backlog' url=board.url %}" data-toggle="tooltip"
                            data-placement="right" title="Backlog"><i style="font-size:24px"
                                                                      class="fas fa-tasks"></i></a>
@@ -47,46 +50,6 @@
 
             </main>
         </div>
-
-
-        <footer id="footer" role="contentinfo">
-            <section class="footer-body">
-                <ul id="ghx-footer" style="display: none" class="gh-build-version">
-                    <li>
-                        <a class="seo-link" href="http://www.atlassian.com/software/jira/?utm_source=gh_footer">Agile
-                            project management</a> for <a class="seo-link"
-                                                          href="http://www.atlassian.com/software/jira/?utm_source=gh_footer">Kanban</a>
-                        and <a class="seo-link" href="http://www.atlassian.com/software/jira/?utm_source=gh_footer">Scrum
-                        software development</a> powered by <a class="seo-link"
-                                                               href="http://www.atlassian.com/software/jira/?utm_source=gh_footer">Jira
-                        Software</a>
-                        (v8.22.1)
-                    </li>
-                </ul>
-                <ul class="atlassian-footer">
-                    <li>
-                        Atlassian Jira <a class="seo-link" rel="nofollow"
-                                          href="https://www.atlassian.com/software/jira">Project Management Software</a>
-                        <span id="footer-build-information">(v8.22.1#822001-<span
-                                title="d584a1e5af9752a5d8b59b41fdf410e866d38003"
-                                data-commit-id="d584a1e5af9752a5d8b59b41fdf410e866d38003}">sha1:d584a1e</span>:node1)</span>
-                    </li>
-                    <li>
-                        <a id="about-link" rel="nofollow" href="/jira/secure/AboutPage.jspa/secure/AboutPage.jspa">About
-                            Jira</a>
-                    </li>
-                    <li>
-                        <a id="footer-report-problem-link" rel="nofollow" href="/jira/secure/CreateIssue!default.jspa">Report
-                            a problem</a>
-                    </li>
-                </ul>
-                <p class="atlassian-footer">
-                    <span class="licensemessage">
-                    </span>
-                </p>
-                <div id="footer-logo"><a rel="nofollow" href="http://www.atlassian.com/">Atlassian</a></div>
-            </section>
-        </footer>
     </div>
     </body>
 
@@ -197,83 +160,22 @@
             }
         }
 
-        class ThrobberComponent extends React.Component {
-            constructor(props) {
-                super(props);
-            }
-
-            render() {
-                return (
-                    <div className="ghx-throbber"></div>
-                )
-            }
-        }
-
         class KanbanBoardHeaderComponent extends React.Component {
             constructor(props) {
                 super(props);
             }
 
             render() {
-
-                const style1 = {
-                    display: "none"
-                }
-
-                const style2 = {
-                    visibility: "visible"
-                }
-
                 return (
                     <div id="ghx-header">
-                        <div id="ghx-modes-tools">
-                            <div className="ghx-sprint-meta" data-sprint-id="9951" style={style1}><span
-                                className="time"><span
-                                className="aui-icon aui-icon-small aui-iconfont-time"></span><span
-                                className="days-left">2 days remaining</span></span><span
-                                className="complete-sprint-container"
-                                title="To complete a sprint, you must have Manage or Start/complete Sprints permissions for all projects on the source board. <a className=&quot;manage-sprint-permission-help&quot; href=&quot;#&quot;>Learn more</a>"><a
-                                id="ghx-complete-sprint" className="aui-button js-complete-sprint disabled" tabIndex="0"
-                                role="button" aria-haspopup="dialog" aria-pressed="false" aria-disabled="true"
-                                resolved="">Complete sprint</a></span></div>
-                            <div id="ghx-view-modes"></div>
-                            <span id="ghx-view-pluggable" style={style2}>
-                            <div className="ghx-view-section ">
-                                <button id="zephyr-je.test.board.tool.section-button"
-                                        className="aui-button aui-dropdown2-trigger"
-                                        aria-controls="zephyr-je.test.board.tool.section-content" resolved=""
-                                        aria-haspopup="true" aria-expanded="false">Test View</button>
-                                <aui-dropdown-menu id="zephyr-je.test.board.tool.section-content" hidden=""
-                                                   resolved="" role="menu" className="aui-dropdown2 aui-layer"
-                                                   tabIndex="-1"></aui-dropdown-menu>
-                            </div>
-                            <div className="ghx-view-section ">
-                                <button id="board-tools-section-button" className="aui-button aui-dropdown2-trigger"
-                                        aria-controls="board-tools-section-content" resolved="" aria-haspopup="true"
-                                        aria-expanded="false">Board</button>
-                                <aui-dropdown-menu id="board-tools-section-content" hidden="" resolved=""
-                                                   role="menu" className="aui-dropdown2 aui-layer"
-                                                   tabIndex="-1"></aui-dropdown-menu>
-                            </div>
-                        </span>
-                            <div id="ghx-view-tools"></div>
-                            <div id="ghx-view-presentation">
-                                <button className="aui-button ghx-compact-toggle js-compact-toggle"
-                                        title="Hide the header ( Z )" aria-label="Hide the header" resolved=""><span
-                                    className="aui-icon aui-icon aui-icon-small aui-iconfont-vid-full-screen-on"></span>
-                                </button>
-                            </div>
-                        </div>
                         <div id="ghx-view-selector">
                             <h1>
-                        <span className="subnav-container">
-                            <span id="subnav-title">
-                                <span className="subnavigator-title"
-                                      title="Backlog"> {{ board.internalKey }} Backlog</span>
-                            </span>
-                            <span id="subnav-trigger"></span>
-                            <span id="subnav-opts"></span>
-                        </span>
+                                <span className="subnav-container">
+                                    <span id="subnav-title">
+                                        <span className="subnavigator-title"
+                                              title="Backlog"> {{ board.internalKey }} Backlog</span>
+                                    </span>
+                                </span>
                             </h1>
                         </div>
                     </div>
@@ -301,8 +203,7 @@
                 if (this.props.user !== null) {
                     return (
                         <div className="col-auto" style={style2}>
-                            <img src={this.state.icon} width="25" height="25"
-                                 data-toggle="tooltip" data-placement="top"
+                            <img src={this.state.icon} width="25" height="25" data-toggle="tooltip" data-placement="top"
                                  title={this.state.name}></img>
                         </div>
                     )
@@ -330,12 +231,9 @@
 
                 if (this.props.user !== null) {
                     return (
-                        <img
-                            src={this.state.icon}
-                            className="ghx-avatar-img"
-                            alt={this.state.name}
-                            title={this.state.name}
-                            loading="lazy"></img>
+                        <img src={this.state.icon} className="ghx-avatar-img" alt={this.state.name}
+                             title={this.state.name}
+                             loading="lazy"></img>
                     )
                 } else {
                     return (
@@ -353,7 +251,8 @@
 
             render() {
                 const style1 = {
-                    height: "10px"
+                    height: "10px",
+                    cursor: "grab"
                 }
                 const style2 = {
                     marginTop: "-11px",
@@ -373,6 +272,10 @@
                 const style4 = {
                     backgroundColor: "#e7e7e7",
                     fontSize: "14px"
+                }
+
+                const style6 = {
+                    color: "grey"
                 }
 
                 return (
@@ -395,13 +298,14 @@
                                     {
                                         this.props.ticket.resolution.code === "RESOLVED" ?
                                             <del>
-                                                <a href={this.props.ticket.url}>{this.props.ticket.internalKey}</a>
+                                                <a style={style6}
+                                                   href={this.props.ticket.link}>{this.props.ticket.internalKey}</a>
                                             </del>
                                             :
-                                            <a href={this.props.ticket.url}>{this.props.ticket.internalKey}</a>
+                                            <a style={style6}
+                                               href={this.props.ticket.link}>{this.props.ticket.internalKey}</a>
                                     }
                                 </div>
-
                                 <div className="col-auto" style={style5}>
                                     <img src={this.props.ticket.priority.icon} width="20" height="20"
                                          data-toggle="tooltip"
@@ -418,32 +322,12 @@
             }
         }
 
-
         class ClassificationComponent extends React.Component {
             constructor(props) {
                 super(props);
             }
 
             render() {
-                const style1 = {
-                    display: "none"
-                }
-                const style2 = {
-                    display: "block"
-                }
-                const style3 = {
-                    display: "none",
-                    width: "400px",
-                }
-                const style4 = {
-                    width: "100%"
-                }
-                const style5 = {
-                    width: "0%",
-                }
-                const style6 = {
-                    backgroundColor: "#f1a257"
-                }
                 return (
                     <span></span>
                 )
@@ -458,22 +342,6 @@
             render() {
                 const style1 = {
                     display: "none"
-                }
-                const style2 = {
-                    display: "block"
-                }
-                const style3 = {
-                    display: "none",
-                    width: "400px",
-                }
-                const style4 = {
-                    width: "100%"
-                }
-                const style5 = {
-                    width: "0%",
-                }
-                const style6 = {
-                    backgroundColor: "#f1a257"
                 }
                 return (
                     <div id="ghx-controls">
@@ -538,31 +406,38 @@
                 this.state = {
                     activeTickets: eval('{{ activeTickets|safe }}'),
                     inActiveTickets: eval('{{ inActiveTickets|safe }}'),
+                    notStartedPoints: 0,
+                    inProgressPoints: 0,
+                    completedPoints: 0,
+                    totalPoints: 0,
                 }
 
+                let notStartedPoints = 0;
+                let inProgressPoints = 0;
+                let completedPoints = 0;
+
+                for (let i = 0; i < this.state.activeTickets.length; i++) {
+                    let ticket = this.state.activeTickets[i];
+                    if ((typeof ticket.storyPoints) !== "number")
+                        continue;
+
+                    let intPoint = parseInt(ticket.storyPoints);
+
+                    if (ticket.column === "TO DO")
+                        notStartedPoints += intPoint;
+                    else if (ticket.column === "IN PROGRESS")
+                        inProgressPoints += intPoint;
+                    else if (ticket.column === "DONE")
+                        completedPoints += intPoint;
+                }
+
+                this.state.notStartedPoints = notStartedPoints;
+                this.state.inProgressPoints = inProgressPoints;
+                this.state.completedPoints = completedPoints;
+                this.state.totalPoints = notStartedPoints + inProgressPoints + completedPoints
             }
 
             render() {
-
-                const style1 = {
-                    display: "none"
-                }
-                const style2 = {
-                    display: "block"
-                }
-                const style3 = {
-                    display: "none",
-                    width: "400px",
-                }
-                const style4 = {
-                    width: "100%"
-                }
-                const style5 = {
-                    width: "0%",
-                }
-                const style6 = {
-                    backgroundColor: "#f1a257"
-                }
                 return (
                     <div id="ghx-backlog-column" className="ghx-backlog-column">
                         <div id="ghx-backlog" className="ghx-backlog" data-loaded="1653826422372"
@@ -589,11 +464,8 @@
                                                     </g>
                                                 </svg>
                                             </button>
-                                            <div className="ghx-name"><span
-                                                className="field-value ghx-readonly"
-                                                data-fieldname="sprintName"
-                                                data-fieldvalue="PI26 Sprint 2"
-                                                data-maxdisplaylength="">In development</span>
+                                            <div className="ghx-name">
+                                                <span className="field-value ghx-readonly">In development</span>
                                             </div>
                                             <div className="ghx-issue-count"><span
                                                 id="activeTicketsCounter"> {this.state.activeTickets.length} </span> issues
@@ -601,21 +473,23 @@
                                             <span
                                                 className="active-sprint-lozenge aui-lozenge aui-lozenge-success">Active</span>
                                             <div className="ghx-badge-group ghx-right">
-                                                <aui-badge className="  ghx-not-started"
-                                                           title="Not Started: 20 of 140 (Story Points)">
-                                                    20
+                                                <aui-badge className="ghx-not-started"
+                                                           title={"Not Started: " + this.state.notStartedPoints + " of " + this.state.totalPoints + " (Story Points)"}>
+                                                    {this.state.notStartedPoints}
                                                 </aui-badge>
-                                                <aui-badge className="  ghx-in-progress"
-                                                           title="In Progress: 67 of 140 (Story Points)">
-                                                    67
+                                                <aui-badge className="ghx-in-progress"
+                                                           title={"In Progress: " + this.state.inProgressPoints + " of " + this.state.totalPoints + " (Story Points)"}>
+                                                    {this.state.inProgressPoints}
                                                 </aui-badge>
-                                                <aui-badge className="  ghx-done"
-                                                           title="Done: 53 of 140 (Story Points)">53
+                                                <aui-badge className="ghx-done"
+                                                           title={"Done: " + this.state.completedPoints + " of " + this.state.totalPoints + " (Story Points)"}>
+                                                    {this.state.completedPoints}
                                                 </aui-badge>
                                             </div>
                                             <div className="ghx-sprint-info">
                                                 <div className="ghx-assigned-work-stats">
-                                                    {this.state.activeTickets.map((ticket) => <UserComponent2 key={ticket.id} user={ticket.assignee}/>)}
+                                                    {this.state.activeTickets.map((ticket) => <UserComponent2
+                                                        key={ticket.id} user={ticket.assignee}/>)}
                                                 </div>
                                             </div>
                                         </div>
@@ -655,11 +529,9 @@
                                                     </g>
                                                 </svg>
                                             </button>
-                                            <div className="ghx-name"><span
-                                                className="field-value ghx-readonly"
-                                                data-fieldname="sprintName"
-                                                data-fieldvalue="PI26 Sprint 2"
-                                                data-maxdisplaylength="">Backlog</span>
+                                            <div className="ghx-name">
+                                                <span className="field-value ghx-readonly"
+                                                      data-maxdisplaylength="">Backlog</span>
                                             </div>
                                             <div className="ghx-issue-count"><span
                                                 id="inActiveTicketsCounter"> {this.state.inActiveTickets.length} </span> issues
@@ -668,7 +540,7 @@
                                         <div className="ghx-meta ghx-disabled">
                                             <div
                                                 className="ghx-issues js-issue-list ghx-has-issues tickets connectedSortable ui-sortable droppable"
-                                                data-skate-ignore="" id="listOfInActiveTicketsContainer"
+                                                id="listOfInActiveTicketsContainer"
                                                 columnid="listOfInActiveTicketsContainer">
 
                                                 {#<!-- INACTIVE TICKETS -->#}
@@ -718,9 +590,6 @@
                 const style1 = {
                     display: this.state.epicsVisibility
                 }
-                const style2 = {
-                    display: "block"
-                }
                 const style3 = {
                     display: "none",
                     width: "400px",
@@ -731,12 +600,8 @@
                 const style5 = {
                     width: "0%",
                 }
-                const style6 = {
-                    backgroundColor: "#f1a257"
-                }
                 return (
                     <div id="ghx-plan-group" className="ghx-plan-group ghx-epic-expanded">
-
                         <div id="ghx-classification-menu-column">
                             <ul id="ghx-classification-menu"
                                 className="ghx-ide-menu ghx-classification-menu">
@@ -960,19 +825,6 @@
                 const style2 = {
                     display: "block"
                 }
-                const style3 = {
-                    display: "none",
-                    width: "400px",
-                }
-                const style4 = {
-                    width: "100%"
-                }
-                const style5 = {
-                    width: "0%",
-                }
-                const style6 = {
-                    backgroundColor: "#f1a257"
-                }
 
                 return (
                     <div id="ghx-content-main" className="ghx-content-main">
@@ -1006,7 +858,6 @@
                     <div id="gh" className="ghx-no-touch">
                         <KanbanBoardHeaderComponent/>
                         <KanbanBoardMainComponent/>
-                        <ThrobberComponent/>
                     </div>
                 )
             }

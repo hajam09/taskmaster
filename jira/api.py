@@ -788,7 +788,7 @@ class KanbanBoardTicketColumnUpdateApiEventVersion1Component(View):
         if column.internalKey == "DONE":
             ticket.resolution = Component.objects.get(componentGroup__code="TICKET_RESOLUTIONS", code="RESOLVED")
         else:
-            if ticket.column.internalKey == "DONE":
+            if ticket.column.internalKey == "DONE" and column.internalKey != "BACKLOG":
                 ticket.resolution = Component.objects.get(componentGroup__code="TICKET_RESOLUTIONS", code="REOPENED")
 
         ticket.column = column
@@ -1105,7 +1105,7 @@ def serializeTickets(tickets, data, skipOldCompletedTickets=True):
                 data.append(i)
             continue
         data.append(i)
-        
+
     return
 
 
