@@ -1,6 +1,7 @@
 import json
 import threading
 from http import HTTPStatus
+from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -1055,8 +1056,8 @@ class TicketObjectBulkCreateApiEventVersion1Component(View):
             newTicket.save()
         return JsonResponse({}, status=HTTPStatus.OK)
 
-#
-def serializeTickets(tickets, data):
+
+def serializeTickets(tickets, data, skipOldCompletedTickets=True):
     newData = [
         {
             "id": ticket.id,
@@ -1066,6 +1067,7 @@ def serializeTickets(tickets, data):
             "link": f"/jira/ticket/{ticket.internalKey}",
             "storyPoints": ticket.storyPoints if ticket.storyPoints is not None else "-",
             "column": ticket.column.internalKey if ticket.column is not None else None,
+            "modifiedDttm": str(ticket.modifiedDttm.date()),
             "issueType": {
                 "internalKey": ticket.issueType.internalKey,
                 "icon": ticket.issueType.icon,
@@ -1095,9 +1097,15 @@ def serializeTickets(tickets, data):
         for ticket in tickets
     ]
 
+    today = datetime.now().date()
     for i in newData:
+        if skipOldCompletedTickets:
+            modifiedDate = datetime.strptime(i['modifiedDttm'], '%Y-%m-%d').date()
+            if (today - modifiedDate).days <= 14:
+                data.append(i)
+            continue
         data.append(i)
-
+        
     return
 
 

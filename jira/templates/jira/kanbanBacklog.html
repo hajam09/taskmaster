@@ -37,7 +37,7 @@
                         <a href="{% url 'jira:board-settings' url=board.url %}" data-toggle="tooltip"
                            data-placement="right" title="Settings"><i style="font-size:24px" class="fa">&#xf085;</i></a>
                         <hr>
-                        <a href="#" data-toggle="tooltip"
+                        <a href="{% url 'jira:board-backlog' url=board.url %}" data-toggle="tooltip"
                            data-placement="right" title="Backlog"><i style="font-size:24px"
                                                                      class="fas fa-tasks"></i></a>
                     </div>
@@ -314,6 +314,38 @@
             }
         }
 
+        class UserComponent2 extends React.Component {
+            constructor(props) {
+                super(props);
+
+                var cdnIcon = "https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png";
+
+                this.state = {
+                    name: this.props.user ? this.props.user.firstName + " " + this.props.user.lastName : "Unassigned",
+                    icon: this.props.user ? this.props.user.icon : cdnIcon
+                }
+            }
+
+            render() {
+
+                if (this.props.user !== null) {
+                    return (
+                        <img
+                            src={this.state.icon}
+                            className="ghx-avatar-img"
+                            alt={this.state.name}
+                            title={this.state.name}
+                            loading="lazy"></img>
+                    )
+                } else {
+                    return (
+                        <span></span>
+                    )
+                }
+
+            }
+        }
+
         class TicketBar extends React.Component {
             constructor(props) {
                 super(props);
@@ -507,6 +539,7 @@
                     activeTickets: eval('{{ activeTickets|safe }}'),
                     inActiveTickets: eval('{{ inActiveTickets|safe }}'),
                 }
+
             }
 
             render() {
@@ -560,24 +593,13 @@
                                                 className="field-value ghx-readonly"
                                                 data-fieldname="sprintName"
                                                 data-fieldvalue="PI26 Sprint 2"
-                                                data-maxdisplaylength="">PI26 Sprint 2</span>
+                                                data-maxdisplaylength="">In development</span>
                                             </div>
                                             <div className="ghx-issue-count"><span
-                                                id="activeTicketsCounter"> 0 </span> issues
+                                                id="activeTicketsCounter"> {this.state.activeTickets.length} </span> issues
                                             </div>
                                             <span
                                                 className="active-sprint-lozenge aui-lozenge aui-lozenge-success">Active</span>
-                                            <div className="ghx-controls aui-group">
-                                                <div className="aui-item"><a
-                                                    className="aui-button js-sprint-actions-trigger"
-                                                    href="/jira/rest/greenhopper/1.0/xboard/plan/sprints/actions?sprintId=9951"
-                                                    data-sprint-id="9951" aria-label="More actions"
-                                                    tabIndex="0" resolved="" id="AJS_DROPDOWN__50"
-                                                    aria-controls="AJS_DROPDOWN__50_drop"
-                                                    aria-haspopup="true" aria-expanded="false"><span
-                                                    className="aui-icon ghx-iconfont aui-icon-small aui-iconfont-more"></span></a>
-                                                </div>
-                                            </div>
                                             <div className="ghx-badge-group ghx-right">
                                                 <aui-badge className="  ghx-not-started"
                                                            title="Not Started: 20 of 140 (Story Points)">
@@ -593,35 +615,7 @@
                                             </div>
                                             <div className="ghx-sprint-info">
                                                 <div className="ghx-assigned-work-stats">
-                                                                    <span className="ghx-avatar-img ghx-auto-avatar"
-                                                                          style={style6}
-                                                                          title="Oguz Akin<table><tr><td>25</td><td>Story Points</td></tr><tr><td>9</td><td>Issues</td></tr></table>">O</span><img
-                                                    src="https://tools.hmcts.net/jira/secure/useravatar?ownerId=dhamendra.kumar&amp;avatarId=29300"
-                                                    className="ghx-avatar-img"
-                                                    alt="Dharmendra Kumar's avatar"
-                                                    title="Dharmendra Kumar<table><tr><td>21</td><td>Story Points</td></tr><tr><td>5</td><td>Issues</td></tr></table>"
-                                                    loading="lazy"></img><img
-                                                    src="https://tools.hmcts.net/jira/secure/useravatar?avatarId=14929"
-                                                    className="ghx-avatar-img"
-                                                    alt="Rasika Abeyrathna's avatar" loading="lazy"
-                                                    aria-describedby="aui-tooltip"></img><img
-                                                    src="https://tools.hmcts.net/jira/secure/useravatar?ownerId=JIRAUSER48103&amp;avatarId=38908"
-                                                    className="ghx-avatar-img"
-                                                    alt="Vamshi Gulapally's avatar"
-                                                    title="Vamshi Gulapally<table><tr><td>20</td><td>Story Points</td></tr><tr><td>4</td><td>Issues</td></tr></table>"
-                                                    loading="lazy"></img><img
-                                                    src="https://tools.hmcts.net/jira/secure/useravatar?ownerId=moussa.kayad&amp;avatarId=32828"
-                                                    className="ghx-avatar-img"
-                                                    alt="Moussa Kayad's avatar"
-                                                    title="Moussa Kayad<table><tr><td>18</td><td>Story Points</td></tr><tr><td>4</td><td>Issues</td></tr></table>"
-                                                    loading="lazy"></img><span
-                                                    className="remaining-assignee-count">+7</span>
-                                                    <button
-                                                        className="aui-button js-assigned-work-dialog-trigger aui-button-subtle aui-button-compact"
-                                                        resolved="" aria-describedby="aui-tooltip">
-                                                                        <span
-                                                                            className="aui-icon ghx-iconfont aui-icon-small aui-iconfont-more">View summary of assigned work </span>
-                                                    </button>
+                                                    {this.state.activeTickets.map((ticket) => <UserComponent2 key={ticket.id} user={ticket.assignee}/>)}
                                                 </div>
                                             </div>
                                         </div>
@@ -668,18 +662,7 @@
                                                 data-maxdisplaylength="">Backlog</span>
                                             </div>
                                             <div className="ghx-issue-count"><span
-                                                id="inActiveTicketsCounter"> 0 </span> issues
-                                            </div>
-                                            <div className="ghx-controls aui-group">
-                                                <div className="aui-item"><a
-                                                    className="aui-button js-sprint-actions-trigger"
-                                                    href="/jira/rest/greenhopper/1.0/xboard/plan/sprints/actions?sprintId=9951"
-                                                    data-sprint-id="9951" aria-label="More actions"
-                                                    tabIndex="0" resolved="" id="AJS_DROPDOWN__50"
-                                                    aria-controls="AJS_DROPDOWN__50_drop"
-                                                    aria-haspopup="true" aria-expanded="false"><span
-                                                    className="aui-icon ghx-iconfont aui-icon-small aui-iconfont-more"></span></a>
-                                                </div>
+                                                id="inActiveTicketsCounter"> {this.state.inActiveTickets.length} </span> issues
                                             </div>
                                         </div>
                                         <div className="ghx-meta ghx-disabled">

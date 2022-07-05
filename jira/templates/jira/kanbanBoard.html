@@ -33,7 +33,7 @@
                         <a href="{% url 'jira:board-settings' url=board.url %}" data-toggle="tooltip"
                            data-placement="right" title="Settings"><i style="font-size:24px" class="fa">&#xf085;</i></a>
                         <hr>
-                        <a href="#" data-toggle="tooltip"
+                        <a href="{% url 'jira:board-backlog' url=board.url %}" data-toggle="tooltip"
                            data-placement="right" title="Backlog"><i style="font-size:24px" class="fas fa-tasks"></i></a>
                     </div>
                 </div>
