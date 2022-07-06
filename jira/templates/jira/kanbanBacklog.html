@@ -404,37 +404,11 @@
                 super(props);
 
                 this.state = {
-                    activeTickets: eval('{{ activeTickets|safe }}'),
-                    inActiveTickets: eval('{{ inActiveTickets|safe }}'),
                     notStartedPoints: 0,
                     inProgressPoints: 0,
                     completedPoints: 0,
                     totalPoints: 0,
                 }
-
-                let notStartedPoints = 0;
-                let inProgressPoints = 0;
-                let completedPoints = 0;
-
-                for (let i = 0; i < this.state.activeTickets.length; i++) {
-                    let ticket = this.state.activeTickets[i];
-                    if ((typeof ticket.storyPoints) !== "number")
-                        continue;
-
-                    let intPoint = parseInt(ticket.storyPoints);
-
-                    if (ticket.column === "TO DO")
-                        notStartedPoints += intPoint;
-                    else if (ticket.column === "IN PROGRESS")
-                        inProgressPoints += intPoint;
-                    else if (ticket.column === "DONE")
-                        completedPoints += intPoint;
-                }
-
-                this.state.notStartedPoints = notStartedPoints;
-                this.state.inProgressPoints = inProgressPoints;
-                this.state.completedPoints = completedPoints;
-                this.state.totalPoints = notStartedPoints + inProgressPoints + completedPoints
             }
 
             render() {
@@ -468,7 +442,7 @@
                                                 <span className="field-value ghx-readonly">In development</span>
                                             </div>
                                             <div className="ghx-issue-count"><span
-                                                id="activeTicketsCounter"> {this.state.activeTickets.length} </span> issues
+                                                id="activeTicketsCounter"> {this.props.activeTickets.length} </span> issues
                                             </div>
                                             <span
                                                 className="active-sprint-lozenge aui-lozenge aui-lozenge-success">Active</span>
@@ -488,7 +462,7 @@
                                             </div>
                                             <div className="ghx-sprint-info">
                                                 <div className="ghx-assigned-work-stats">
-                                                    {this.state.activeTickets.map((ticket) => <UserComponent2
+                                                    {this.props.activeTickets.map((ticket) => <UserComponent2
                                                         key={ticket.id} user={ticket.assignee}/>)}
                                                 </div>
                                             </div>
@@ -500,7 +474,7 @@
                                                 columnid="listOfActiveTicketsContainer">
 
                                                 {#<!-- ACTIVE TICKETS -->#}
-                                                {this.state.activeTickets.map((ticket) => <TicketBar key={ticket.id}
+                                                {this.props.activeTickets.map((ticket) => <TicketBar key={ticket.id}
                                                                                                      ticket={ticket}/>)}
 
                                             </div>
@@ -534,7 +508,7 @@
                                                       data-maxdisplaylength="">Backlog</span>
                                             </div>
                                             <div className="ghx-issue-count"><span
-                                                id="inActiveTicketsCounter"> {this.state.inActiveTickets.length} </span> issues
+                                                id="inActiveTicketsCounter"> {this.props.inActiveTickets.length} </span> issues
                                             </div>
                                         </div>
                                         <div className="ghx-meta ghx-disabled">
@@ -544,7 +518,7 @@
                                                 columnid="listOfInActiveTicketsContainer">
 
                                                 {#<!-- INACTIVE TICKETS -->#}
-                                                {this.state.inActiveTickets.map((ticket) => <TicketBar key={ticket.id}
+                                                {this.props.inActiveTickets.map((ticket) => <TicketBar key={ticket.id}
                                                                                                        ticket={ticket}/>)}
 
                                             </div>
@@ -564,42 +538,278 @@
             }
         }
 
-        class PlanGroupComponent extends React.Component {
+        class EpicDetailsComponent extends React.Component {
             constructor(props) {
                 super(props);
 
+                const totalPoints = this.props.ticket.statistics.todo + this.props.ticket.statistics.inProgress + this.props.ticket.statistics.done;
+                const prog = totalPoints === 0 ? 0 : this.props.ticket.statistics.done / totalPoints;
+
                 this.state = {
-                    epicsVisibility: "none",
+                    panelDetailVisibility: "none",
+                    progress: prog * 100
                 }
             }
 
-            hideEpicPanel = () => {
-                if (this.state.epicsVisibility === "none") {
+            switchPanelDetailVisibility = () => {
+                if (this.state.panelDetailVisibility === "none") {
                     this.setState({
-                        epicsVisibility: ""
+                        panelDetailVisibility: ""
                     })
                 } else {
                     this.setState({
-                        epicsVisibility: "none"
+                        panelDetailVisibility: "none"
                     })
                 }
             }
 
             render() {
+                const style4 = {
+                    width: this.state.progress + "%"
+                }
+                const style2 = {
+                    display: this.state.panelDetailVisibility
+                }
+                return (
+                    <div
+                        className="js-sortable ghx-classification-item ghx-label-4-border ui-droppable ghx-open"
+                        data-epic-key={this.props.ticket.internalKey} data-epic-id={this.props.ticket.id}>
+                        <div className="ghx-inner">
+                            <button
+                                className="aui-button aui-button-subtle ghx-expander ghx-heading-expander js-epic-details-toggle"
+                                aria-expanded="true" title="Hide/show epic information">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                     onClick={this.switchPanelDetailVisibility}>
+                                    <g fill="none" fillRule="evenodd">
+                                        <path
+                                            d="M3.29175 4.793c-.389.392-.389 1.027 0 1.419l2.939 2.965c.218.215.5.322.779.322s.556-.107.769-.322l2.93-2.955c.388-.392.388-1.027 0-1.419-.389-.392-1.018-.392-1.406 0l-2.298 2.317-2.307-2.327c-.194-.195-.449-.293-.703-.293-.255 0-.51.098-.703.293z"
+                                            fill="#344563"></path>
+                                    </g>
+                                </svg>
+                            </button>
+                            <div className="ghx-header">
+                                <h3 className="ghx-name">
+                                    <span className="js-epic-name" role="button">
+                                        <span className="field-value js-editable-field js-edit-epicLabel-trigger"
+                                              data-fieldname="epicLabel"
+                                              data-fieldvalue={this.props.ticket.summary}>{this.props.ticket.summary}
+                                        </span>
+                                    </span>
+                                    <div id={"dd-trigger-" + this.props.ticket.internalKey}
+                                         className="epic-more-button js-epic-actions"
+                                         aria-controls={"dd-trigger-" + this.props.ticket.internalKey + "_drop"}
+                                         aria-haspopup="true"
+                                         aria-expanded="false"><span
+                                        className="aui-icon aui-icon-small aui-iconfont-more"></span>
+                                    </div>
+                                </h3>
+                            </div>
+
+                            <div style={style2} className="ghx-expanded">
+                                <div className="ghx-summary">
+                                    <small>
+                                        <a role="button" className="js-epic-key-link"
+                                           title="View epic details"
+                                           href={this.props.ticket.link}>{this.props.ticket.internalKey}</a>
+                                        &nbsp;
+                                        {this.props.ticket.summary}
+                                    </small>
+
+                                </div>
+                                <div className="aui-group js-epic-issues-count ghx-issue-count">
+                                    <div className="aui-item">Not started</div>
+                                    <div className="aui-item">
+                                        <aui-badge className="">{this.props.ticket.statistics.todo}</aui-badge>
+                                    </div>
+                                </div>
+                                <div className="aui-group ghx-issue-count">
+                                    <div className="aui-item">In progress</div>
+                                    <div className="aui-item">
+                                        <aui-badge className="">{this.props.ticket.statistics.inProgress}</aui-badge>
+                                    </div>
+                                </div>
+                                <div className="aui-group ghx-estimates">
+                                    <div className="aui-item">Completed</div>
+                                    <div className="aui-item">
+                                        <aui-badge className="">{this.props.ticket.statistics.done}</aui-badge>
+                                    </div>
+                                </div>
+                                <div className="aui-group">
+                                    <button className="aui-button aui-button-link js-create-epic-issue"
+                                            title="Create and assign an issue to this epic">Create
+                                        issue in epic
+                                    </button>
+                                </div>
+                            </div>
+
+
+                            <div className="ghx-subheader">
+                                <ul className="ghx-classification-progress"
+                                    title="100% of estimated work done (40 of 40 Story Points)">
+                                    <li className="ghx-implemented" style={style4}></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        }
+
+        class PlanGroupComponent extends React.Component {
+            constructor(props) {
+                super(props);
+
+                this.state = {
+                    visibility: "",
+                    allIssuesVisibility: "none",
+                    epicTickets: [],
+
+                    showEpicLess: false,
+
+                    activeTickets: [],
+                    inActiveTickets: [],
+                }
+            }
+
+            showActiveTicketsComponent = () => {
+                fetch('{% url 'jira:kanbanBoardBacklogActiveTicketsApiEventVersion1Component' boardId=board.id%}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((json) => {
+
+                        this.setState({
+                            activeTickets: json.data.tickets
+                        })
+
+                        let _notStartedPoints = 0;
+                        let _inProgressPoints = 0;
+                        let _completedPoints = 0;
+
+                        for (let i = 0; i < this.state.activeTickets.length; i++) {
+                            let ticket = this.state.activeTickets[i];
+
+                            if ((typeof ticket.storyPoints) !== "number")
+                                continue;
+
+                            let intPoint = parseInt(ticket.storyPoints);
+
+                            if (ticket.column === "TO DO")
+                                _notStartedPoints += intPoint;
+                            else if (ticket.column === "IN PROGRESS")
+                                _inProgressPoints += intPoint;
+                            else if (ticket.column === "DONE")
+                                _completedPoints += intPoint;
+                        }
+
+                        this.setState({
+                            notStartedPoints: _notStartedPoints,
+                            inProgressPoints: _inProgressPoints,
+                            completedPoints: _completedPoints,
+                            totalPoints: _notStartedPoints + _inProgressPoints + _completedPoints
+                        })
+                    })
+            }
+
+            showInActiveTicketsComponent = () => {
+                fetch('{% url 'jira:kanbanBoardBacklogInActiveTicketsApiEventVersion1Component' boardId=board.id%}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((json) => {
+                        this.setState({
+                            inActiveTickets: json.data.tickets
+                        })
+                    })
+            }
+
+            componentDidMount = () => {
+
+                this.showActiveTicketsComponent();
+                this.showInActiveTicketsComponent();
+
+                fetch('{% url 'jira:epicDetailsForBoardApiEventVersion1Component' boardId=board.id%}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((json) => {
+                        this.setState({
+                            epicTickets: json.data.epicTickets
+                        })
+                    })
+            }
+
+            hideEpicPanel = () => {
+                if (this.state.visibility === "none") {
+                    this.setState({
+                        visibility: ""
+                    })
+                } else {
+                    this.setState({
+                        visibility: "none"
+                    })
+                }
+            }
+
+            switchAllIssuesVisibility = () => {
+                if (this.state.allIssuesVisibility === "none") {
+                    this.setState({
+                        allIssuesVisibility: ""
+                    })
+                } else {
+                    this.setState({
+                        allIssuesVisibility: "none"
+                    })
+                }
+            }
+
+
+            activateIssueWithoutEpics = () => {
+
+                this.setState({
+                    showEpicLess: !this.state.showEpicLess
+                })
+
+                if (!this.state.showEpicLess) {
+                    fetch('{% url 'jira:kanbanBoardActiveEpicLessTicketsApiEventVersion1Component' boardId=board.id%}', {
+                        method: 'GET',
+                    }).then((response) => response.json())
+                        .then((json) => {
+                            this.setState({
+                                activeTickets: json.data.tickets
+                            })
+                        })
+
+                    fetch('{% url 'jira:kanbanBoardInActiveEpicLessTicketsApiEventVersion1Component' boardId=board.id%}', {
+                        method: 'GET',
+                    }).then((response) => response.json())
+                        .then((json) => {
+                            this.setState({
+                                inActiveTickets: json.data.tickets
+                            })
+                        })
+                } else {
+                    this.showActiveTicketsComponent();
+                    this.showInActiveTicketsComponent();
+                }
+
+            }
+
+            render() {
 
                 const style1 = {
-                    display: this.state.epicsVisibility
+                    display: this.state.visibility
+                }
+
+                const style2 = {
+                    fontSize: "15px"
                 }
                 const style3 = {
                     display: "none",
                     width: "400px",
                 }
+
                 const style4 = {
-                    width: "100%"
+                    display: this.state.allIssuesVisibility,
                 }
-                const style5 = {
-                    width: "0%",
-                }
+
                 return (
                     <div id="ghx-plan-group" className="ghx-plan-group ghx-epic-expanded">
                         <div id="ghx-classification-menu-column">
@@ -609,7 +819,7 @@
                                     title="Show versions panel<b>Use versions to keep track of code releases.</b>">
                                     <span className="ghx-inner">Versions</span></li>
                                 {
-                                    this.state.epicsVisibility === "none" ?
+                                    this.state.visibility === "none" ?
                                         <li onClick={this.hideEpicPanel} role="button"
                                             className="js-release-toggle ghx-release-toggle"
                                             title="Show versions panel<b>Use versions to keep track of code releases.</b>">
@@ -625,19 +835,31 @@
                             <div className="ghx-classification-group">
                                 <div className="ghx-classification-header">
                                     <div className="ghx-actions">
-                                        <div className="ghx-close js-epic-search" title="Filter epics"><span
-                                            className="aui-icon aui-icon-small aui-iconfont-search">Filter epics</span>
+                                        <div className="ghx-close js-epic-search" title="Filter epics">
+                                            <button
+                                                className="aui-button aui-button-subtle ghx-expander ghx-heading-expander js-epic-search-toggle"
+                                                aria-expanded="true" title="Filter epics">
+                                                <i style={style2} className="fa">&#xf002;</i>
+                                            </button>
                                         </div>
                                         <div className="ghx-add-button js-create-epic"
-                                             title="Create epic"><span
-                                            className="aui-icon aui-icon-small aui-iconfont-add">Create epic</span>
+                                             title="Create epic">
+                                            <button
+                                                className="aui-button aui-button-subtle ghx-expander ghx-heading-expander js-epic-create-toggle"
+                                                aria-expanded="true" title="Create epic">
+                                                <i style={style2} className="fa">&#xf067;</i>
+                                            </button>
                                         </div>
-                                        <div className="ghx-close js-epic-toggle"
-                                             title="Hide epics panel"><span
-                                            className="aui-icon aui-icon-small aui-iconfont-cross">Hide epics panel</span>
+                                        <div className="ghx-close js-epic-toggle" onClick={this.hideEpicPanel}
+                                             title="Hide epics panel">
+                                            <button
+                                                className="aui-button aui-button-subtle ghx-expander ghx-heading-expander js-epic-hide-toggle"
+                                                aria-expanded="true" title="Hide epics panel">
+                                                <i style={style2} className="fa">&#xf00d;</i>
+                                            </button>
                                         </div>
                                     </div>
-                                    <h2 onClick={this.hideEpicPanel}>Epics</h2>
+                                    <h2>Epics</h2>
                                 </div>
                                 <div className="ghx-progress-indicator ghx-initial"></div>
                                 <form className="aui epic-search-wrapper">
@@ -652,7 +874,8 @@
                                 </form>
                                 <div className="ghx-classification-scrollview">
                                     <div
-                                        className="ghx-classification-item ghx-classification-all  ghx-selected">
+                                        className="ghx-classification-item ghx-classification-all  ghx-selected"
+                                        onClick={this.switchAllIssuesVisibility}>
                                         <div className="ghx-inner">
                                             <div className="ghx-header">
                                                 <h3 className="ghx-name">
@@ -662,140 +885,23 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="ghx-classification-cards ui-sortable">
-                                        <div
-                                            className="js-sortable ghx-classification-item ghx-label-4-border ghx-closed ui-droppable"
-                                            data-epic-key="RWA-7" data-epic-id="367560">
-                                            <div className="ghx-inner">
-                                                <button
-                                                    className="aui-button aui-button-subtle ghx-expander ghx-heading-expander js-epic-details-toggle"
-                                                    aria-expanded="false"
-                                                    title="Hide/show epic information">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14"
-                                                         height="14">
-                                                        <g fill="none" fillRule="evenodd">
-                                                            <path
-                                                                d="M3.29175 4.793c-.389.392-.389 1.027 0 1.419l2.939 2.965c.218.215.5.322.779.322s.556-.107.769-.322l2.93-2.955c.388-.392.388-1.027 0-1.419-.389-.392-1.018-.392-1.406 0l-2.298 2.317-2.307-2.327c-.194-.195-.449-.293-.703-.293-.255 0-.51.098-.703.293z"
-                                                                fill="#344563"></path>
-                                                        </g>
-                                                    </svg>
-                                                </button>
-                                                <div className="ghx-header">
-                                                    <h3 className="ghx-name">
-                                                                    <span className="js-epic-name" role="button"><span
-                                                                        className="field-value js-editable-field js-edit-epicLabel-trigger"
-                                                                        data-fieldname="epicLabel"
-                                                                        data-fieldvalue="Task Management POC">Task Management POC</span></span>
-                                                        <div id="dd-trigger-RWA-7"
-                                                             className="epic-more-button js-epic-actions"
-                                                             aria-controls="dd-trigger-RWA-7_drop"
-                                                             aria-haspopup="true" aria-expanded="false">
-                                                                        <span
-                                                                            className="aui-icon aui-icon-small aui-iconfont-more"></span>
-                                                        </div>
-                                                    </h3>
-                                                </div>
-                                                <div className="ghx-subheader">
-                                                    <ul className="ghx-classification-progress"
-                                                        title="100% of estimated work done (40 of 40 Story Points)">
-                                                        <li className="ghx-implemented"
-                                                            style={style4}></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div className="ghx-classification-cards ui-sortable" style={style4}>
 
-                                        <div
-                                            className="js-sortable ghx-classification-item ghx-label-4-border ghx-closed ui-droppable"
-                                            data-epic-key="RWA-1359" data-epic-id="592528">
-                                            <div className="ghx-inner">
-                                                <button
-                                                    className="aui-button aui-button-subtle ghx-expander ghx-heading-expander js-epic-details-toggle"
-                                                    aria-expanded="false"
-                                                    title="Hide/show epic information">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14"
-                                                         height="14">
-                                                        <g fill="none" fillRule="evenodd">
-                                                            <path
-                                                                d="M3.29175 4.793c-.389.392-.389 1.027 0 1.419l2.939 2.965c.218.215.5.322.779.322s.556-.107.769-.322l2.93-2.955c.388-.392.388-1.027 0-1.419-.389-.392-1.018-.392-1.406 0l-2.298 2.317-2.307-2.327c-.194-.195-.449-.293-.703-.293-.255 0-.51.098-.703.293z"
-                                                                fill="#344563"></path>
-                                                        </g>
-                                                    </svg>
-                                                </button>
-                                                <div className="ghx-header">
-                                                    <h3 className="ghx-name">
-                                                                    <span className="js-epic-name" role="button"><span
-                                                                        className="field-value js-editable-field js-edit-epicLabel-trigger"
-                                                                        data-fieldname="epicLabel"
-                                                                        data-fieldvalue="Next Hearing Date">Next Hearing Date</span></span>
-                                                        <div id="dd-trigger-RWA-1359"
-                                                             className="epic-more-button js-epic-actions"
-                                                             aria-controls="dd-trigger-RWA-1359_drop"
-                                                             aria-haspopup="true" aria-expanded="false">
-                                                                        <span
-                                                                            className="aui-icon aui-icon-small aui-iconfont-more"></span>
-                                                        </div>
-                                                    </h3>
-                                                </div>
-                                                <div className="ghx-subheader">
-                                                    <ul className="ghx-classification-progress"
-                                                        title="0% of estimated work done (0 of 16 Story Points)">
-                                                        <li className="ghx-implemented"
-                                                            style={style5}></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        {this.state.epicTickets.map((ticket) => <EpicDetailsComponent key={ticket.id}
+                                                                                                      ticket={ticket}/>)}
 
-                                        <div
-                                            className="js-sortable ghx-classification-item ghx-label-4-border ghx-closed ui-droppable"
-                                            data-epic-key="RWA-1404" data-epic-id="596460">
-                                            <div className="ghx-inner">
-                                                <button
-                                                    className="aui-button aui-button-subtle ghx-expander ghx-heading-expander js-epic-details-toggle"
-                                                    aria-expanded="false"
-                                                    title="Hide/show epic information">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14"
-                                                         height="14">
-                                                        <g fill="none" fillRule="evenodd">
-                                                            <path
-                                                                d="M3.29175 4.793c-.389.392-.389 1.027 0 1.419l2.939 2.965c.218.215.5.322.779.322s.556-.107.769-.322l2.93-2.955c.388-.392.388-1.027 0-1.419-.389-.392-1.018-.392-1.406 0l-2.298 2.317-2.307-2.327c-.194-.195-.449-.293-.703-.293-.255 0-.51.098-.703.293z"
-                                                                fill="#344563"></path>
-                                                        </g>
-                                                    </svg>
-                                                </button>
-                                                <div className="ghx-header">
-                                                    <h3 className="ghx-name">
-                                                                    <span className="js-epic-name" role="button"><span
-                                                                        className="field-value js-editable-field js-edit-epicLabel-trigger"
-                                                                        data-fieldname="epicLabel"
-                                                                        data-fieldvalue="Next Hearing Date">Next Hearing Date</span></span>
-                                                        <div id="dd-trigger-RWA-1404"
-                                                             className="epic-more-button js-epic-actions"
-                                                             aria-controls="dd-trigger-RWA-1404_drop"
-                                                             aria-haspopup="true" aria-expanded="false">
-                                                                        <span
-                                                                            className="aui-icon aui-icon-small aui-iconfont-more"></span>
-                                                        </div>
-                                                    </h3>
-                                                </div>
-                                                <div className="ghx-subheader">
-                                                    <ul className="ghx-classification-progress"
-                                                        title="0% of estimated work done (0 of 0 Story Points)">
-                                                        <li className="ghx-implemented"
-                                                            style={style5}></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
-                                    <div
-                                        className="ghx-classification-item ghx-classification-pending ui-droppable"
-                                        data-epic-key="none">
+                                    <div onClick={this.activateIssueWithoutEpics}
+                                         className="ghx-classification-item ghx-classification-pending ui-droppable"
+                                         data-epic-key="none">
                                         <div className="ghx-inner">
                                             <div className="ghx-header">
-                                                <h3 className="ghx-name"><span className="js-epic-name"
-                                                                               role="button">Issues without epics</span>
+                                                <h3 className="ghx-name">
+                                                    <span className="js-epic-name" role="button">
+                                                        {
+                                                            !this.state.showEpicLess ? "Show issues without epics" : "Show all tickets"
+                                                        }
+                                                    </span>
                                                 </h3>
                                             </div>
                                         </div>
@@ -804,7 +910,8 @@
                             </div>
                         </div>
 
-                        <KanbanBoardBacklogDetailView/>
+                        <KanbanBoardBacklogDetailView activeTickets={this.state.activeTickets}
+                                                      inActiveTickets={this.state.inActiveTickets}/>
 
                         <div id="ghx-detail-view" className="ghx-detail-view gh-editable-detail-view"
                              style={style3}></div>

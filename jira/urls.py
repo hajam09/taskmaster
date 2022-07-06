@@ -6,22 +6,25 @@ from jira.api import BoardColumnsBulkOrderChangeApiEventVersion1Component
 from jira.api import BoardSettingsViewBoardColumnsApiEventVersion1Component
 from jira.api import BoardSettingsViewBoardLabelsApiEventVersion1Component
 from jira.api import BoardSettingsViewGeneralDetailsApiEventVersion1Component
+from jira.api import EpicDetailsForBoardApiEventVersion1Component
+from jira.api import KanbanBoardActiveEpicLessTicketsApiEventVersion1Component
+from jira.api import KanbanBoardBacklogActiveTicketsApiEventVersion1Component
+# from jira.api import KanbanBoardBacklogActiveTicketsApiEventVersion2Component
+from jira.api import KanbanBoardBacklogInActiveTicketsApiEventVersion1Component
+from jira.api import KanbanBoardInActiveEpicLessTicketsApiEventVersion1Component
+# from jira.api import KanbanBoardBacklogInActiveTicketsApiEventVersion2Component
+# from jira.api import KanbanBoardDetailsAndItemsApiEventVersion1Component
+from jira.api import KanbanBoardTicketColumnUpdateApiEventVersion1Component
 from jira.api import SubTaskTicketObjectForTicketApiEventVersion1Component
 from jira.api import SubTaskTicketsForTicketApiEventVersion1Component
 from jira.api import TeamsObjectApiEventVersion1Component
 from jira.api import TeamsViewApiEventVersion1Component
-from jira.api import TicketObjectForEpicTicketApiEventVersion1Component
-from jira.api import TicketsForEpicTicketApiEventVersion1Component
 from jira.api import TicketBulkOrderChangeApiEventVersion1Component
-
-# from jira.api import KanbanBoardBacklogActiveTicketsApiEventVersion1Component
-# from jira.api import KanbanBoardBacklogActiveTicketsApiEventVersion2Component
-# from jira.api import KanbanBoardBacklogInActiveTicketsApiEventVersion1Component
-# from jira.api import KanbanBoardBacklogInActiveTicketsApiEventVersion2Component
-# from jira.api import KanbanBoardDetailsAndItemsApiEventVersion1Component
-from jira.api import KanbanBoardTicketColumnUpdateApiEventVersion1Component
 # from jira.api import TicketObjectBaseDataUpdateApiEventVersion1Component
 from jira.api import TicketObjectBulkCreateApiEventVersion1Component
+from jira.api import TicketObjectForEpicTicketApiEventVersion1Component
+from jira.api import TicketsForEpicTicketApiEventVersion1Component
+
 # from jira.api import TicketObjectForIssuesInTheEpicTicketApiEventVersion1Component
 # from jira.api import TicketObjectForSubTasksInStandardTicketApiEventVersion1Component
 
@@ -104,6 +107,16 @@ urlpatterns += [
         SubTaskTicketsForTicketApiEventVersion1Component.as_view(),
         name='subTaskTicketsForTicketApiEventVersion1Component'
     ),
+    path(
+        'api/v1/kanbanBoardActiveEpicLessTicketsApiEventVersion1Component/<int:boardId>',
+        KanbanBoardActiveEpicLessTicketsApiEventVersion1Component.as_view(),
+        name='kanbanBoardActiveEpicLessTicketsApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/kanbanBoardInActiveEpicLessTicketsApiEventVersion1Component/<int:boardId>',
+        KanbanBoardInActiveEpicLessTicketsApiEventVersion1Component.as_view(),
+        name='kanbanBoardInActiveEpicLessTicketsApiEventVersion1Component'
+    ),
     # path(
     #     'api/v1/ticketObjectForSubTasksInStandardTicketApiEventVersion1Component',
     #     TicketObjectForSubTasksInStandardTicketApiEventVersion1Component.as_view(),
@@ -124,16 +137,21 @@ urlpatterns += [
         KanbanBoardTicketColumnUpdateApiEventVersion1Component.as_view(),
         name='kanbanBoardTicketColumnUpdateApiEventVersion1Component'
     ),
-    # path(
-    #     'api/v1/kanbanBoardBacklogInActiveTicketsApiEventVersion1Component/<int:boardId>',
-    #     KanbanBoardBacklogInActiveTicketsApiEventVersion1Component.as_view(),
-    #     name='kanbanBoardBacklogInActiveTicketsApiEventVersion1Component'
-    # ),
-    # path(
-    #     'api/v1/kanbanBoardBacklogActiveTicketsApiEventVersion1Component/<int:boardId>',
-    #     KanbanBoardBacklogActiveTicketsApiEventVersion1Component.as_view(),
-    #     name='kanbanBoardBacklogActiveTicketsApiEventVersion1Component'
-    # ),
+    path(
+        'api/v1/kanbanBoardBacklogInActiveTicketsApiEventVersion1Component/<int:boardId>',
+        KanbanBoardBacklogInActiveTicketsApiEventVersion1Component.as_view(),
+        name='kanbanBoardBacklogInActiveTicketsApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/kanbanBoardBacklogActiveTicketsApiEventVersion1Component/<int:boardId>',
+        KanbanBoardBacklogActiveTicketsApiEventVersion1Component.as_view(),
+        name='kanbanBoardBacklogActiveTicketsApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/epicDetailsForBoardApiEventVersion1Component/<int:boardId>',
+        EpicDetailsForBoardApiEventVersion1Component.as_view(),
+        name='epicDetailsForBoardApiEventVersion1Component'
+    ),
     # path(
     #     'api/v1/boardObjectDetailsApiEventVersion1Component/<int:boardId>',
     #     BoardObjectDetailsApiEventVersion1Component.as_view(),

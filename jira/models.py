@@ -116,7 +116,7 @@ class Ticket(BaseModel):
     summary = models.CharField(max_length=2048)
     description = models.TextField(blank=True, null=True)
     fixVersion = models.CharField(max_length=2048, blank=True, null=True)
-    component = models.ForeignKey(Component, on_delete=models.SET_NULL, null=True, related_name="ticketComponents" , limit_choices_to={'componentGroup__code': 'PROJECT_COMPONENTS'})
+    component = models.ForeignKey(Component, on_delete=models.SET_NULL, blank=True, null=True, related_name="ticketComponents" , limit_choices_to={'componentGroup__code': 'PROJECT_COMPONENTS'})
     resolution = models.ForeignKey(Component, on_delete=models.SET_NULL, null=True, related_name="ticketResolutions" , limit_choices_to={'componentGroup__code': 'TICKET_RESOLUTIONS'})
     project = models.ForeignKey(Project, on_delete=models.PROTECT, null=True, related_name="projectTickets")
     assignee = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="ticketAssignee")
@@ -131,7 +131,7 @@ class Ticket(BaseModel):
     watchers = models.ManyToManyField(User, blank=True, related_name='ticketWatchers')
     subTask = models.ManyToManyField('Ticket', blank=True, related_name='ticketSubTask')
     label = models.ManyToManyField(Label, blank=True, related_name='ticketLabels')
-    epic = models.ForeignKey('Ticket', null=True, blank=True, on_delete=models.SET_NULL, related_name='epicTickets')
+    epic = models.ForeignKey('Ticket', null=True, blank=True, on_delete=models.SET_NULL, related_name='epicTickets', limit_choices_to={'issueType__code': 'EPIC'})
 
     class Meta:
         verbose_name = "Ticket"

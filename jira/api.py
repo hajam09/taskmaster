@@ -1,10 +1,11 @@
 import json
 import threading
+from datetime import datetime
 from http import HTTPStatus
-from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.http import QueryDict, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -801,179 +802,209 @@ class KanbanBoardTicketColumnUpdateApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-#
-#
-# @method_decorator(csrf_exempt, name='dispatch')
-# class KanbanBoardBacklogActiveTicketsApiEventVersion1Component(View):
-#
-#     def get(self, *args, **kwargs):
-#         boardId = self.kwargs.get("boardId", None)
-#
-#         try:
-#             board = Board.objects.get(id=boardId)
-#         except Board.DoesNotExist:
-#             response = {
-#                 "success": False,
-#                 "message": "Could not find a board for id: " + str(boardId)
-#             }
-#             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-#
-#         backLogColumn = Column.objects.filter(board=board, name__icontains="BACKLOG").first()
-#         otherColumns = Column.objects.filter(board=board).exclude(id=backLogColumn.id)
-#         otherColumnTickets = Ticket.objects.filter(column__in=otherColumns,
-#                                                   modifiedDttm__gte=datetime.now() - timedelta(days=7))
-#
-#         if not otherColumns.exists():
-#             response = {
-#                 "success": False,
-#                 "message": "Unable to find active tickets."
-#             }
-#             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-#
-#         response = {
-#             "success": True,
-#             "data": {
-#                 "tickets": serializeTicketsIntoChunks(otherColumnTickets),
-#                 "columns": {
-#                     "inActive": {
-#                         "id": backLogColumn.id,
-#                     },
-#                     "active": {
-#                         "id": otherColumns.first().id
-#                     }
-#                 }
-#             }
-#         }
-#         return JsonResponse(response, status=HTTPStatus.OK)
-#
-#
-# @method_decorator(csrf_exempt, name='dispatch')
-# class KanbanBoardBacklogActiveTicketsApiEventVersion2Component(View):
-#
-#     def get(self, *args, **kwargs):
-#         boardId = self.kwargs.get("boardId", None)
-#
-#         try:
-#             board = Board.objects.get(id=boardId)
-#         except Board.DoesNotExist:
-#             response = {
-#                 "success": False,
-#                 "message": "Could not find a board for id: " + str(boardId)
-#             }
-#             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-#
-#         backLogColumn = Column.objects.filter(board=board, name__icontains="BACKLOG").first()
-#         otherColumns = Column.objects.filter(board=board).exclude(id=backLogColumn.id)
-#         otherColumnTickets = Ticket.objects.filter(column__in=otherColumns,
-#                                                   modifiedDttm__gte=datetime.now() - timedelta(days=7))
-#
-#         if not otherColumns.exists():
-#             response = {
-#                 "success": False,
-#                 "message": "Unable to find active tickets."
-#             }
-#             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-#
-#         response = {
-#             "success": True,
-#             "data": {
-#                 "tickets": serializeTicketsIntoChunks(otherColumnTickets.filter(~Q(issueType__code="EPIC"))),
-#                 "columns": {
-#                     "inActive": {
-#                         "id": backLogColumn.id,
-#                     },
-#                     "active": {
-#                         "id": otherColumns.first().id
-#                     }
-#                 }
-#             }
-#         }
-#         return JsonResponse(response, status=HTTPStatus.OK)
-#
-#
-# @method_decorator(csrf_exempt, name='dispatch')
-# class KanbanBoardBacklogInActiveTicketsApiEventVersion1Component(View):
-#
-#     def get(self, *args, **kwargs):
-#         boardId = self.kwargs.get("boardId", None)
-#
-#         try:
-#             board = Board.objects.get(id=boardId)
-#         except Board.DoesNotExist:
-#             response = {
-#                 "success": False,
-#                 "message": "Could not find a board for id: " + str(boardId)
-#             }
-#             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-#
-#         backLogColumn = Column.objects.filter(board=board, name__icontains="BACKLOG").first()
-#         todoColumn = Column.objects.filter(board=board, name__icontains="TO DO").first()
-#
-#         if backLogColumn is None or todoColumn is None:
-#             response = {
-#                 "success": False,
-#                 "message": "Could not find a backlog for this board. Check the board settings."
-#             }
-#             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-#
-#         response = {
-#             "success": True,
-#             "data": {
-#                 "tickets": serializeTicketsIntoChunks(backLogColumn.columnTickets.all()),
-#                 "columns": {
-#                     "inActive": {
-#                         "id": backLogColumn.id,
-#                     },
-#                     "active": {
-#                         "id": todoColumn.id
-#                     }
-#                 }
-#             }
-#         }
-#         return JsonResponse(response, status=HTTPStatus.OK)
-#
-#
-# @method_decorator(csrf_exempt, name='dispatch')
-# class KanbanBoardBacklogInActiveTicketsApiEventVersion2Component(View):
-#
-#     def get(self, *args, **kwargs):
-#         boardId = self.kwargs.get("boardId", None)
-#
-#         try:
-#             board = Board.objects.get(id=boardId)
-#         except Board.DoesNotExist:
-#             response = {
-#                 "success": False,
-#                 "message": "Could not find a board for id: " + str(boardId)
-#             }
-#             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-#
-#         backlogColumn = Column.objects.filter(board=board, name__icontains="BACKLOG").first()
-#         todoColumn = Column.objects.filter(board=board, name__icontains="TO DO").first()
-#
-#         if backlogColumn is None or todoColumn is None:
-#             response = {
-#                 "success": False,
-#                 "message": "Could not find a backlog for this board. Check the board settings."
-#             }
-#             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-#
-#         response = {
-#             "success": True,
-#             "data": {
-#                 "tickets": serializeTicketsIntoChunks(backlogColumn.columnTickets.filter(~Q(issueType__code="EPIC"))),
-#                 "columns": {
-#                     "inActive": {
-#                         "id": backlogColumn.id,
-#                     },
-#                     "active": {
-#                         "id": todoColumn.id
-#                     }
-#                 }
-#             }
-#         }
-#         return JsonResponse(response, status=HTTPStatus.OK)
-#
+@method_decorator(csrf_exempt, name='dispatch')
+class KanbanBoardBacklogActiveTicketsApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        columns = Column.objects.filter(Q(board_id=board.id), ~Q(internalKey="BACKLOG")).prefetch_related('columnTickets')
+        activeTickets = []
+
+        for column in columns:
+            allColumnTickets = column.columnTickets.filter(~Q(issueType__code="EPIC")).select_related(
+                'assignee__profile',
+                'column',
+                'epic', 'issueType',
+                'priority',
+                'resolution')
+
+            data = []
+            serializeTickets(allColumnTickets, data, False)
+            activeTickets.extend(data)
+
+        response = {
+            "success": True,
+            "data": {
+                "tickets": activeTickets,
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class KanbanBoardBacklogInActiveTicketsApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        column = Column.objects.prefetch_related('columnTickets').get(board_id=board.id, internalKey__icontains="BACKLOG")
+        inActiveTickets = []
+
+        columnTickets = column.columnTickets.filter(~Q(issueType__code="EPIC")).select_related('assignee__profile',
+                                                                                               'column',
+                                                                                               'epic', 'issueType',
+                                                                                               'priority',
+                                                                                               'resolution')
+        serializeTickets(columnTickets, inActiveTickets)
+
+        response = {
+            "success": True,
+            "data": {
+                "tickets": inActiveTickets,
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class KanbanBoardActiveEpicLessTicketsApiEventVersion1Component(View):
+    def get(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('projects').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        columns = Column.objects.filter(Q(board_id=board.id), ~Q(internalKey="BACKLOG")).prefetch_related(
+            'columnTickets')
+        activeTickets = []
+
+        for column in columns:
+            allColumnTickets = column.columnTickets.filter(~Q(issueType__code="EPIC"), Q(epic=None)).select_related(
+                'assignee__profile',
+                'column',
+                'epic', 'issueType',
+                'priority',
+                'resolution')
+
+            data = []
+            serializeTickets(allColumnTickets, data, False)
+            activeTickets.extend(data)
+
+        response = {
+            "success": True,
+            "data": {
+                "tickets": activeTickets,
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class KanbanBoardInActiveEpicLessTicketsApiEventVersion1Component(View):
+    def get(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('projects').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        column = Column.objects.prefetch_related('columnTickets').get(board_id=board.id, internalKey__icontains="BACKLOG")
+        inActiveTickets = []
+
+        columnTickets = column.columnTickets.filter(~Q(issueType__code="EPIC"), Q(epic=None)).select_related(
+            'assignee__profile',
+            'column',
+            'epic', 'issueType',
+            'priority',
+            'resolution')
+        serializeTickets(columnTickets, inActiveTickets)
+
+        response = {
+            "success": True,
+            "data": {
+                "tickets": inActiveTickets,
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class EpicDetailsForBoardApiEventVersion1Component(View):
+    def get(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('projects').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        def epicTicketsStats(childTicket):
+            todo = inProgress = done = 0
+
+            for ct in childTicket:
+                if ct.column.internalKey == "TO DO":
+                    todo += ct.storyPoints
+                elif ct.column.internalKey == "IN PROGRESS":
+                    inProgress += ct.storyPoints
+                elif ct.column.internalKey == "DONE":
+                    done += ct.storyPoints
+            data = {
+                'todo': todo,
+                'inProgress': inProgress,
+                'done': done,
+            }
+            return data
+
+        def epicDetails(ticket, statistics):
+            data = {
+                "id": ticket.id,
+                "internalKey": ticket.internalKey,
+                "summary": ticket.summary,
+                "link": f"/jira/ticket/{ticket.internalKey}",
+                "statistics": statistics,
+            }
+            return data
+
+        projectTickets = Ticket.objects.filter(project__in=board.projects.all()).select_related('column', 'epic',
+                                                                                                'issueType')
+        epicTickets = [pt for pt in projectTickets if pt.issueType.code == "EPIC"]
+        epicTicketsList = [
+            epicDetails(et, epicTicketsStats(
+                [pt for pt in projectTickets if pt.epic is not None and pt.epic.id == et.id]))
+            for et in epicTickets
+        ]
+        response = {
+            "success": True,
+            "data": {
+                "epicTickets": epicTicketsList,
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
 #
 # @method_decorator(csrf_exempt, name='dispatch')
 # class BoardObjectDetailsApiEventVersion1Component(View):
