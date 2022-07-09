@@ -72,14 +72,16 @@
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb" style="background-color: transparent;">
                                     <li class="breadcrumb-item"><a href="{% url 'jira:boards-page' %}">Boards</a></li>
-                                    <li class="breadcrumb-item" active><a href="{{ board.getUrl }}">{{ board.internalKey }} Board</a></li>
+                                    <li class="breadcrumb-item" active><a
+                                            href="{{ board.getUrl }}">{{ board.internalKey }} Board</a></li>
                                 </ol>
                             </nav>
                             <h1>
                                 <!-- <span id="ghx-board-name" class="subnav-page-header">WA PET Board</span> -->
                                 <span class="subnav-container">
                                 <span id="subnav-title">
-                                  <span class="subnavigator-title" title="Kanban board">{{ board.internalKey }} board</span>
+                                  <span class="subnavigator-title"
+                                        title="Kanban board">{{ board.internalKey }} board</span>
                                 </span>
                                 <span id="subnav-trigger"></span>
                                 <span id="subnav-opts"></span>
@@ -346,8 +348,19 @@
             constructor(props) {
                 super(props);
                 this.state = {
-                    columns: eval('{{ columns|safe }}'),
+                    columns: []//eval('{{ columns|safe }}'),
                 }
+            }
+
+            componentDidMount = () => {
+                fetch('{% url 'jira:kanbanBoardDetailsAndItemsApiEventVersion1Component' boardId=board.id%}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((json) => {
+                        this.setState({
+                            columns: json.data.columns
+                        })
+                    })
             }
 
             render() {

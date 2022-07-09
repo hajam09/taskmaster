@@ -402,13 +402,6 @@
         class KanbanBoardBacklogDetailView extends React.Component {
             constructor(props) {
                 super(props);
-
-                this.state = {
-                    notStartedPoints: 0,
-                    inProgressPoints: 0,
-                    completedPoints: 0,
-                    totalPoints: 0,
-                }
             }
 
             render() {
@@ -426,7 +419,7 @@
                                             <button
                                                 className="aui-button ghx-expander ghx-heading-expander"
                                                 aria-expanded="true"
-                                                title="Toggle swimlane visibility" resolved=""
+                                                title="Toggle swimlane visibility"
                                                 data-toggle="collapse"
                                                 data-target="#listOfActiveTicketsContainer">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14"
@@ -448,16 +441,16 @@
                                                 className="active-sprint-lozenge aui-lozenge aui-lozenge-success">Active</span>
                                             <div className="ghx-badge-group ghx-right">
                                                 <aui-badge className="ghx-not-started"
-                                                           title={"Not Started: " + this.state.notStartedPoints + " of " + this.state.totalPoints + " (Story Points)"}>
-                                                    {this.state.notStartedPoints}
+                                                           title={"Not Started: " + this.props.activeStoryPoints.notStartedPoints + " of " + this.props.activeStoryPoints.totalPoints + " (Story Points)"}>
+                                                    {this.props.activeStoryPoints.notStartedPoints}
                                                 </aui-badge>
                                                 <aui-badge className="ghx-in-progress"
-                                                           title={"In Progress: " + this.state.inProgressPoints + " of " + this.state.totalPoints + " (Story Points)"}>
-                                                    {this.state.inProgressPoints}
+                                                           title={"In Progress: " + this.props.activeStoryPoints.inProgressPoints + " of " + this.props.activeStoryPoints.totalPoints + " (Story Points)"}>
+                                                    {this.props.activeStoryPoints.inProgressPoints}
                                                 </aui-badge>
                                                 <aui-badge className="ghx-done"
-                                                           title={"Done: " + this.state.completedPoints + " of " + this.state.totalPoints + " (Story Points)"}>
-                                                    {this.state.completedPoints}
+                                                           title={"Done: " + this.props.activeStoryPoints.completedPoints + " of " + this.props.activeStoryPoints.totalPoints + " (Story Points)"}>
+                                                    {this.props.activeStoryPoints.completedPoints}
                                                 </aui-badge>
                                             </div>
                                             <div className="ghx-sprint-info">
@@ -663,11 +656,15 @@
                     visibility: "",
                     allIssuesVisibility: "none",
                     epicTickets: [],
-
                     showEpicLess: false,
-
                     activeTickets: [],
                     inActiveTickets: [],
+                    activeStoryPoints: {
+                        notStartedPoints: 0,
+                        inProgressPoints: 0,
+                        completedPoints: 0,
+                        totalPoints: 0,
+                    }
                 }
             }
 
@@ -681,33 +678,40 @@
                             activeTickets: json.data.tickets
                         })
 
-                        let _notStartedPoints = 0;
-                        let _inProgressPoints = 0;
-                        let _completedPoints = 0;
-
-                        for (let i = 0; i < this.state.activeTickets.length; i++) {
-                            let ticket = this.state.activeTickets[i];
-
-                            if ((typeof ticket.storyPoints) !== "number")
-                                continue;
-
-                            let intPoint = parseInt(ticket.storyPoints);
-
-                            if (ticket.column === "TO DO")
-                                _notStartedPoints += intPoint;
-                            else if (ticket.column === "IN PROGRESS")
-                                _inProgressPoints += intPoint;
-                            else if (ticket.column === "DONE")
-                                _completedPoints += intPoint;
-                        }
-
-                        this.setState({
-                            notStartedPoints: _notStartedPoints,
-                            inProgressPoints: _inProgressPoints,
-                            completedPoints: _completedPoints,
-                            totalPoints: _notStartedPoints + _inProgressPoints + _completedPoints
-                        })
+                        this.updateActiveStoryPoints();
                     })
+            }
+
+            updateActiveStoryPoints = () => {
+                let _notStartedPoints = 0;
+                let _inProgressPoints = 0;
+                let _completedPoints = 0;
+
+                for (let i = 0; i < this.state.activeTickets.length; i++) {
+                    let ticket = this.state.activeTickets[i];
+
+                    if ((typeof ticket.storyPoints) !== "number")
+                        continue;
+
+                    let intPoint = parseInt(ticket.storyPoints);
+
+                    if (ticket.column === "TO DO")
+                        _notStartedPoints += intPoint;
+                    else if (ticket.column === "IN PROGRESS")
+                        _inProgressPoints += intPoint;
+                    else if (ticket.column === "DONE")
+                        _completedPoints += intPoint;
+                }
+
+                this.setState({
+                    activeStoryPoints: {
+                        notStartedPoints: _notStartedPoints,
+                        inProgressPoints: _inProgressPoints,
+                        completedPoints: _completedPoints,
+                        totalPoints: _notStartedPoints + _inProgressPoints + _completedPoints,
+                    }
+                })
+
             }
 
             showInActiveTicketsComponent = () => {
@@ -775,6 +779,7 @@
                             this.setState({
                                 activeTickets: json.data.tickets
                             })
+                            this.updateActiveStoryPoints();
                         })
 
                     fetch('{% url 'jira:kanbanBoardInActiveEpicLessTicketsApiEventVersion1Component' boardId=board.id%}', {
@@ -789,7 +794,6 @@
                     this.showActiveTicketsComponent();
                     this.showInActiveTicketsComponent();
                 }
-
             }
 
             render() {
@@ -911,6 +915,7 @@
                         </div>
 
                         <KanbanBoardBacklogDetailView activeTickets={this.state.activeTickets}
+                                                      activeStoryPoints={this.state.activeStoryPoints}
                                                       inActiveTickets={this.state.inActiveTickets}/>
 
                         <div id="ghx-detail-view" className="ghx-detail-view gh-editable-detail-view"

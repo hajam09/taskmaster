@@ -13,7 +13,7 @@ from jira.api import KanbanBoardBacklogActiveTicketsApiEventVersion1Component
 from jira.api import KanbanBoardBacklogInActiveTicketsApiEventVersion1Component
 from jira.api import KanbanBoardInActiveEpicLessTicketsApiEventVersion1Component
 # from jira.api import KanbanBoardBacklogInActiveTicketsApiEventVersion2Component
-# from jira.api import KanbanBoardDetailsAndItemsApiEventVersion1Component
+from jira.api import KanbanBoardDetailsAndItemsApiEventVersion1Component
 from jira.api import KanbanBoardTicketColumnUpdateApiEventVersion1Component
 from jira.api import SubTaskTicketObjectForTicketApiEventVersion1Component
 from jira.api import SubTaskTicketsForTicketApiEventVersion1Component
@@ -127,11 +127,11 @@ urlpatterns += [
     #     TicketObjectBaseDataUpdateApiEventVersion1Component.as_view(),
     #     name='ticketObjectBaseDataUpdateApiEventVersion1Component'
     # ),
-    # path(
-    #     'api/v1/kanbanBoardDetailsAndItemsApiEventVersion1Component/<int:boardId>',
-    #     KanbanBoardDetailsAndItemsApiEventVersion1Component.as_view(),
-    #     name='kanbanBoardDetailsAndItemsApiEventVersion1Component'
-    # ),
+    path(
+        'api/v1/kanbanBoardDetailsAndItemsApiEventVersion1Component/<int:boardId>',
+        KanbanBoardDetailsAndItemsApiEventVersion1Component.as_view(),
+        name='kanbanBoardDetailsAndItemsApiEventVersion1Component'
+    ),
     path(
         'api/v1/kanbanBoardTicketColumnUpdateApiEventVersion1Component',
         KanbanBoardTicketColumnUpdateApiEventVersion1Component.as_view(),

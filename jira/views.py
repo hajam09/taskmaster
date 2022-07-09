@@ -319,9 +319,8 @@ def board(request, url):
     else:
         TEMPLATE = "jira/scrumBoard.html"
 
-    # Move to KanbanBoardDetailsAndItemsApiEventVersion1Component
-    backLogColumn = Column.objects.filter(board=thisBoard, internalKey__icontains="BACKLOG").first()
-    otherColumns = Column.objects.filter(board=thisBoard).exclude(id=backLogColumn.id).prefetch_related('columnTickets')
+    """# Move to KanbanBoardDetailsAndItemsApiEventVersion1Component
+    otherColumns = Column.objects.filter(Q(board_id=thisBoard.id), ~Q(internalKey="BACKLOG")).prefetch_related('columnTickets')
 
     def _serializeTickets(tickets):
         data = []
@@ -337,11 +336,11 @@ def board(request, url):
                     'priority', 'issueType', 'assignee__profile', 'column', 'epic', 'resolution'))
         }
         for column in otherColumns
-    ]
+    ]"""
 
     context = {
         "board": thisBoard,
-        "columns": json.dumps(columns)
+        #"columns": json.dumps(columns)
     }
     return render(request, TEMPLATE, context)
 
@@ -360,23 +359,12 @@ def backlog(request, url):
     else:
         TEMPLATE = "jira/scrumBacklog.html"
 
-    # TODO: Move to API
-    columns = Column.objects.filter(board=thisBoard).prefetch_related('columnTickets')
-    todoColumn = None
-    backlogColumn = None
-
-    for column in columns:
-        if column.internalKey == "BACKLOG":
-            backlogColumn = column
-        else:
-            if column.internalKey == "TO DO":
-                todoColumn = column
-
+    columns = thisBoard.boardColumns.all()
     context = {
         "board": thisBoard,
         "columns": {
-            "active": todoColumn,
-            "inActive": backlogColumn,
+            "active": next((c for c in columns if c.internalKey == "TO DO")),
+            "inActive": next((c for c in columns if c.internalKey == "BACKLOG")),
         }
     }
     return render(request, TEMPLATE, context)

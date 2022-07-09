@@ -29,7 +29,7 @@ class BoardSettingsViewGeneralDetailsApiEventVersion1Component(View):
         except Board.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a board with url/id: ".format(url)
+                "message": "Could not find a board with url/id: {}".format(url)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -72,7 +72,7 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
         except Board.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a board with url/id: ".format(url)
+                "message": "Could not find a board with url/id: {}".format(url)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -104,7 +104,7 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
         except Board.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a board with url/id: ".format(url)
+                "message": "Could not find a board with url/id: {}".format(url)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -141,7 +141,7 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
         except Board.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a board with url/id: ".format(url)
+                "message": "Could not find a board with url/id: {}".format(url)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -182,7 +182,7 @@ class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
         except Board.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a board with url/id: ".format(url)
+                "message": "Could not find a board with url/id: {}".format(url)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -251,7 +251,7 @@ class BoardColumnsBulkOrderChangeApiEventVersion1Component(View):
         except Board.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a board with url/id: ".format(url)
+                "message": "Could not find a board with url/id: {}".format(url)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -281,7 +281,7 @@ class BoardSettingsViewBoardLabelsApiEventVersion1Component(View):
         except Board.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a board with url/id: ".format(url)
+                "message": "Could not find a board with url/id: {}".format(url)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -315,7 +315,7 @@ class BoardSettingsViewBoardLabelsApiEventVersion1Component(View):
         except Board.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a board with url/id: ".format(url)
+                "message": "Could not find a board with url/id: {}".format(url)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -350,7 +350,7 @@ class BoardSettingsViewBoardLabelsApiEventVersion1Component(View):
         except Board.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a board with url/id: ".format(url)
+                "message": "Could not find a board with url/id: {}".format(url)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -375,7 +375,7 @@ class TeamsViewApiEventVersion1Component(View):
         except Team.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a team with url/id: ".format(teamId)
+                "message": "Could not find a team with url/id: {}".format(teamId)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -399,7 +399,7 @@ class TeamsObjectApiEventVersion1Component(View):
         except Team.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a team with url/id: ".format(teamId)
+                "message": "Could not find a team with url/id: {}".format(teamId)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -435,7 +435,7 @@ class TicketObjectForEpicTicketApiEventVersion1Component(View):
         except Ticket.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a ticket with id: ".format(epicTicketId)
+                "message": "Could not find a ticket with id: {}".format(epicTicketId)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -492,7 +492,7 @@ class TicketsForEpicTicketApiEventVersion1Component(View):
         except Ticket.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a ticket with id: ".format(ticketId)
+                "message": "Could not find a ticket with id: {}".format(ticketId)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -539,7 +539,7 @@ class SubTaskTicketObjectForTicketApiEventVersion1Component(View):
         except Ticket.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a ticket with id: ".format(parentTicketId)
+                "message": "Could not find a ticket with id: {}".format(parentTicketId)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -596,7 +596,7 @@ class SubTaskTicketsForTicketApiEventVersion1Component(View):
         except Ticket.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a ticket with id: ".format(ticketId)
+                "message": "Could not find a ticket with id: {}".format(ticketId)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -722,58 +722,51 @@ class SubTaskTicketsForTicketApiEventVersion1Component(View):
 #         return JsonResponse(response, status=HTTPStatus.OK)
 #
 #
-# @method_decorator(csrf_exempt, name='dispatch')
-# class KanbanBoardDetailsAndItemsApiEventVersion1Component(View):
-#
-#     def get(self, *args, **kwargs):
-#         boardId = self.kwargs.get("boardId", None)
-#
-#         try:
-#             board = Board.objects.get(id=boardId)
-#         except Board.DoesNotExist:
-#             response = {
-#                 "success": False,
-#                 "message": "Could not find a board for id: " + str(boardId)
-#             }
-#             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-#
-#         backLogColumn = Column.objects.filter(board=board, name__icontains="BACKLOG").first()
-#         otherColumns = Column.objects.filter(board=board).exclude(id=backLogColumn.id).prefetch_related('columnTickets')
-#
-#         response = {
-#             "success": True,
-#             "data": {
-#                 "board": {
-#                     "id": board.id,
-#                     "name": board.name,
-#                 },
-#                 # "sprint": {
-#                 #     "id": board.sprint.id,
-#                 #     "internalKey": board.sprint.internalKey,
-#                 #     "remainingDays": (board.sprint.endDate - datetime.today().date()).days
-#                 # },
-#                 "members": [
-#                     {
-#                         "id": i.pk,
-#                         "firstName": i.first_name,
-#                         "lastName": i.last_name,
-#                         "icon": i.developerProfile.profilePicture.url
-#                     }
-#                     for i in board.members.all()
-#                 ],
-#                 "columns": [
-#                     {
-#                         "id": i.id,
-#                         "name": i.name,
-#                         "tickets": serializeTicketsIntoChunks(i.columnTickets.filter(~Q(issueType__code="EPIC")))
-#                     }
-#                     for i in otherColumns
-#                 ]
-#             }
-#         }
-#         return JsonResponse(response, status=HTTPStatus.OK)
-#
-#
+@method_decorator(csrf_exempt, name='dispatch')
+class KanbanBoardDetailsAndItemsApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        columns = Column.objects.filter(Q(board_id=board.id), ~Q(internalKey="BACKLOG")).prefetch_related('columnTickets')
+        columnsList = []
+
+        for column in columns:
+            allColumnTickets = column.columnTickets.filter(~Q(issueType__code="EPIC")).select_related(
+                'assignee__profile',
+                'column', 'epic',
+                'issueType',
+                'priority',
+                'resolution')
+
+            tickets = []
+            serializeTickets(allColumnTickets, tickets)
+            data = {
+                "id": column.id,
+                "internalKey": column.internalKey,
+                "tickets": tickets
+            }
+            columnsList.append(data)
+
+        response = {
+            "success": True,
+            "data": {
+                "columns": columnsList
+            }
+        }
+        # TODO: Add board details, members of the board, and sprint details...
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class KanbanBoardTicketColumnUpdateApiEventVersion1Component(View):
 
