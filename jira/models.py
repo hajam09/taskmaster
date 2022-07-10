@@ -193,8 +193,9 @@ class TicketComment(BaseModel):
 
 
 class Sprint(BaseModel):
-    board = models.ForeignKey(Board, on_delete=models.SET_NULL, blank=True, null=True)
-    tickets = models.ManyToManyField(Ticket, related_name='sprintTickets')
+    board = models.ForeignKey(Board, on_delete=models.SET_NULL, blank=True, null=True, related_name='boardSprints')
+    internalKey = models.CharField(max_length=2048, blank=True, null=True)
+    tickets = models.ManyToManyField(Ticket, related_name='ticketSprints')
     startDate = models.DateField()
     endDate = models.DateField()
 

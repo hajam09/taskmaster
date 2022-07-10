@@ -7,12 +7,13 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import QueryDict, JsonResponse
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from accounts.models import Team, Component
-from jira.models import Board, Column, Label, Ticket, Project
+from jira.models import Board, Column, Label, Ticket, Project, Sprint
 from taskmaster.operations import databaseOperations
 
 
@@ -869,6 +870,78 @@ class KanbanBoardBacklogInActiveTicketsApiEventVersion1Component(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class ScrumBoardSprintTicketsApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('boardSprints').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        if board.type != Board.Types.SCRUM:
+            raise Exception
+
+        sprints = []
+        today = timezone.now().date()
+        queries = Q(startDate__gte=today) | Q(startDate__lte=today, endDate__gte=today)
+        activeAndUpcomingSprints = board.boardSprints.filter(queries).prefetch_related('tickets')
+
+        for sprint in activeAndUpcomingSprints:
+            serializedTickets = []
+            sprintTickets = sprint.tickets.filter(~Q(issueType__code="EPIC")).select_related('assignee__profile',
+                                                                                             'column',
+                                                                                             'epic', 'issueType',
+                                                                                             'priority',
+                                                                                             'resolution')
+            serializeTickets(sprintTickets, serializedTickets)
+            sprintData = {
+                "id": sprint.id,
+                "internalKey": sprint.internalKey,
+                "isActive": sprint.startDate <= today <= sprint.endDate,
+                "tickets": serializedTickets
+            }
+            sprints.append(sprintData)
+
+        response = {
+            "success": True,
+            "data": {
+                "sprints": sprints,
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def put(self, *args, **kwargs):
+        # TODO: NOT DONE
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('boardSprints').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        if board.type != Board.Types.SCRUM:
+            raise Exception
+
+        ticket = Ticket()
+
+        for sprint in board.boardSprints.all():
+            sprint.tickets.remove(ticket)
+
+        thisSprint = Sprint()
+        thisSprint.tickets.add(ticket)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class KanbanBoardActiveEpicLessTicketsApiEventVersion1Component(View):
     def get(self, *args, **kwargs):
         boardId = self.kwargs.get("boardId", None)
@@ -1045,6 +1118,54 @@ class EpicDetailsForBoardApiEventVersion1Component(View):
 #         return JsonResponse(response, status=HTTPStatus.OK)
 #
 #
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SprintObjectApiEventVersion1Component(View):
+
+    def post(self, *args, **kwargs):
+        # TODO: Manual test needed.
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('boardSprints').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        recentSprint = board.boardSprints.last()
+        sprintCount = 0 if recentSprint is None else board.boardSprints.count() + 1
+        startDate = recentSprint.endDate if recentSprint.endDate >= timezone.now().date() else timezone.now()
+        endDate = startDate + timezone.timedelta(days=14)
+
+        sprint = Sprint.objects.create(
+            board=board,
+            internalKey=f'{board.internalKey} Sprint {sprintCount}',
+            startDate=startDate,
+            endDate=endDate
+        )
+        response = {
+            "success": True,
+            "data": {
+                "sprint": {
+                    "id": sprint.id,
+                    "board": {
+                        "id": sprint.board.id,
+                        "internalKey": sprint.board.internalKey,
+                        "url": sprint.board.url,
+                    },
+                    "internalKey": sprint.internalKey,
+                    "startDate": sprint.startDate.date(),
+                    "endDate": sprint.endDate.date()
+                },
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class TicketObjectBulkCreateApiEventVersion1Component(View):
 

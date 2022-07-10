@@ -12,7 +12,6 @@ from django.http import Http404
 from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team, ComponentGroup
-from jira.api import serializeTickets
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, TicketComment
 from taskmaster.operations import databaseOperations, emailOperations
 
@@ -319,28 +318,8 @@ def board(request, url):
     else:
         TEMPLATE = "jira/scrumBoard.html"
 
-    """# Move to KanbanBoardDetailsAndItemsApiEventVersion1Component
-    otherColumns = Column.objects.filter(Q(board_id=thisBoard.id), ~Q(internalKey="BACKLOG")).prefetch_related('columnTickets')
-
-    def _serializeTickets(tickets):
-        data = []
-        serializeTickets(tickets, data)
-        return data
-
-    columns = [
-        {
-            "id": column.id,
-            "internalKey": column.internalKey,
-            "tickets": _serializeTickets(
-                Ticket.objects.filter(board=thisBoard, column=column).filter(~Q(issueType__code="EPIC")).select_related(
-                    'priority', 'issueType', 'assignee__profile', 'column', 'epic', 'resolution'))
-        }
-        for column in otherColumns
-    ]"""
-
     context = {
         "board": thisBoard,
-        #"columns": json.dumps(columns)
     }
     return render(request, TEMPLATE, context)
 
@@ -356,16 +335,19 @@ def backlog(request, url):
 
     if thisBoard.type == "KANBAN":
         TEMPLATE = "jira/kanbanBacklog.html"
-    else:
-        TEMPLATE = "jira/scrumBacklog.html"
-
-    columns = thisBoard.boardColumns.all()
-    context = {
-        "board": thisBoard,
-        "columns": {
+        columns = thisBoard.boardColumns.all()
+        activeAndInActive = {
             "active": next((c for c in columns if c.internalKey == "TO DO")),
             "inActive": next((c for c in columns if c.internalKey == "BACKLOG")),
         }
+
+    else:
+        TEMPLATE = "jira/scrumBacklog.html"
+        activeAndInActive = {}
+
+    context = {
+        "board": thisBoard,
+        "columns": activeAndInActive
     }
     return render(request, TEMPLATE, context)
 
