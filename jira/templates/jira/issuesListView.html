@@ -1,0 +1,131 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block content %}
+
+    <style type="text/css">
+        body {
+            color: black;
+        }
+    </style>
+
+    <div class="container-fluid" style="margin: auto;overflow-x: hipen; color: black; max-width: 1800px;">
+        <br>
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == "error" %}
+                    <div style="color: black; text-align: center;" class="alert alert-danger"
+                         role="alert">{{ message }}</div>
+                {% else %}
+                    <div style="color: black; text-align: center;" class="alert alert-{{ message.tags }}"
+                         role="alert">{{ message }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        <div class="row">
+            <div class="col-12">
+                <div class="row">
+                    <div class="col">
+                        <h3>Issues</h3>
+                    </div>
+                </div>
+                <br>
+                {% if tickets|length > 0 %}
+                    <table id="ticketsTable" class="table table-sm table-borderless table-hover">
+                        <thead>
+                            <tr>
+                                <th>T</th>
+                                <th>Key</th>
+                                <th>Summary</th>
+                                <th>Assignee</th>
+                                <th>Reporter</th>
+                                <th>P</th>
+                                <th>Status</th>
+                                <th>Resolution</th>
+                                <th>Created</th>
+                                <th>Modified</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in tickets %}
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <img alt="{{ t.issueType.internalKey }}" src="{{ t.issueType.icon }}"
+                                             title="{{ t.issueType.internalKey }}" loading="lazy"
+                                             width="17" height="17">
+                                    </td>
+                                    <td>{{ t.internalKey }}</td>
+                                    <td>{{ t.summary }}</td>
+                                    <td>
+                                        {% if t.assignee %}
+                                            <img alt="{{ t.assignee.firstName }} {{ t.assignee.lastName }}"
+                                                 src="{{ t.assignee.icon }}"
+                                                 title="{{ t.assignee.firstName }} {{ t.assignee.lastName }}"
+                                                 loading="lazy"
+                                                 width="25" height="25"> {{ t.assignee.firstName }} {{ t.assignee.lastName }}
+                                        {% else %}
+                                            <img alt="Unassigned"
+                                                 src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
+                                                 title="Unassigned"
+                                                 loading="lazy"
+                                                 width="25" height="25"> Unassigned
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if t.reporter %}
+                                            <img alt="{{ t.reporter.firstName }} {{ t.reporter.lastName }}"
+                                                 src="{{ t.reporter.icon }}"
+                                                 title="{{ t.reporter.firstName }} {{ t.reporter.lastName }}"
+                                                 loading="lazy"
+                                                 width="25" height="25"> {{ t.reporter.firstName }}
+                                            {{ t.reporter.lastName }}
+                                        {% else %}
+                                            <img alt="Unassigned"
+                                                 src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
+                                                 title="Unassigned"
+                                                 loading="lazy"
+                                                 width="25" height="25"> Unassigned
+                                        {% endif %}
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <img alt="{{ t.priority.internalKey }}"
+                                             src="{{ t.priority.icon }}"
+                                             title="{{ t.priority.internalKey }}"
+                                             loading="lazy"
+                                             width="25" height="25">
+                                    </td>
+                                    <td><h6><span class="badge badge-secondary" style="background-color: {{ t.column.colour }}">{{ t.column.internalKey }}</span></h6></td>
+                                    <td><i>{{ t.resolution }}</i></td>
+                                    <td>{{ t.created }}</td>
+                                    <td>{{ t.modified }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-primary text-center" role="alert">
+                        Looks like there's no project to see. Create one.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(function () {
+                $("#ticketsTable").DataTable(
+                    {
+                        "responsive": true,
+                        "autoWidth": false,
+                        "paging": true,
+                        "searching": true,
+                        "ordering": true,
+                        "info": false,
+                        "pageLength": 18,
+                    }
+                );
+
+                $('#ticketsTable_length').remove();
+            }
+        );
+    </script>
+{% endblock %}

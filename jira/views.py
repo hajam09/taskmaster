@@ -162,7 +162,6 @@ def ticketDetailView(request, internalKey):
     """
     try:
         ticket = Ticket.objects.select_related(
-            'component',
             'priority',
             'issueType',
             'reporter__profile',
@@ -171,6 +170,7 @@ def ticketDetailView(request, internalKey):
         ).prefetch_related(
             'label',
             'subTask',
+            'component',
         ).get(internalKey__iexact=internalKey)
     except Ticket.DoesNotExist:
         raise Http404
@@ -515,8 +515,69 @@ def projectSettings(request, url):
 
 
 def projectIssues(request, url):
-    # NEED TO COMPLETE THE TICKET_PAGE
+    try:
+        thisProject = Project.objects.get(url=url)
+    except Project.DoesNotExist:
+        raise Http404
+
+    context = {
+        'project': thisProject,
+    }
     pass
+
+
+def issuesListView(request):
+    allTickets = Ticket.objects.all().select_related(
+        'resolution', 'issueType', 'assignee__profile', 'reporter__profile', 'priority', 'column'
+    )
+
+    projects = request.GET.get('projects', [])
+
+    # TODO: serializeTickets
+    tickets = [
+        {
+            'id': t.id,
+            'internalKey': t.internalKey,
+            'summary': t.summary,
+            'resolution': t.resolution.internalKey,
+            'created': t.createdDttm.date(),
+            'modified': t.modifiedDttm.date(),
+            'issueType': {
+                'internalKey': t.issueType.internalKey,
+                'icon': t.issueType.icon,
+            },
+            'column': {
+                'internalKey': t.column.internalKey,
+                'colour': t.column.colour,
+            },
+            'priority': {
+                'internalKey': t.priority.internalKey,
+                'icon': t.priority.icon
+            },
+            'assignee': {
+                'id': t.assignee.pk,
+                'firstName': t.assignee.first_name,
+                'lastName': t.assignee.last_name,
+                'icon': t.assignee.profile.profilePicture.url
+            } if t.assignee is not None else None,
+            'reporter': {
+                'id': t.reporter.pk,
+                'firstName': t.reporter.first_name,
+                'lastName': t.reporter.last_name,
+                'icon': t.reporter.profile.profilePicture.url
+            } if t.reporter is not None else None,
+        }
+        for t in allTickets
+    ]
+
+    context = {
+        'tickets': tickets,
+    }
+    return render(request, 'jira/issuesListView.html', context)
+
+
+def issuesDetailView(request):
+    return render(request, 'jira/issuesDetailView.html')
 
 
 def profileAndSettings(request):

@@ -8,6 +8,7 @@ app_name = "jira"
 urlpatterns = [
     # path('', views.mainPage, name='main-page'),
     path('dashboard/', views.dashboard, name='dashboard-view'),
+    path('issuesListView/', views.issuesListView, name='issuesListView'),
     path('ticket/<slug:internalKey>/', views.ticketDetailView, name='ticket-detail-view'),
     path('projects/', views.projects, name='projects-page'),
     path('projects/<slug:url>/', views.project, name='project-page'),
