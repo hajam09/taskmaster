@@ -5,6 +5,7 @@ from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.db.models import Q
@@ -15,13 +16,66 @@ from accounts.models import Profile, Component, Team, ComponentGroup
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, TicketComment
 from taskmaster.operations import databaseOperations, emailOperations
 
+cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'))
+cache.set('PROJECT_COMPONENTS', Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS'))
+cache.set('PROJECT_STATUS', Component.objects.filter(componentGroup__code='PROJECT_STATUS'))
+cache.set('TICKET_PRIORITY', Component.objects.filter(componentGroup__code='TICKET_PRIORITY'))
+cache.set('TICKET_RESOLUTIONS', Component.objects.filter(componentGroup__code='TICKET_RESOLUTIONS'))
+
 
 def index(request):
     pass
 
 
 def dashboard(request):
-    pass
+    projectComponents = cache.get('PROJECT_COMPONENTS').prefetch_related('ticketComponents__issueType', 'ticketComponents__priority')
+    ticketIssueType = cache.get('TICKET_ISSUE_TYPE')
+    ticketPriority = cache.get('TICKET_PRIORITY')
+    componentListByIssueType = []
+    componentListByPriority = []
+
+    for component in projectComponents:
+        tickets = component.ticketComponents.all()
+        ticketCounterForIssueCode = {}
+        ticketCounterForPriority = {}
+
+        for issue in ticketIssueType:
+            ticketCounterForIssueCode[issue.code] = {
+                'id': issue.id,
+                'internalKey': issue.internalKey,
+                'icon': issue.icon,
+                'count': len([i for i in tickets if i.issueType.code == issue.code])
+            }
+
+        for priority in ticketPriority:
+            ticketCounterForPriority[priority.code] = {
+                'id': priority.id,
+                'internalKey': priority.internalKey,
+                'icon': priority.icon,
+                'count': len([i for i in tickets if i.priority.code == priority.code])
+            }
+
+        componentListByIssueType.append({
+            'id': component.id,
+            'internalKey': component.internalKey,
+            'issueCounter': ticketCounterForIssueCode,
+            'total': len(tickets)
+        })
+
+        componentListByPriority.append({
+            'id': component.id,
+            'internalKey': component.internalKey,
+            'issueCounter': ticketCounterForPriority,
+            'total': len(tickets)
+        })
+
+    context = {
+        'componentListByIssueType': componentListByIssueType,
+        'componentListByPriority': componentListByPriority,
+        'ticketIssueType': ticketIssueType,
+        'ticketPriority': ticketPriority,
+    }
+    return render(request, "jira/dashboard.html", context)
 
 
 def teams(request):
@@ -401,8 +455,15 @@ def projects(request):
 
 
 def project(request, url):
-    # url = project code
-    pass
+    try:
+        thisProject = Project.objects.get(url=url)
+    except Project.DoesNotExist:
+        raise Http404
+
+    context = {
+        'project': thisProject,
+    }
+    return render(request, 'jira/project.html', context)
 
 
 def projectSettings(request, url):

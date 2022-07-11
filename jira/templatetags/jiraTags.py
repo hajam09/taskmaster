@@ -1,6 +1,7 @@
 from django import template
+from django.core.cache import cache
 
-from accounts.models import Component, Profile
+from accounts.models import Profile
 from jira.models import Project, Board
 
 register = template.Library()
@@ -8,7 +9,6 @@ register = template.Library()
 
 @register.simple_tag
 def projects():
-    # Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)).distinct()
     return Project.objects.all()
 
 
@@ -24,9 +24,9 @@ def profiles():
 
 @register.simple_tag
 def ticketIssueTypes():
-    return Component.objects.filter(componentGroup__code="TICKET_ISSUE_TYPE")
+    return cache.get('TICKET_ISSUE_TYPE')
 
 
 @register.simple_tag
 def ticketPriorities():
-    return Component.objects.filter(componentGroup__code="TICKET_PRIORITY")
+    return cache.get('TICKET_PRIORITY')
