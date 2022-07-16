@@ -443,7 +443,7 @@ a:active {
 	padding-top: 15px
 }
 
-#viewissuesidebar {
+#view-issue-sidebar {
 	width: 35%;
 	padding-left: 30px
 }
@@ -870,21 +870,21 @@ dd.attachment-date {
 		padding-top: 10px
 	}
 
-	#viewissuesidebar #peopledetails {
+	#view-issue-sidebar #peopledetails {
 		line-height: 20px
 	}
 
-	#viewissuesidebar .item-details dl+dl {
+	#view-issue-sidebar .item-details dl+dl {
 		margin-top: 8px
 	}
 
-	#viewissuesidebar .item-details dl dt {
+	#view-issue-sidebar .item-details dl dt {
 		display: block;
 		text-align: left;
 		width: 100%
 	}
 
-	#viewissuesidebar .item-details dl dd {
+	#view-issue-sidebar .item-details dl dd {
 		display: block;
 		margin: 0;
 		padding: 2px 0;

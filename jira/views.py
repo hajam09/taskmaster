@@ -292,6 +292,85 @@ def ticketDetailView(request, internalKey):
     return render(request, "jira/ticketDetailViewPage.html", context)
 
 
+def ticketDetailView2(request, internalKey):
+
+    try:
+        ticket = Ticket.objects.select_related(
+            'project',
+            'issueType',
+            'resolution',
+            'column',
+            'priority',
+            'assignee__profile', 'reporter__profile'
+        ).prefetch_related('label', 'component').get(internalKey__iexact=internalKey)
+    except Ticket.DoesNotExist:
+        raise Http404
+
+    ticketDetails = {
+        'id': ticket.id,
+        'internalKey': ticket.internalKey,
+        'summary': ticket.summary,
+        'description': ticket.description,
+        'createdDate': datetime.strftime(ticket.createdDttm, '%d/%B/%Y, %I:%M %p'),
+        'modifiedDate': datetime.strftime(ticket.modifiedDttm, '%d/%B/%Y, %I:%M %p'),
+        'link': ticket.getTicketUrl(),
+        'storyPoints': ticket.storyPoints,
+        'fixVersion': ticket.fixVersion or '',
+        'project': {
+            'id': ticket.project.id,
+            'internalKey': ticket.project.internalKey,
+            'code': ticket.project.code,
+            'icon': ticket.project.icon.url,
+            'link': ticket.project.getUrl()
+        },
+        'labels': [
+            {
+                'id': label.id,
+                'internalKey': label.internalKey,
+                'colour': label.colour,
+            }
+            for label in ticket.label.all()
+        ],
+        'components': [
+            {
+                'id': component.id,
+                'internalKey': component.internalKey,
+                'code': component.code,
+            }
+            for component in ticket.component.all()
+        ],
+        'issueType': {
+            'internalKey': ticket.issueType.internalKey,
+            'icon': ticket.issueType.icon,
+        },
+        'resolution': {
+            'internalKey': ticket.resolution.internalKey,
+        },
+        'column': {
+            'internalKey': ticket.column.internalKey,
+            'colour': ticket.column.colour,
+        },
+        'priority': {
+            'internalKey': ticket.priority.internalKey,
+            'icon': ticket.priority.icon
+        },
+        'assignee': {
+            'id': ticket.assignee.pk,
+            'fullName': ticket.assignee.get_full_name(),
+            'icon': ticket.assignee.profile.profilePicture.url
+        } if ticket.assignee is not None else {},
+        'reporter': {
+            'id': ticket.reporter.pk,
+            'fullName': ticket.reporter.get_full_name(),
+            'icon': ticket.reporter.profile.profilePicture.url
+        } if ticket.reporter is not None else {},
+    }
+    context = {
+        'ticket': ticketDetails
+    }
+    return render(request, "jira/ticketDetailViewPage2.html", context)
+
+
 @login_required
 def boards(request):
     allBoards = Board.objects.all().prefetch_related('projects', 'admins', 'members')
@@ -529,6 +608,7 @@ def projectIssues(request, url):
 
 def issuesListView(request):
     # TODO: Move this to API.
+    # TODO Dynamically add filter based on url search query parameter.
     allTickets = Ticket.objects.all().select_related(
         'resolution', 'issueType', 'assignee__profile', 'reporter__profile', 'priority', 'column'
     )
@@ -537,6 +617,7 @@ def issuesListView(request):
     issueTypesList = request.GET.get('issueTypes', [])
     resolutionsList = request.GET.get('resolutions', [])
     priorityList = request.GET.get('priorities', [])
+    componentList = request.GET.get('component', [])
 
     if len(projectsList) > 0:
         projectsList = projectsList.split(',')
@@ -553,6 +634,10 @@ def issuesListView(request):
     if len(priorityList) > 0:
         priorityList = priorityList.split(',')
         allTickets = allTickets.filter(priority__code__in=priorityList)
+
+    if len(componentList) > 0:
+        componentList = componentList.split(',')
+        allTickets = allTickets.filter(component__internalKey__in=componentList)
 
     # TODO: serializeTickets
     tickets = [
