@@ -30,3 +30,8 @@ def ticketIssueTypes():
 @register.simple_tag
 def ticketPriorities():
     return cache.get('TICKET_PRIORITY')
+
+
+@register.simple_tag
+def ticketResolutions():
+    return cache.get('TICKET_RESOLUTIONS')

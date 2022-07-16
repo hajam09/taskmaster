@@ -6,6 +6,39 @@
         body {
             color: black;
         }
+
+        .checkbox-menu li label {
+            display: block;
+            padding: 3px 10px;
+            clear: both;
+            font-weight: normal;
+            line-height: 1.42857143;
+            color: #333;
+            white-space: nowrap;
+            margin: 0;
+            transition: background-color .4s ease;
+        }
+
+        .checkbox-menu li input {
+            margin: 0px 5px;
+            top: 2px;
+            position: relative;
+        }
+
+        .checkbox-menu li.active label {
+            background-color: #cbcbff;
+            font-weight: bold;
+        }
+
+        .checkbox-menu li label:hover,
+        .checkbox-menu li label:focus {
+            background-color: #f5f5f5;
+        }
+
+        .checkbox-menu li.active label:hover,
+        .checkbox-menu li.active label:focus {
+            background-color: #b8b8ff;
+        }
     </style>
 
     <div class="container-fluid" style="margin: auto;overflow-x: hipen; color: black; max-width: 1800px;">
@@ -29,76 +62,167 @@
                     </div>
                 </div>
                 <br>
+                <div class="row">
+                    <div class="col-auto">
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" id="projectsDropdown"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Project:
+                            </button>
+                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown">
+
+                                {% for t in projects %}
+                                    <li>
+                                        <label>
+                                            <input class="projects" type="checkbox"
+                                                   value="{{ t.code }}"> {{ t.internalKey }}
+                                        </label>
+                                    </li>
+                                {% endfor %}
+
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" id="projectsDropdown"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Type:
+                            </button>
+                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown">
+
+                                {% for t in ticketIssueTypes %}
+                                    <li>
+                                        <label>
+                                            <input class="issueTypes" type="checkbox"
+                                                   value="{{ t.code }}"> {{ t.internalKey }}
+                                        </label>
+                                    </li>
+                                {% endfor %}
+
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" id="projectsDropdown"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Resolution:
+                            </button>
+                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown">
+
+                                {% for t in ticketResolutions %}
+                                    <li>
+                                        <label>
+                                            <input class="resolution" type="checkbox"
+                                                   value="{{ t.code }}"> {{ t.internalKey }}
+                                        </label>
+                                    </li>
+                                {% endfor %}
+
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" id="projectsDropdown"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Priority:
+                            </button>
+                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown">
+
+                                {% for t in ticketPriorities %}
+                                    <li>
+                                        <label>
+                                            <input class="priority" type="checkbox"
+                                                   value="{{ t.code }}"> {{ t.internalKey }}
+                                        </label>
+                                    </li>
+                                {% endfor %}
+
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="dropdown">
+                            <input class="btn btn-primary" type="button" onclick="updateQuery();" value="Submit">
+                        </div>
+                    </div>
+                </div>
+                <br>
                 {% if tickets|length > 0 %}
                     <table id="ticketsTable" class="table table-sm table-borderless table-hover">
                         <thead>
-                            <tr>
-                                <th>T</th>
-                                <th>Key</th>
-                                <th>Summary</th>
-                                <th>Assignee</th>
-                                <th>Reporter</th>
-                                <th>P</th>
-                                <th>Status</th>
-                                <th>Resolution</th>
-                                <th>Created</th>
-                                <th>Modified</th>
-                            </tr>
+                        <tr>
+                            <th>T</th>
+                            <th>Key</th>
+                            <th>Summary</th>
+                            <th>Assignee</th>
+                            <th>Reporter</th>
+                            <th>P</th>
+                            <th>Status</th>
+                            <th>Resolution</th>
+                            <th>Created</th>
+                            <th>Modified</th>
+                        </tr>
                         </thead>
-                        <tbody>
-                            {% for t in tickets %}
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <img alt="{{ t.issueType.internalKey }}" src="{{ t.issueType.icon }}"
-                                             title="{{ t.issueType.internalKey }}" loading="lazy"
-                                             width="17" height="17">
-                                    </td>
-                                    <td>{{ t.internalKey }}</td>
-                                    <td>{{ t.summary }}</td>
-                                    <td>
-                                        {% if t.assignee %}
-                                            <img alt="{{ t.assignee.firstName }} {{ t.assignee.lastName }}"
-                                                 src="{{ t.assignee.icon }}"
-                                                 title="{{ t.assignee.firstName }} {{ t.assignee.lastName }}"
-                                                 loading="lazy"
-                                                 width="25" height="25"> {{ t.assignee.firstName }} {{ t.assignee.lastName }}
-                                        {% else %}
-                                            <img alt="Unassigned"
-                                                 src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
-                                                 title="Unassigned"
-                                                 loading="lazy"
-                                                 width="25" height="25"> Unassigned
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if t.reporter %}
-                                            <img alt="{{ t.reporter.firstName }} {{ t.reporter.lastName }}"
-                                                 src="{{ t.reporter.icon }}"
-                                                 title="{{ t.reporter.firstName }} {{ t.reporter.lastName }}"
-                                                 loading="lazy"
-                                                 width="25" height="25"> {{ t.reporter.firstName }}
-                                            {{ t.reporter.lastName }}
-                                        {% else %}
-                                            <img alt="Unassigned"
-                                                 src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
-                                                 title="Unassigned"
-                                                 loading="lazy"
-                                                 width="25" height="25"> Unassigned
-                                        {% endif %}
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <img alt="{{ t.priority.internalKey }}"
-                                             src="{{ t.priority.icon }}"
-                                             title="{{ t.priority.internalKey }}"
+                        <tbody id="id-table-tbody">
+                        {% for t in tickets %}
+                            <tr>
+                                <td style="text-align: center;">
+                                    <img alt="{{ t.issueType.internalKey }}" src="{{ t.issueType.icon }}"
+                                         title="{{ t.issueType.internalKey }}" loading="lazy"
+                                         width="17" height="17">
+                                </td>
+                                <td><a href="{{ t.link }}" style="color: #505f79">{{ t.internalKey }}</a></td>
+                                <td><a href="{{ t.link }}">{{ t.summary }}</a></td>
+                                <td>
+                                    {% if t.assignee %}
+                                        <img alt="{{ t.assignee.firstName }} {{ t.assignee.lastName }}"
+                                             src="{{ t.assignee.icon }}"
+                                             title="{{ t.assignee.firstName }} {{ t.assignee.lastName }}"
                                              loading="lazy"
-                                             width="25" height="25">
-                                    </td>
-                                    <td><h6><span class="badge badge-secondary" style="background-color: {{ t.column.colour }}">{{ t.column.internalKey }}</span></h6></td>
-                                    <td><i>{{ t.resolution }}</i></td>
-                                    <td>{{ t.created }}</td>
-                                    <td>{{ t.modified }}</td>
-                                </tr>
-                            {% endfor %}
+                                             width="25" height="25"> {{ t.assignee.firstName }}
+                                        {{ t.assignee.lastName }}
+                                    {% else %}
+                                        <img alt="Unassigned"
+                                             src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
+                                             title="Unassigned"
+                                             loading="lazy"
+                                             width="25" height="25"> Unassigned
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if t.reporter %}
+                                        <img alt="{{ t.reporter.firstName }} {{ t.reporter.lastName }}"
+                                             src="{{ t.reporter.icon }}"
+                                             title="{{ t.reporter.firstName }} {{ t.reporter.lastName }}"
+                                             loading="lazy"
+                                             width="25" height="25"> {{ t.reporter.firstName }}
+                                        {{ t.reporter.lastName }}
+                                    {% else %}
+                                        <img alt="Unassigned"
+                                             src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
+                                             title="Unassigned"
+                                             loading="lazy"
+                                             width="25" height="25"> Unassigned
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: center;">
+                                    <img alt="{{ t.priority.internalKey }}"
+                                         src="{{ t.priority.icon }}"
+                                         title="{{ t.priority.internalKey }}"
+                                         loading="lazy"
+                                         width="25" height="25">
+                                </td>
+                                <td><h6><span class="badge badge-secondary"
+                                              style="background-color: {{ t.column.colour }}">{{ t.column.internalKey }}</span>
+                                </h6></td>
+                                <td><i>{{ t.resolution }}</i></td>
+                                <td>{{ t.created }}</td>
+                                <td>{{ t.modified }}</td>
+                            </tr>
+                        {% endfor %}
                         </tbody>
                     </table>
                 {% else %}
@@ -111,7 +235,107 @@
     </div>
 
     <script type="text/javascript">
+
+        function updateQuery() {
+            const checkedProjects = $('.projects:checkbox:checked').map(function () {
+                return this.value;
+            }).get().join();
+
+            const checkedIssueTypes = $('.issueTypes:checkbox:checked').map(function () {
+                return this.value;
+            }).get().join();
+
+            const checkedResolution = $('.resolution:checkbox:checked').map(function () {
+                return this.value;
+            }).get().join();
+
+            const checkedPriorities = $('.priority:checkbox:checked').map(function () {
+                return this.value;
+            }).get().join();
+
+            let currentPath = "{% url 'jira:issuesListView' %}" + "?";
+
+            if (checkedProjects) {
+                currentPath += "projects=" + checkedProjects;
+            }
+
+            if (checkedIssueTypes) {
+                if (checkedProjects)
+                    currentPath += "&";
+                currentPath += "issueTypes=" + checkedIssueTypes;
+            }
+
+            if (checkedResolution) {
+                if (checkedIssueTypes)
+                    currentPath += "&";
+                currentPath += "resolutions=" + checkedResolution;
+            }
+
+            if (checkedPriorities) {
+                if (checkedResolution)
+                    currentPath += "&";
+                currentPath += "priorities=" + checkedPriorities;
+            }
+
+            window.history.pushState("", "", currentPath);
+
+            location.reload();
+        }
+
+        $(".checkbox-menu").on("change", "input[type='checkbox']", function () {
+            $(this).closest("li").toggleClass("active", this.checked);
+        });
+
+        $(document).on('click', '.allow-focus', function (e) {
+            e.stopPropagation();
+        });
+
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            let regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        function updateCheckBox() {
+
+            let projectCodes = getParameterByName('projects');
+            let issueTypeCodes = getParameterByName('issueTypes');
+            let resolutionCodes = getParameterByName('resolutions');
+            let priorityCodes = getParameterByName('priorities');
+
+            projectCodes = projectCodes ? projectCodes.split(',') : [];
+            issueTypeCodes = issueTypeCodes ? issueTypeCodes.split(',') : [];
+            resolutionCodes = resolutionCodes ? resolutionCodes.split(',') : [];
+            priorityCodes = priorityCodes ? priorityCodes.split(',') : [];
+
+            $('.projects:checkbox').map(function () {
+                if (projectCodes.includes(this.value))
+                    this.checked = "checked";
+            })
+
+            $('.issueTypes:checkbox').map(function () {
+                if (issueTypeCodes.includes(this.value))
+                    this.checked = "checked";
+            })
+
+            $('.resolution:checkbox').map(function () {
+                if (resolutionCodes.includes(this.value))
+                    this.checked = "checked";
+            })
+
+            $('.priority:checkbox').map(function () {
+                if (priorityCodes.includes(this.value))
+                    this.checked = "checked";
+            })
+        }
+
+
         $(function () {
+                updateCheckBox();
+
                 $("#ticketsTable").DataTable(
                     {
                         "responsive": true,

@@ -160,6 +160,9 @@ def ticketDetailView(request, internalKey):
     TODO: Fix file attachment style
     TODO: Allow file attachment delete option
     """
+    # Ticket.objects.all().select_related(
+    #     'resolution', 'issueType', 'assignee__profile', 'reporter__profile', 'priority', 'column'
+    # )
     try:
         ticket = Ticket.objects.select_related(
             'priority',
@@ -412,9 +415,6 @@ def yourWork(request):
 
 @login_required
 def projects(request):
-    """
-    TODO: Filter dropdown to filter projects by name, name contains, lead, status (show ongoing and terminated)...
-    """
     projectQuery = Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)
     allProjects = Project.objects.filter(projectQuery).distinct().select_related('status', 'lead')
     allProfiles = Profile.objects.all().select_related('user')
@@ -448,13 +448,14 @@ def projects(request):
             )
 
     context = {
-        'projects': allProjects,
+        'allProjects': allProjects,
         'profiles': allProfiles
     }
     return render(request, 'jira/projects.html', context)
 
 
 def project(request, url):
+    # to issuesListView
     try:
         thisProject = Project.objects.get(url=url)
     except Project.DoesNotExist:
@@ -527,11 +528,31 @@ def projectIssues(request, url):
 
 
 def issuesListView(request):
+    # TODO: Move this to API.
     allTickets = Ticket.objects.all().select_related(
         'resolution', 'issueType', 'assignee__profile', 'reporter__profile', 'priority', 'column'
     )
 
-    projects = request.GET.get('projects', [])
+    projectsList = request.GET.get('projects', [])
+    issueTypesList = request.GET.get('issueTypes', [])
+    resolutionsList = request.GET.get('resolutions', [])
+    priorityList = request.GET.get('priorities', [])
+
+    if len(projectsList) > 0:
+        projectsList = projectsList.split(',')
+        allTickets = allTickets.filter(project__code__in=projectsList)
+
+    if len(issueTypesList) > 0:
+        issueTypesList = issueTypesList.split(',')
+        allTickets = allTickets.filter(issueType__code__in=issueTypesList)
+
+    if len(resolutionsList) > 0:
+        resolutionsList = resolutionsList.split(',')
+        allTickets = allTickets.filter(resolution__code__in=resolutionsList)
+
+    if len(priorityList) > 0:
+        priorityList = priorityList.split(',')
+        allTickets = allTickets.filter(priority__code__in=priorityList)
 
     # TODO: serializeTickets
     tickets = [
@@ -542,6 +563,7 @@ def issuesListView(request):
             'resolution': t.resolution.internalKey,
             'created': t.createdDttm.date(),
             'modified': t.modifiedDttm.date(),
+            'link': t.getTicketUrl(),
             'issueType': {
                 'internalKey': t.issueType.internalKey,
                 'icon': t.issueType.icon,
