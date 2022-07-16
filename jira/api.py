@@ -13,7 +13,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from accounts.models import Team, Component
-from jira.models import Board, Column, Label, Ticket, Project, Sprint
+from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment
 from taskmaster.operations import databaseOperations
 
 
@@ -536,13 +536,52 @@ class TicketObjectForEpicTicketApiEventVersion1Component(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class TicketCommentsApiEventVersion1Component(View):
+    def get(self, *args, **kwargs):
+        ticketId = self.kwargs.get("ticketId", None)
+
+        ticketComments = TicketComment.objects.filter(ticket__id=ticketId).select_related(
+            'creator__profile').prefetch_related('likes', 'dislikes')
+
+        comments = [
+            {
+                'id': comment.id,
+                'comment': comment.comment,
+                'edited': comment.edited,
+                'likes': {
+                    'count': comment.likes.count(),
+                    'liked': self.request in comment.likes.all()
+                },
+                'dislikes': {
+                    'count': comment.dislikes.count(),
+                    'disliked': self.request in comment.dislikes.all()
+                },
+                'creator': {
+                    'id': comment.creator.id,
+                    'fullName': comment.creator.get_full_name(),
+                    'icon': comment.creator.profile.profilePicture.url
+                }
+            }
+            for comment in ticketComments
+        ]
+
+        response = {
+            "success": True,
+            "data": {
+                "comments": comments
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class TicketsForEpicTicketApiEventVersion1Component(View):
 
     def get(self, *args, **kwargs):
         ticketId = self.kwargs.get("ticketId", None)
 
         try:
-            ticket = Ticket.objects.get(id=ticketId)
+            ticket = Ticket.objects.select_related('priority', 'issueType', 'assignee__profile').get(id=ticketId)
         except Ticket.DoesNotExist:
             response = {
                 "success": False,
@@ -556,7 +595,11 @@ class TicketsForEpicTicketApiEventVersion1Component(View):
                 'internalKey': i.internalKey,
                 'summary': i.summary,
                 'url': i.getTicketUrl(),
-                'assignee': {},
+                'assignee': {
+                    'id': i.assignee.pk,
+                    'fullName': i.assignee.get_full_name(),
+                    'icon': i.assignee.profile.profilePicture.url
+                } if i.assignee is not None else {},
                 'issueType': {
                     'id': i.issueType.pk,
                     'icon': i.issueType.icon,
@@ -646,7 +689,7 @@ class SubTaskTicketsForTicketApiEventVersion1Component(View):
         ticketId = self.kwargs.get("ticketId", None)
 
         try:
-            ticket = Ticket.objects.get(id=ticketId)
+            ticket = Ticket.objects.select_related('priority', 'issueType', 'assignee__profile').get(id=ticketId)
         except Ticket.DoesNotExist:
             response = {
                 "success": False,
@@ -660,7 +703,11 @@ class SubTaskTicketsForTicketApiEventVersion1Component(View):
                 'internalKey': i.internalKey,
                 'summary': i.summary,
                 'url': i.getTicketUrl(),
-                'assignee': {},
+                'assignee': {
+                    'id': i.assignee.pk,
+                    'fullName': i.assignee.get_full_name(),
+                    'icon': i.assignee.profile.profilePicture.url
+                } if i.assignee is not None else {},
                 'issueType': {
                     'id': i.issueType.pk,
                     'icon': i.issueType.icon,

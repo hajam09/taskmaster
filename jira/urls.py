@@ -10,6 +10,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard-view'),
     path('issuesListView/', views.issuesListView, name='issuesListView'),
     path('ticket/<slug:internalKey>/', views.ticketDetailView, name='ticket-detail-view'),
+    path('browse/<slug:internalKey>/', views.ticketDetailView2, name='ticket-detail-view-2'),
     path('projects/', views.projects, name='projects-page'),
     path('projects/<slug:url>/', views.project, name='project-page'),
     path('projects/<slug:url>/settings', views.projectSettings, name='project-settings'),
@@ -64,6 +65,11 @@ urlpatterns += [
         'api/v1/ticketsForEpicTicketApiEventVersion1Component/<int:ticketId>',
         TicketsForEpicTicketApiEventVersion1Component.as_view(),
         name='ticketsForEpicTicketApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/ticketCommentsApiEventVersion1Component/<int:ticketId>',
+        TicketCommentsApiEventVersion1Component.as_view(),
+        name='ticketCommentsApiEventVersion1Component'
     ),
     path(
         'api/v1/ticketObjectForEpicTicketApiEventVersion1Component/',
