@@ -423,6 +423,59 @@ class TeamsObjectApiEventVersion1Component(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class TicketCommentObjectApiEventVersion1Component(View):
+
+    def post(self, *args, **kwargs):
+        body = json.loads(self.request.body.decode())
+        ticketId = body.get("ticketId")
+        comment = body.get("comment")
+
+        try:
+            ticket = Ticket.objects.get(id=ticketId)
+        except Ticket.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a ticket with id: {}".format(ticketId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        newCommentNumber = TicketComment.objects.count()
+
+        ticketComment = TicketComment()
+        ticketComment.ticket = ticket
+        ticketComment.creator = self.request.user or None
+        ticketComment.comment = comment
+        ticketComment.orderNo = newCommentNumber + 1
+        ticketComment.save()
+
+        data = {
+            'id': ticketComment.pk,
+            'comment': ticketComment.comment,
+            'edited': ticketComment.edited,
+            'likes': {
+                'count': 0,
+                'liked': False
+            },
+            'dislikes': {
+                'count': 0,
+                'liked': False
+            },
+            'creator': {
+                'id': ticketComment.creator.id,
+                'fullName': ticketComment.creator.get_full_name(),
+                'icon': ticketComment.creator.profile.profilePicture.url
+            }
+
+        }
+
+        response = {
+            'success': True,
+            'data': data
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class TicketObjectForEpicTicketApiEventVersion1Component(View):
 
     def post(self, *args, **kwargs):
