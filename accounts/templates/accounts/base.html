@@ -207,5 +207,89 @@
 
     	<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.12.1/datatables.min.js"></script>
 	</body>
+    <script type="text/javascript">
+
+        let projectCache = localStorage.getItem("projectList");
+        let issueTypeCache = localStorage.getItem("issueTypeList");
+        let resolutionCache = localStorage.getItem("resolutionList");
+        let priorityCache = localStorage.getItem("priorityList");
+
+        if (projectCache == null) {
+            const projectListArray = [];
+            {% for t in projects %}
+                projectListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
+            {% endfor %}
+            localStorage.setItem("projectList", JSON.stringify({object: projectListArray}));
+        } else {
+            const projectList = JSON.parse(projectCache).object;
+            if ($.isEmptyObject(projectList)) {
+                const projectListArray = [];
+                {% for t in projects %}
+                    projectListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
+                {% endfor %}
+                localStorage.setItem("projectList", JSON.stringify({object: projectListArray}));
+            }
+        }
+
+        if (issueTypeCache == null) {
+            const issueTypeListArray = [];
+            {% for t in ticketIssueTypes %}
+                issueTypeListArray.push({
+                    "id": "{{ t.id }}",
+                    "code": "{{ t.code }}",
+                    "internalKey": "{{ t.internalKey }}"
+                });
+            {% endfor %}
+            localStorage.setItem("issueTypeList", JSON.stringify({object: issueTypeListArray}));
+        } else {
+            const issueTypeList = JSON.parse(issueTypeCache).object;
+            if ($.isEmptyObject(issueTypeList)) {
+                const issueTypeListArray = [];
+                {% for t in ticketIssueTypes %}
+                    issueTypeListArray.push({
+                        "id": "{{ t.id }}",
+                        "code": "{{ t.code }}",
+                        "internalKey": "{{ t.internalKey }}"
+                    });
+                {% endfor %}
+
+                localStorage.setItem("issueTypeList", JSON.stringify({object: issueTypeListArray}));
+            }
+        }
+
+        if (resolutionCache == null) {
+            const resolutionListArray = [];
+            {% for t in ticketResolutions %}
+                resolutionListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
+            {% endfor %}
+            localStorage.setItem("resolutionList", JSON.stringify({object: resolutionListArray}));
+        } else {
+            const resolutionList = JSON.parse(resolutionCache).object;
+            if ($.isEmptyObject(resolutionList)) {
+                const resolutionListArray = [];
+                {% for t in ticketResolutions %}
+                    resolutionListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
+                {% endfor %}
+                localStorage.setItem("resolutionList", JSON.stringify({object: resolutionListArray}));
+            }
+        }
+
+        if (priorityCache == null) {
+            const priorityListArray = [];
+            {% for t in ticketPriorities %}
+                priorityListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
+            {% endfor %}
+            localStorage.setItem("priorityList", JSON.stringify({object: priorityListArray}));
+        } else {
+            const priorityList = JSON.parse(priorityCache).object;
+            if ($.isEmptyObject(priorityList)) {
+                const priorityListArray = [];
+                {% for t in ticketPriorities %}
+                    priorityListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
+                {% endfor %}
+                localStorage.setItem("priorityList", JSON.stringify({object: priorityListArray}));
+            }
+        }
+    </script>
 </html>
 </div>

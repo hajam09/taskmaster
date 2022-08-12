@@ -231,9 +231,10 @@
                                         <strong className="name" title="Labels"> <label
                                             htmlFor="labels-textarea">Labels:</label> </strong>
                                         {
+                                            // TODO: ticket filtering based on label is not Implemented.
                                             this.props.ticket.labels.map((label, i) =>
                                                 <div className="labels-wrap value" key={i}>
-                                                    <a href="/issues/?jql=labels+%3D+regression" className="aui-lozenge"
+                                                    <a href={"{% url 'jira:issuesListView' %}?projects=" + this.props.ticket.project.code + "&label=" + label.internalKey} className="aui-lozenge"
                                                        style={style2}
                                                        title={label.internalKey}>
                                                         {label.internalKey}
@@ -273,10 +274,13 @@
 
                 let assignee = Object.keys(this.props.assignee).length === 0 ? unassignedProfile : this.props.assignee;
                 let reporter = Object.keys(this.props.reporter).length === 0 ? unassignedProfile : this.props.reporter;
+                let watchers = this.props.watchers;
+                watchers.isWatching = eval(watchers.isWatching);
 
                 this.state = {
                     assignee: assignee,
                     reporter: reporter,
+                    watchers: watchers,
                 }
             }
 
@@ -345,8 +349,12 @@
                                 <dl>
                                     <dt title="Watchers">Watchers:</dt>
                                     <dd>
-                                        <aui-badge id="watcher-data" className="">2</aui-badge>
-                                        <span id="watch-label" title="You have to be logged in to watch an issue.">Start watching this issue</span>
+                                        {this.state.watchers.isWatching ? <span
+                                                className="badge badge-pill badge-primary">{this.state.watchers.counter}</span> :
+                                            <aui-badge id="watcher-data"
+                                                       className="">{this.state.watchers.counter}</aui-badge>}
+                                        <span id="watch-label"
+                                              title={this.state.watchers.message}>{!this.state.watchers.isWatching ? " Watch this issue" : " Unwatch this issue"}</span>
                                     </dd>
                                 </dl>
                             </div>
@@ -383,6 +391,159 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                )
+            }
+        }
+
+        class Thumbnail extends React.Component {
+            constructor(props) {
+                super(props);
+                console.log(this.props.attachment)
+            }
+
+            render() {
+                return (
+                    <li className="attachment-content js-file-attachment" draggable="true"
+                        data-downloadurl="image/png:image-2022-06-21-21-22-35-447.png:https://issues.jenkins.io/secure/attachment/58242/image-2022-06-21-21-22-35-447.png"
+                        data-issue-id={this.props.attachment.id} data-attachment-type="image"
+                        data-attachment-thumbnail="true">
+                        <div className="attachment-thumb">
+                            <a href={this.props.attachment.url}
+                               title={this.props.attachment.name}
+                               file-preview-id={this.props.attachment.id}
+                               file-preview-title={this.props.attachment.name}
+                               file-preview-type="image"
+                               file-preview-url="https://issues.jenkins.io/secure/thumbnail/58242/_thumb_58242.png"
+                               resolved="">
+                                <img loading="lazy"
+                                     src={this.props.attachment.icon}
+                                     alt={this.props.attachment.name}></img>
+                            </a>
+                        </div>
+                        <dl>
+                            <dt>
+                                <span className="blender"></span>
+                                <a
+                                    href={this.props.attachment.url}
+                                    className="attachment-title"
+                                    title={this.props.attachment.name}
+                                    file-preview-id={this.props.attachment.id}
+                                    file-preview-title={this.props.attachment.name}
+                                    file-preview-type="image"
+                                    file-preview-url="https://issues.jenkins.io/secure/thumbnail/58242/_thumb_58242.png"
+                                    resolved="">{this.props.attachment.internalKey}</a></dt>
+                            <dd className="attachment-size">{this.props.attachment.size}</dd>
+                            <dd className="attachment-date">
+                                <time className="livestamp"
+                                      dateTime={this.props.attachment.createdDttm}>{this.props.attachment.createdDttm}
+                                </time>
+                            </dd>
+                        </dl>
+                    </li>
+                )
+            }
+        }
+
+        class TicketAttachmentComponent extends React.Component {
+            constructor(props) {
+                super(props);
+
+                this.state = {
+                    attachments: []
+                }
+
+            }
+
+            componentDidMount = () => {
+                this.fetchTicketAttachments();
+            }
+
+
+            fetchTicketAttachments()
+            {
+                fetch('{% url 'jira:ticketAttachmentsApiEventVersion1Component' ticketId=ticket.id %}')
+                    .then(response => response.json())
+                    .then(data => this.setState({
+                        attachments: data.data.attachments
+                    }))
+
+            }
+
+            render() {
+                return (
+                    <div id="attachmentModule" className="module toggle-wrap">
+                        <div id="attachmentModuleHeading" className="mod-header">
+                            <button className="aui-button toggle-title" aria-label="Attachments"
+                                    aria-controls="attachmentModule" aria-expanded="true" resolved="">
+                                <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
+                            </button>
+                            <h4 className="toggle-title" id="attachmentmodule-label">Attachments</h4>
+                            <ul className="ops">
+                                <li className="drop">
+                                    <div className="aui-dd-parent">
+                                        <button
+                                            className="aui-button aui-button-compact aui-button-subtle js-default-dropdown"
+                                            title="Options" aria-label="Attachments panel options" resolved=""
+                                            id="AJS_DROPDOWN__4" aria-controls="AJS_DROPDOWN__4_drop"
+                                            aria-haspopup="true" aria-expanded="false"><span
+                                            className="aui-icon aui-icon-small aui-iconfont-more">Options</span>
+                                        </button>
+                                        <div className="aui-dropdown-content aui-list">
+                                            <ul id="attachment-sorting-options" className="aui-list-section aui-first">
+                                                <li className="aui-list-item"><a id="attachment-sort-key-name"
+                                                                                 href="/browse/JENKINS-68799?attachmentSortBy=fileName#attachmentModule"
+                                                                                 className="aui-list-checked aui-checked aui-list-item-link"
+                                                                                 title="viewissue.subtasks.tab.show.all.name"><span>Sort By Name</span></a>
+                                                </li>
+                                                <li className="aui-list-item"><a id="attachment-sort-key-date"
+                                                                                 href="/browse/JENKINS-68799?attachmentSortBy=dateTime#attachmentModule"
+                                                                                 className="aui-list-checked aui-list-item-link"
+                                                                                 title="Sort By Date"><span>Sort By Date</span></a>
+                                                </li>
+                                            </ul>
+                                            <ul id="attachment-sorting-order-options" className="aui-list-section">
+                                                <li className="aui-list-item"><a id="attachment-sort-direction-asc"
+                                                                                 href="/browse/JENKINS-68799?attachmentOrder=asc#attachmentModule"
+                                                                                 className="aui-list-checked aui-checked aui-list-item-link"
+                                                                                 title="Ascending"><span>Ascending</span></a>
+                                                </li>
+                                                <li className="aui-list-item"><a id="attachment-sort-direction-desc"
+                                                                                 href="/browse/JENKINS-68799?attachmentOrder=desc#attachmentModule"
+                                                                                 className="aui-list-checked aui-list-item-link"
+                                                                                 title="Descending"><span>Descending</span></a>
+                                                </li>
+                                            </ul>
+                                            <ul id="attachment-view-mode-options" className="aui-list-section">
+                                                <li className="aui-list-item"><a id="attachment-view-mode-gallery"
+                                                                                 href="/browse/JENKINS-68799?attachmentViewMode=gallery#attachmentModule"
+                                                                                 className="aui-list-checked aui-checked aui-list-item-link"
+                                                                                 title="Thumbnails"><span>Thumbnails</span></a>
+                                                </li>
+                                                <li className="aui-list-item"><a id="attachment-view-mode-list"
+                                                                                 href="/browse/JENKINS-68799?attachmentViewMode=list#attachmentModule"
+                                                                                 className="aui-list-checked aui-list-item-link"
+                                                                                 title="List"><span>List</span></a></li>
+                                            </ul>
+                                            <ul id="attachment-manage-options" className="aui-list-section aui-last">
+                                                <li className="aui-list-item"><a id="aszip"
+                                                                                 href="/secure/attachmentzip/215653.zip"
+                                                                                 className="aui-list-checked aui-list-item-link"
+                                                                                 title="Download all attachments as a ZIP file"><span>Download All</span></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <div className="mod-content">
+                                <ol id="attachment_thumbnails" className="item-attachments" data-sort-key="fileName"
+                                    data-sort-order="asc">
+                                    {this.state.attachments.map((item => <Thumbnail key={item.id} attachment={item}/>))}
+                                </ol>
+                            </div>
+                        </div>
+
                     </div>
                 )
             }
@@ -485,9 +646,23 @@
         class LinkingModuleBody extends React.Component {
             constructor(props) {
                 super(props);
+                let issueTypeList = localStorage.getItem("issueTypeList");
+
+                if (issueTypeList != null) {
+                    issueTypeList = JSON.parse(issueTypeList).object;
+                    const STORY = "STORY";
+                    issueTypeList.sort(function (x, y) {
+                        return x.code == STORY ? -1 : y.code == STORY ? 1 : 0;
+                    });
+                }
+                else{
+                    issueTypeList = [];
+                }
+
                 this.state = {
                     issueType: null,
                     summary: null,
+                    issueTypes: issueTypeList,
                 }
             }
 
@@ -539,18 +714,20 @@
                                 <div className="col-4">
                                     <select id="issueType" data-show-content="true" className="form-control"
                                             ref="issueTypeInput">
-                                        {% for ji in ticketIssueTypes %}
-                                            {% if ji.code == "STORY" %}
-                                                <option
-                                                    data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"
-                                                    defaultValue="{{ ji.code }}"
-                                                    selected="selected">{{ ji.internalKey }}</option>
-                                            {% else %}
-                                                <option
-                                                    data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"
-                                                    defaultValue="{{ ji.code }}">{{ ji.internalKey }}</option>
-                                            {% endif %}
-                                        {% endfor %}
+                                        {this.state.issueTypes.map((type) => <option key={type.id}
+                                                                                     defaultValue={type.code}> {type.internalKey}</option>)}
+{#                                       {% for ji in ticketIssueTypes %}#}
+{#                                            {% if ji.code == "STORY" %}#}
+{#                                                <option#}
+{#                                                    data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"#}
+{#                                                    defaultValue="{{ ji.code }}"#}
+{#                                                    selected="selected">{{ ji.internalKey }}</option>#}
+{#                                            {% else %}#}
+{#                                                <option#}
+{#                                                    data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"#}
+{#                                                    defaultValue="{{ ji.code }}">{{ ji.internalKey }}</option>#}
+{#                                            {% endif %}#}
+{#                                        {% endfor %}#}
                                     </select>
                                 </div>
                                 <div className="col-8">
@@ -660,92 +837,75 @@
             }
         }
 
-        class ActivityModuleHead extends React.Component {
-            constructor(props) {
-                super(props);
-            }
-
-            render() {
-
-                const style1 = {
-                    fontSize: "24px",
-                    cursor: "pointer"
-                }
-                return (
-                    <div id="activitymodule_heading" className="mod-header">
-                        <button className="aui-button toggle-title" aria-label="Activity"
-                                aria-controls="activitymodule" aria-expanded="true" resolved="">
-                            <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
-                        </button>
-                        <div className="row">
-                            <div className="col">
-                                <p className="font-weight-bold">Comments</p>
-                            </div>
-                            <div className="col-auto">
-                                <i className="fa fa-plus-square float-right"
-                                   style={style1} onClick={this.props.switchCreateMode}
-                                ></i>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-        }
-
         class TicketCommentInstanceComponent extends React.Component {
             constructor(props) {
                 super(props);
-                console.log(this.props.comment)
             }
 
             render() {
                 return (
-                    <div id={"comment-"+this.props.comment.id}
+                    <div id={"comment-" + this.props.comment.id}
                          className="issue-data-block activity-comment twixi-block expanded">
                         <div className="twixi-wrap verbose actionContainer">
                             <div className="action-head">
-                                <button title="Collapse comment" className="aui-button toggle-title" aria-label="Collapse comment" aria-expanded="true" resolved="">
-                                    <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
-                                </button>
+                                <button aria-label="Collapse comment" title="Collapse comment"
+                                        className="twixi icon-default aui-icon aui-icon-small aui-iconfont-expanded"></button>
                                 <div className="action-details">
-                                    {##}
-                                    {#<a className="user-hover user-avatar" rel="bf31e0818161"#}
-                                    {#   id="commentauthor_3025721_verbose"#}
-                                    {#   href="/secure/ViewProfile.jspa?name=bf31e0818161"><span#}
-                                    {#    className="aui-avatar aui-avatar-xsmall"><span#}
-                                    {#    className="aui-avatar-inner"><img#}
-                                    {#    src="https://jira.atlassian.com/secure/useravatar?size=xsmall&amp;avatarId=10612"#}
-                                    {#    alt="bf31e0818161"></span></span> John Price</a>#}
-                                    {#added a comment - <a#}
-                                    {#href="/browse/JSDCLOUD-630?focusedCommentId=3025721&amp;page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-3025721"#}
-                                    {#className="commentdate_3025721_verbose subText comment-created-date-link"><span#}
-                                    {#className="date user-tz" title="12/Apr/2022 5:37 PM"><time#}
-                                    {#className="livestamp" datetime="2022-04-12T17:37:36+0000">12/Apr/2022 5:37 PM</time></span></a>#}
+                                    <a className="user-hover user-avatar" rel="7ad1551c39c0"
+                                       id="commentauthor_2600002_verbose"
+                                       href="/secure/ViewProfile.jspa?name=7ad1551c39c0"><span
+                                        className="aui-avatar aui-avatar-xsmall"><span className="aui-avatar-inner"><img
+                                        src={this.props.comment.creator.icon}
+                                        alt="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"></img></span></span> {this.props.comment.creator.fullName}
+                                    </a>
+                                    &nbsp;added a comment at <a
+                                    href="/browse/JSDCLOUD-9247?focusedCommentId=2600002&amp;page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-2600002"
+                                    className="commentdate_2600002_verbose subText comment-created-date-link"><span
+                                    className="date user-tz" title={this.props.comment.createdDttm}>
+                                    <time className="livestamp"
+                                          dateTime={this.props.comment.createdDttm}>{this.props.comment.createdDttm}</time></span></a>
+                                    &nbsp;&nbsp;{this.props.comment.edited ?
+                                    <span className="text-secondary">(edited)</span> : <span></span>}
                                 </div>
                             </div>
-                            <div className="action-body flooded">
-                                <p>
-                                    {this.props.comment.comment}
-                                </p>
-                            </div>
+                            <div className="action-body flooded"><span>
+                                {this.props.comment.comment.split('\n').map(str => <p key={"comment-" + this.props.comment.id}>{str}</p>)}
+                            </span></div>
                             <div className="action-links action-comment-actions">
                             </div>
                         </div>
                     </div>
-            )
+                )
             }
         }
 
         class ActivityModuleBody extends React.Component {
             constructor(props) {
                 super(props);
+
+                this.state = {
+                    inCreateMode: false,
+                }
+            }
+
+            switchCreateMode = () => {
+                this.setState({
+                    inCreateMode: !this.state.inCreateMode
+                })
             }
 
             renderNormalMode = () => {
-                return <div></div>
+                const style1 = {
+                    backgroundColor: '#f5f6f8'
+                }
+                return <button type="button" className="btn" style={style1} onClick={this.switchCreateMode}>Add
+                    comment</button>
             }
 
             createNewComment = () => {
+                if (this.refs.comment.value && !this.refs.comment.value.trim() || this.refs.comment.value.length === 0)
+                    return;
+
                 fetch('{% url 'jira:ticketCommentObjectApiEventVersion1Component' %}', {
                     method: 'POST',
                     headers: {
@@ -758,17 +918,32 @@
                 }).then((response) => {
                     this.props.fetchComments()
                 })
+
+                this.switchCreateMode();
             }
 
             renderNewCommentMode = () => {
-
+                return (
+                    <div className="className-group">
+                        <textarea className="form-control" id="commentBox" placeholder="Write comment here..."
+                                  rows="4" ref="comment"></textarea>
+                        <br></br>
+                        <button type="button" className="btn btn-outline-primary float-right" onClick={this.createNewComment}>Submit</button>
+                        <span></span>
+                        <button type="button" className="btn btn-outline-danger float-right" onClick={this.switchCreateMode}>Cancel</button>
+                    </div>
+                );
             }
 
             render() {
+
                 return (
                     <div id="ticket-comment-list-container">
                         {this.props.comments.map((comment) => <TicketCommentInstanceComponent key={comment.id}
-                                                                                             comment={comment}/>)}
+                                                                                              comment={comment}/>)}
+                        <br></br>
+                        <br></br>
+                        {this.state.inCreateMode ? this.renderNewCommentMode() : this.renderNormalMode()}
                     </div>
                 )
             }
@@ -781,10 +956,8 @@
                 super(props);
 
                 this.state = {
-                    inCreateMode: false,
                     comments: []
                 }
-                this.switchCreateMode = this.switchCreateMode.bind(this)
                 this.fetchComments = this.fetchComments.bind(this)
             }
 
@@ -800,23 +973,25 @@
                     }))
             }
 
-            switchCreateMode = () => {
-                this.setState({
-                    inCreateMode: !this.state.inCreateMode
-                })
-            }
-
             render() {
                 return (
                     <div id="activitymodule" className="module toggle-wrap">
-                        <ActivityModuleHead inCreateMode={this.state.inCreateMode}
-                                            switchCreateMode={this.switchCreateMode}/>
+                        <div id="activitymodule_heading" className="mod-header">
+                        <button className="aui-button toggle-title" aria-label="Activity"
+                                aria-controls="activitymodule" aria-expanded="true" resolved="">
+                            <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
+                        </button>
+                        <div className="row">
+                            <div className="col">
+                                <p className="font-weight-bold">Comments</p>
+                            </div>
+                        </div>
+                    </div>
                         <br></br>
-                        <ActivityModuleBody inCreateMode={this.state.inCreateMode}
-                                            comments={this.state.comments}
-                                            switchCreateMode={this.switchCreateMode}
-                                            fetchComments={this.fetchComments}
-                                            ticket={this.props.ticket}/>
+                        <ActivityModuleBody
+                            comments={this.state.comments}
+                            fetchComments={this.fetchComments}
+                            ticket={this.props.ticket}/>
                     </div>
                 )
             }
@@ -843,13 +1018,15 @@
                                 <div className="aui-item issue-main-column">
                                     <TicketDetailsComponent ticket={this.state.ticket}/>
                                     <TicketDescriptionComponent ticket={this.state.ticket}/>
+                                    <TicketAttachmentComponent ticket={this.state.ticket}/>
                                     <LinkingModuleComponent ticket={this.state.ticket}/>
                                     <TicketActivityModuleComponent ticket={this.state.ticket}/>
                                 </div>
 
                                 <div id="view-issue-sidebar" className="aui-item issue-side-column">
                                     <TicketPeopleComponent assignee={this.state.ticket.assignee}
-                                                           reporter={this.state.ticket.reporter}/>
+                                                           reporter={this.state.ticket.reporter}
+                                                           watchers={this.state.ticket.watchers}/>
                                     <TicketDatesComponent ticket={this.state.ticket}/>
                                 </div>
 

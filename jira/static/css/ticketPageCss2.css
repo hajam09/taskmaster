@@ -2,12 +2,12 @@
 	visibility: hidden
 }
 
-#attachmentmodule #attachmentmodule_heading .ops li.drop:last-child {
+#attachmentModule #attachmentModuleHeading .ops li.drop:last-child {
 	border: none;
 	margin-left: 0
 }
 
-#attachmentmodule #attachment_thumbnails .attachment-content {
+#attachmentModule #attachment_thumbnails .attachment-content {
 	border: none;
 	border-radius: 3px;
 	height: 195px;
@@ -15,41 +15,41 @@
 	padding: 0px
 }
 
-#attachmentmodule #attachment_thumbnails .attachment-content .attachment-thumb {
+#attachmentModule #attachment_thumbnails .attachment-content .attachment-thumb {
 	border: 1px solid #e9e9e9;
 	border-radius: 3px
 }
 
-#attachmentmodule #attachment_thumbnails .attachment-content .attachment-thumb {
+#attachmentModule #attachment_thumbnails .attachment-content .attachment-thumb {
 	height: 145px
 }
 
-#attachmentmodule #attachment_thumbnails .attachment-content .attachment-thumb img {
+#attachmentModule #attachment_thumbnails .attachment-content .attachment-thumb img {
 	max-height: 145px
 }
 
-#attachmentmodule #attachment_thumbnails .attachment-content dl {
+#attachmentModule #attachment_thumbnails .attachment-content dl {
 	margin: 5px 10px;
 	width: 180px
 }
 
-#attachmentmodule #attachment_thumbnails .attachment-content dl .attachment-title {
+#attachmentModule #attachment_thumbnails .attachment-content dl .attachment-title {
 	width: 180px
 }
 
-#attachmentmodule #attachment_thumbnails .attachment-content dl .attachment-size,
-#attachmentmodule #attachment_thumbnails .attachment-content dl .attachment-date {
+#attachmentModule #attachment_thumbnails .attachment-content dl .attachment-size,
+#attachmentModule #attachment_thumbnails .attachment-content dl .attachment-date {
 	color: #707070;
 	font-size: 12px;
 	top: 0px
 }
 
-#attachmentmodule #attachment_thumbnails .attachment-content dl .attachment-date {
+#attachmentModule #attachment_thumbnails .attachment-content dl .attachment-date {
 	float: left;
 	padding-left: 0px
 }
 
-#attachmentmodule #attachment_thumbnails .attachment-content dl .attachment-size {
+#attachmentModule #attachment_thumbnails .attachment-content dl .attachment-size {
 	float: right
 }
 
@@ -708,11 +708,11 @@ a:active {
 	visibility: hidden
 }
 
-#attachmentmodule #attachment_thumbnails.item-attachments .attachment-content:hover {
+#attachmentModule #attachment_thumbnails.item-attachments .attachment-content:hover {
 	background-color: #f4f5f7
 }
 
-#attachmentmodule #attachment_thumbnails.item-attachments .attachment-content dl .attachment-date {
+#attachmentModule #attachment_thumbnails.item-attachments .attachment-content dl .attachment-date {
 	color: #6b778c
 }
 

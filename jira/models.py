@@ -151,7 +151,7 @@ class Ticket(BaseModel):
 class TicketAttachment(BaseModel):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='ticketAttachments')
     internalKey = models.CharField(max_length=2048, default=generateString)
-    attachment = models.ImageField(upload_to='ticket-attachment/')
+    attachment = models.FileField(upload_to='ticket-attachment/', blank=True)
 
     class Meta:
         verbose_name = "TicketAttachment"

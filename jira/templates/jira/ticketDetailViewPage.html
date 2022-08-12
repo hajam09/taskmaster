@@ -358,10 +358,10 @@
                                      data-upload-limit="10485760" data-thumbnails-allowed="true"></div>
                             </div>
                         </div>
-                        <div id="attachmentmodule" class="module toggle-wrap">
-                            <div id="attachmentmodule_heading" class="mod-header">
+                        <div id="attachmentModule" class="module toggle-wrap">
+                            <div id="attachmentModuleHeading" class="mod-header">
                                 <button class="aui-button toggle-title" aria-label="Attachments"
-                                        aria-controls="attachmentmodule" aria-expanded="true" resolved="">
+                                        aria-controls="attachmentModule" aria-expanded="true" resolved="">
                                     <span class="accicon"><i class="fas fa-angle-down rotate-icon"></i></span>
                                 </button>
                                 <h4 class="toggle-title" id="attachmentmodule-label">Attachments</h4>
@@ -377,36 +377,36 @@
                                             <div class="aui-dropdown-content aui-list">
                                                 <ul id="attachment-sorting-options" class="aui-list-section aui-first">
                                                     <li class="aui-list-item"><a id="attachment-sort-key-name"
-                                                                                 href="/browse/JENKINS-68799?attachmentSortBy=fileName#attachmentmodule"
+                                                                                 href="/browse/JENKINS-68799?attachmentSortBy=fileName#attachmentModule"
                                                                                  class="aui-list-checked aui-checked aui-list-item-link"
                                                                                  title="viewissue.subtasks.tab.show.all.name"><span>Sort By Name</span></a>
                                                     </li>
                                                     <li class="aui-list-item"><a id="attachment-sort-key-date"
-                                                                                 href="/browse/JENKINS-68799?attachmentSortBy=dateTime#attachmentmodule"
+                                                                                 href="/browse/JENKINS-68799?attachmentSortBy=dateTime#attachmentModule"
                                                                                  class="aui-list-checked aui-list-item-link"
                                                                                  title="Sort By Date"><span>Sort By Date</span></a>
                                                     </li>
                                                 </ul>
                                                 <ul id="attachment-sorting-order-options" class="aui-list-section">
                                                     <li class="aui-list-item"><a id="attachment-sort-direction-asc"
-                                                                                 href="/browse/JENKINS-68799?attachmentOrder=asc#attachmentmodule"
+                                                                                 href="/browse/JENKINS-68799?attachmentOrder=asc#attachmentModule"
                                                                                  class="aui-list-checked aui-checked aui-list-item-link"
                                                                                  title="Ascending"><span>Ascending</span></a>
                                                     </li>
                                                     <li class="aui-list-item"><a id="attachment-sort-direction-desc"
-                                                                                 href="/browse/JENKINS-68799?attachmentOrder=desc#attachmentmodule"
+                                                                                 href="/browse/JENKINS-68799?attachmentOrder=desc#attachmentModule"
                                                                                  class="aui-list-checked aui-list-item-link"
                                                                                  title="Descending"><span>Descending</span></a>
                                                     </li>
                                                 </ul>
                                                 <ul id="attachment-view-mode-options" class="aui-list-section">
                                                     <li class="aui-list-item"><a id="attachment-view-mode-gallery"
-                                                                                 href="/browse/JENKINS-68799?attachmentViewMode=gallery#attachmentmodule"
+                                                                                 href="/browse/JENKINS-68799?attachmentViewMode=gallery#attachmentModule"
                                                                                  class="aui-list-checked aui-checked aui-list-item-link"
                                                                                  title="Thumbnails"><span>Thumbnails</span></a>
                                                     </li>
                                                     <li class="aui-list-item"><a id="attachment-view-mode-list"
-                                                                                 href="/browse/JENKINS-68799?attachmentViewMode=list#attachmentmodule"
+                                                                                 href="/browse/JENKINS-68799?attachmentViewMode=list#attachmentModule"
                                                                                  class="aui-list-checked aui-list-item-link"
                                                                                  title="List"><span>List</span></a></li>
                                                 </ul>
@@ -432,7 +432,7 @@
                                             data-issue-id="{{ attachment.id }}" data-attachment-type="image"
                                             data-attachment-thumbnail="true">
                                             <div class="attachment-thumb">
-                                                <a href="/secure/attachment/58242/image-2022-06-21-21-22-35-447.png"
+                                                <a href="{{ attachment.attachment.url }}"
                                                    title="image-2022-06-21-21-22-35-447.png - Latest 2022-06-21 19:22 - Bartosz Nowak"
                                                    file-preview-id="{{ attachment.id }}"
                                                    file-preview-title="image-2022-06-21-21-22-35-447.png"
@@ -448,7 +448,7 @@
                                                 <dt>
                                                     <span class="blender"></span>
                                                     <a
-                                                            href="/secure/attachment/58242/image-2022-06-21-21-22-35-447.png"
+                                                            href="{{ attachment.attachment.url }}"
                                                             class="attachment-title"
                                                             title="image-2022-06-21-21-22-35-447.png - Latest 2022-06-21 19:22 - Bartosz Nowak"
                                                             file-preview-id="58242"

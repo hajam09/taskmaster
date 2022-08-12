@@ -21,6 +21,7 @@ cache.set('PROJECT_COMPONENTS', Component.objects.filter(componentGroup__code='P
 cache.set('PROJECT_STATUS', Component.objects.filter(componentGroup__code='PROJECT_STATUS'))
 cache.set('TICKET_PRIORITY', Component.objects.filter(componentGroup__code='TICKET_PRIORITY'))
 cache.set('TICKET_RESOLUTIONS', Component.objects.filter(componentGroup__code='TICKET_RESOLUTIONS'))
+cache.set('FILE_ICONS', Component.objects.filter(componentGroup__code='FILE_ICONS'))
 
 
 def index(request):
@@ -109,7 +110,7 @@ def teams(request):
 
 @login_required
 def team(request, url):
-    # TODO: Record team/user activity session and display.
+    # TODO/Story: Record team/user activity session and display.
     try:
         thisTeam = Team.objects.prefetch_related('members__profile').get(url=url)
     except Team.DoesNotExist:
@@ -302,9 +303,16 @@ def ticketDetailView2(request, internalKey):
             'column',
             'priority',
             'assignee__profile', 'reporter__profile'
-        ).prefetch_related('label', 'component').get(internalKey__iexact=internalKey)
+        ).prefetch_related('label', 'component', 'watchers').get(internalKey__iexact=internalKey)
     except Ticket.DoesNotExist:
         raise Http404
+
+    def getWatchersMessage():
+        if not request.user.is_authenticated:
+            return "You have to be logged in to watch an issue."
+        if request.user in ticket.watchers.all():
+            return "You are watching this issue. Click to stop watching this issue."
+        return "You are not watching this issue. Click to watch this issue."
 
     ticketDetails = {
         'id': ticket.id,
@@ -364,6 +372,11 @@ def ticketDetailView2(request, internalKey):
             'fullName': ticket.reporter.get_full_name(),
             'icon': ticket.reporter.profile.profilePicture.url
         } if ticket.reporter is not None else {},
+        'watchers': {
+            'counter': ticket.watchers.count(),
+            'isWatching': "true" if request.user in ticket.watchers.all() else "false",
+            'message': getWatchersMessage(),
+        }
     }
     context = {
         'ticket': ticketDetails
@@ -607,8 +620,8 @@ def projectIssues(request, url):
 
 
 def issuesListView(request):
-    # TODO: Move this to API.
-    # TODO Dynamically add filter based on url search query parameter.
+    # TODO/Improvement: Move this to API.
+    # TODO/Improvement: Dynamically add filter based on url search query parameter.
     allTickets = Ticket.objects.all().select_related(
         'resolution', 'issueType', 'assignee__profile', 'reporter__profile', 'priority', 'column'
     )

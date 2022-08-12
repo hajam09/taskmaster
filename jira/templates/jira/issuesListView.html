@@ -69,16 +69,9 @@
                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                 Project:
                             </button>
-                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown">
+                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
+                                id="projectLists">
 
-                                {% for t in projects %}
-                                    <li>
-                                        <label>
-                                            <input class="projects" type="checkbox"
-                                                   value="{{ t.code }}"> {{ t.internalKey }}
-                                        </label>
-                                    </li>
-                                {% endfor %}
 
                             </ul>
                         </div>
@@ -89,16 +82,8 @@
                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                 Type:
                             </button>
-                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown">
-
-                                {% for t in ticketIssueTypes %}
-                                    <li>
-                                        <label>
-                                            <input class="issueTypes" type="checkbox"
-                                                   value="{{ t.code }}"> {{ t.internalKey }}
-                                        </label>
-                                    </li>
-                                {% endfor %}
+                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
+                                id="issueTypeList">
 
                             </ul>
                         </div>
@@ -109,16 +94,8 @@
                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                 Resolution:
                             </button>
-                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown">
-
-                                {% for t in ticketResolutions %}
-                                    <li>
-                                        <label>
-                                            <input class="resolution" type="checkbox"
-                                                   value="{{ t.code }}"> {{ t.internalKey }}
-                                        </label>
-                                    </li>
-                                {% endfor %}
+                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
+                                id="resolutionList">
 
                             </ul>
                         </div>
@@ -129,16 +106,8 @@
                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                 Priority:
                             </button>
-                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown">
-
-                                {% for t in ticketPriorities %}
-                                    <li>
-                                        <label>
-                                            <input class="priority" type="checkbox"
-                                                   value="{{ t.code }}"> {{ t.internalKey }}
-                                        </label>
-                                    </li>
-                                {% endfor %}
+                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
+                                id="priorityList">
 
                             </ul>
                         </div>
@@ -332,8 +301,81 @@
             })
         }
 
+        function fillCheckBox() {
+
+            const projectList = localStorage.getItem("projectList");
+            const issueTypeList = localStorage.getItem("issueTypeList");
+            const resolutionList = localStorage.getItem("resolutionList");
+            const priorityList = localStorage.getItem("priorityList");
+
+            if (projectList != null) {
+                const objects = JSON.parse(projectList).object;
+                for (const item of objects) {
+                    $("#projectLists").append(
+                        `
+                        <li>
+                            <label>
+                                <input class="projects" type="checkbox"
+                                       value="${item.code}"> ${item.internalKey}
+                            </label>
+                        </li>
+                        `
+                    );
+                }
+            }
+
+            if (issueTypeList != null) {
+                const objects = JSON.parse(issueTypeList).object;
+                for (const item of objects) {
+                    $("#issueTypeList").append(
+                        `
+                        <li>
+                            <label>
+                                <input class="issueTypes" type="checkbox"
+                                       value="${item.code}"> ${item.internalKey}
+                            </label>
+                        </li>
+                        `
+                    );
+                }
+            }
+
+            if (resolutionList != null) {
+                const objects = JSON.parse(resolutionList).object;
+                for (const item of objects) {
+                    $("#resolutionList").append(
+                        `
+                        <li>
+                            <label>
+                                <input class="resolution" type="checkbox"
+                                       value="${item.code}"> ${item.internalKey}
+                            </label>
+                        </li>
+                        `
+                    );
+                }
+            }
+
+            if (priorityList != null) {
+                const objects = JSON.parse(priorityList).object;
+                for (const item of objects) {
+                    $("#priorityList").append(
+                        `
+                        <li>
+                            <label>
+                                <input class="priority" type="checkbox"
+                                       value="${item.code}"> ${item.internalKey}
+                            </label>
+                        </li>
+                        `
+                    );
+                }
+            }
+        }
+
 
         $(function () {
+                fillCheckBox();
                 updateCheckBox();
 
                 $("#ticketsTable").DataTable(

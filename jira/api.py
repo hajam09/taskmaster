@@ -1,3 +1,4 @@
+import imghdr
 import json
 import threading
 from datetime import datetime
@@ -5,6 +6,7 @@ from http import HTTPStatus
 
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.db.models import Q
 from django.http import QueryDict, JsonResponse
 from django.utils import timezone
@@ -13,7 +15,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from accounts.models import Team, Component
-from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment
+from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment, TicketAttachment
 from taskmaster.operations import databaseOperations
 
 
@@ -548,6 +550,7 @@ class TicketCommentsApiEventVersion1Component(View):
                 'id': comment.id,
                 'comment': comment.comment,
                 'edited': comment.edited,
+                'createdDttm': comment.createdDttm,
                 'likes': {
                     'count': comment.likes.count(),
                     'liked': self.request in comment.likes.all()
@@ -569,6 +572,50 @@ class TicketCommentsApiEventVersion1Component(View):
             "success": True,
             "data": {
                 "comments": comments
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TicketAttachmentsApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        ticketId = self.kwargs.get("ticketId", None)
+
+        ticketAttachments = TicketAttachment.objects.filter(ticket__id=ticketId)
+        fileIcons = cache.get('FILE_ICONS')
+
+        def getIcon(i):
+            extension = imghdr.what(i.attachment)
+            isImage = extension is not None
+
+            if isImage:
+                return i.attachment.url
+
+            fileIcon = databaseOperations.getObjectByInternalKey(fileIcons, i.attachment.name.split('.')[-1])
+            # TODO: Create a custom unknown file icon.
+            if fileIcon is None:
+                return 'https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png'
+            return fileIcon.icon
+
+        attachments = [
+            {
+                'id': i.id,
+                'url': i.attachment.url,
+                'icon': getIcon(i),
+                'internalKey': i.internalKey,
+                'name': i.attachment.name.split("/")[1],
+                'size': f'{ticketAttachments.first().attachment.size} bytes',
+                'createdDttm': i.createdDttm.strftime('%Y-%m-%d %H:%M')
+            }
+            for i in ticketAttachments
+        ]
+
+        response = {
+            "success": True,
+            "data": {
+                "attachments": attachments
             }
         }
         return JsonResponse(response, status=HTTPStatus.OK)

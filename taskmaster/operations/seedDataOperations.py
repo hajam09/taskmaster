@@ -111,7 +111,7 @@ def getAppLabelForModel(modalName):
         app.label
         for app in apps.get_app_configs()
         for model in app.models
-        if modalName.lower() in model
+        if modalName.lower() == model.lower()
     ]
 
     appLabel = set(appLabel)

@@ -62,6 +62,11 @@ urlpatterns += [
         name='subTaskTicketObjectForTicketApiEventVersion1Component'
     ),
     path(
+        'api/v1/ticketAttachmentsApiEventVersion1Component/<int:ticketId>',
+        TicketAttachmentsApiEventVersion1Component.as_view(),
+        name='ticketAttachmentsApiEventVersion1Component'
+    ),
+    path(
         'api/v1/ticketsForEpicTicketApiEventVersion1Component/<int:ticketId>',
         TicketsForEpicTicketApiEventVersion1Component.as_view(),
         name='ticketsForEpicTicketApiEventVersion1Component'

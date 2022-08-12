@@ -1,0 +1,27 @@
+<SeedData>
+    <ComponentGroups>
+        <ComponentGroup internalKey="File Icons" code="FILE_ICONS"
+                        reference="https://www.imagevenue.com/GAUC1P"/>
+    </ComponentGroups>
+
+    <Components>
+        <Component componentGroup.code="FILE_ICON" internalKey="pdf" code="PDF"
+                   icon="https://cdn-thumbs.imagevenue.com/09/85/ad/ME1573QH_t.jpg" orderNo="1"/>
+        <Component componentGroup.code="FILE_ICON" internalKey="jpg" code="JPG"
+                   icon="https://cdn-thumbs.imagevenue.com/40/a8/a2/ME1573QG_t.jpg" orderNo="2"/>
+        <Component componentGroup.code="FILE_ICON" internalKey="doc" code="DOC"
+                   icon="https://cdn-thumbs.imagevenue.com/6b/68/5a/ME1573QF_t.jpg" orderNo="3"/>
+        <Component componentGroup.code="FILE_ICON" internalKey="zip" code="ZIP"
+                   icon="https://cdn-thumbs.imagevenue.com/f6/60/88/ME1573QE_t.jpg" orderNo="4"/>
+        <Component componentGroup.code="FILE_ICON" internalKey="xls" code="XLS"
+                   icon="https://cdn-thumbs.imagevenue.com/fc/77/5f/ME1573QD_t.jpg" orderNo="5"/>
+        <Component componentGroup.code="FILE_ICON" internalKey="txt" code="TXT"
+                   icon="https://cdn-thumbs.imagevenue.com/4f/39/42/ME1573QC_t.jpg" orderNo="6"/>
+        <Component componentGroup.code="FILE_ICON" internalKey="ppt" code="PPT"
+                   icon="https://cdn-thumbs.imagevenue.com/3e/16/3f/ME1573QB_t.jpg" orderNo="7"/>
+        <Component componentGroup.code="FILE_ICON" internalKey="png" code="PNG"
+                   icon="https://cdn-thumbs.imagevenue.com/1c/ab/bd/ME1573QA_t.jpg" orderNo="8"/>
+        <Component componentGroup.code="FILE_ICON" internalKey="php" code="PHP"
+                   icon="https://cdn-thumbs.imagevenue.com/85/75/77/ME1573Q9_t.jpg" orderNo="9"/>
+    </Components>
+</SeedData>
