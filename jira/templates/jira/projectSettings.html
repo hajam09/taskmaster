@@ -1,5 +1,6 @@
 {% extends "accounts/base.html" %}
 {% load static %}
+{% load crispy_forms_tags %}
 {% block content %}
 
 <link rel="stylesheet" type="text/css" href="{% static 'css/avatarsIcon.css' %}"/>
@@ -37,87 +38,71 @@
                 <dl class="row">
 
                     <dd class="col-sm-3">
-                        <label style="color: #6c757d;">Name</label>
+                        <label style="color: #6c757d;">{{ form.name.label_tag }}</label>
                     </dd>
                     <dd class="col-sm-9">
-                        <input class="form-control col" type="text" placeholder="Project name" id="project-name"
-                               name="project-name" value="{{ project.internalKey }}" placeholder="Project name">
+                        {{ form.name }}
+                    </dd>
+                    {% for error in form.name.errors %}
+                        <span style="color: red">{{ error }}</span>
+                    {% endfor %}
+
+                    <!--  -->
+
+                    <dd class="col-sm-3">
+                        <label style="color: #6c757d;">{{ form.key.label_tag }}</label>
+                    </dd>
+                    <dd class="col-sm-9">
+                        {{ form.key }}
                     </dd>
 
                     <!--  -->
 
                     <dd class="col-sm-3">
-                        <label style="color: #6c757d;">Key</label>
-                    </dd>
-                    <dd class="col-sm-9">
-                        <input class="form-control col" type="text" placeholder="Project code" id="project-code"
-                               name="project-code" value="{{ project.code }}" placeholder="Project Code" disabled>
-                    </dd>
-
-                    <!--  -->
-
-                    <dd class="col-sm-3">
-                        <label style="color: #6c757d;">Lead</label>
+                        <label style="color: #6c757d;">{{ form.lead.label_tag }}</label>
                     </dd>
                     <dd class="col-sm-9">
                         <div class="form-group">
-                            <select class="form-control select2bs4" name="project-lead" style="width: 100%;">
-                                {% for dp in profiles %}
-                                    <option value="{{ dp.user.id }}" {% if project.lead == dp.user %}
-                                            selected {% endif %} >{{ dp.user.get_full_name }}</option>
-                                {% endfor %}
-                            </select>
+                            {{ form.lead }}
                         </div>
                     </dd>
 
                     <!--  -->
 
                     <dd class="col-sm-3">
-                        <label style="color: #6c757d;">Status</label>
+                        <label style="color: #6c757d;">{{ form.status.label_tag }}</label>
                     </dd>
                     <dd class="col-sm-9">
                         <div class="form-group">
-                            <select class="form-control select2bs4" name="project-status" style="width: 100%;">
-                                {% for status in projectStatusComponent %}
-                                    <option value="{{ status.id }}" {% if project.status == status %}
-                                            selected {% endif %} >{{ status }}</option>
-                                {% endfor %}
-                            </select>
+                        {{ form.status }}
                         </div>
                     </dd>
 
                     <!--  -->
 
                     <dd class="col-sm-3">
-                        <label style="color: #6c757d;">Start date</label>
+                        <label style="color: #6c757d;">{{ form.startDate.label_tag }}</label>
                     </dd>
                     <dd class="col-sm-9">
-                        <input class="form-control col flatpickr-input-start-date" type="hidden"
-                               name="project-start" placeholder="Select a date" data-flatpickr=""
-                               data-alt-input="true" readonly>
+                        {{ form.startDate }}
                     </dd>
 
                     <!--  -->
 
                     <dd class="col-sm-3">
-                        <label style="color: #6c757d;">End date</label>
+                        <label style="color: #6c757d;">{{ form.endDate.label_tag }}</label>
                     </dd>
                     <dd class="col-sm-9">
-                        <input class="form-control col flatpickr-input-end-date" type="hidden" name="project-end"
-                               placeholder="Select a date" data-flatpickr="" data-alt-input="true" readonly>
+                        {{ form.endDate }}
                     </dd>
 
                     <!--  -->
 
                     <dd class="col-sm-3">
-                        <label style="color: #6c757d;">Description</label>
+                        <label style="color: #6c757d;">{{ form.description.label_tag }}</label>
                     </dd>
                     <dd class="col-sm-9">
-                        <div class="form-group">
-                            <textarea class="form-control" rows="3" id="project-description"
-                                      name="project-description"
-                                      placeholder="Project description">{{ project.description }}</textarea>
-                        </div>
+                        {{ form.description }}
                     </dd>
 
                     <!--  -->
@@ -145,59 +130,58 @@
                     <!--  -->
 
                     <dd class="col-sm-3">
-                        <label style="color: #6c757d;">Project members</label>
+                        <label style="color: #6c757d;">{{ form.members.label_tag }}</label>
                     </dd>
                     <dd class="col-sm-9">
                         <div class="form-group">
-                            <select class="form-control select2bs4" multiple="multiple" name="project-members"
-                                    id="project-members" required>
-                                {% for dp in profiles %}
-                                    <option value="{{ dp.user.id }}">{{ dp.user.get_full_name }}</option>
-                                {% endfor %}
-                            </select>
+                        {{ form.members }}
                         </div>
                     </dd>
 
                     <!--  -->
 
                     <dd class="col-sm-3">
-                        <label style="color: #6c757d;">Project components</label>
+                        <label style="color: #6c757d;">{{ form.components.label_tag }}</label>
                     </dd>
                     <dd class="col-sm-9">
                         <div class="form-group">
-                            <select class="form-control select2bs4Tags " multiple="multiple"
-                                    name="project-components"
-                                    id="project-components" required>
-                                {% for dp in projectComponents %}
-                                    <option value="{{ dp.id }}">{{ dp.internalKey }}</option>
-                                {% endfor %}
-                            </select>
+                        {{ form.components }}
                         </div>
                     </dd>
 
                     <!--  -->
 
                     <dd class="col-sm-3">
-                        <label style="color: #6c757d;">Project visibility</label>
+                        <label style="color: #6c757d;">{{ form.visibility.label_tag }}</label>
                     </dd>
                     <dd class="col-sm-9">
                         <div class="row">
-                            <div class="col">
-                                <div class="custom-control custom-radio">
-                                    <input type="radio" id="visibility-everyone" name="project-visibility"
-                                           value="visibility-everyone" class="custom-control-input"
-                                            {% if not project.isPrivate %} checked {% endif %}>
-                                    <label class="custom-control-label" for="visibility-everyone">Everyone</label>
+
+                            {% for radio in form.visibility %}
+                                <div class="col">
+                                    <div class="custom-control custom-radio">
+                                        {{ radio }}
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="custom-control custom-radio">
-                                    <input type="radio" id="visibility-members" name="project-visibility"
-                                           value="visibility-members" class="custom-control-input"
-                                            {% if project.isPrivate %} checked {% endif %}>
-                                    <label class="custom-control-label" for="visibility-members">Members</label>
-                                </div>
-                            </div>
+                            {% endfor %}
+
+{#                        <div class="col">#}
+{#                                <div class="custom-control custom-radio">#}
+{#                                    <input type="radio" id="visibility-everyone" name="project-visibility"#}
+{#                                           value="visibility-everyone" class="custom-control-input"#}
+{#                                            {% if not project.isPrivate %} checked {% endif %}>#}
+{#                                    <label class="custom-control-label" for="visibility-everyone">Everyone</label>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                            <div class="col">#}
+{#                                <div class="custom-control custom-radio">#}
+{#                                    <input type="radio" id="visibility-members" name="project-visibility"#}
+{#                                           value="visibility-members" class="custom-control-input"#}
+{#                                            {% if project.isPrivate %} checked {% endif %}>#}
+{#                                    <label class="custom-control-label" for="visibility-members">Members</label>#}
+{#                                </div>#}
+{#                            </div>#}
+
                         </div>
                     </dd>
                 </dl>
@@ -450,14 +434,8 @@
         }
     );
 
-    flatpickr('.flatpickr-input-start-date', {
+    flatpickr('.flatpickr', {
         "altFormat": "d-m-Y",
-        "defaultDate": ["{{ project.startDate|date:'Y-m-d' }}"]
-    });
-
-    flatpickr('.flatpickr-input-end-date', {
-        "altFormat": "d-m-Y",
-        "defaultDate": ["{{ project.endDate|date:'Y-m-d' }}"]
     });
 
     var PROJECT_MEMBERS_ID = [];
@@ -468,11 +446,11 @@
     {% endfor %}
 
     {% for comp in projectComponents %}
-        PROJECT_COMPONENTS_ID.push({{comp.id}});
+        PROJECT_COMPONENTS_ID.push('{{comp.internalKey}}');
     {% endfor %}
 
-    $('#project-members').select2().val(PROJECT_MEMBERS_ID).trigger("change")
-    $('#project-components').select2().val(PROJECT_COMPONENTS_ID).trigger("change")
+    $('.project-members').select2().val(PROJECT_MEMBERS_ID).trigger("change")
+    $('.project-components').select2().val(PROJECT_COMPONENTS_ID).trigger("change")
 
 </script>
 {% endblock %}

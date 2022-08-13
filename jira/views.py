@@ -13,6 +13,7 @@ from django.http import Http404
 from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team, ComponentGroup
+from jira.forms import ProjectSettingsForm
 from jira.models import Board, Project, Column, Ticket, TicketAttachment
 from taskmaster.operations import databaseOperations, emailOperations
 
@@ -454,35 +455,17 @@ def projectSettings(request, url):
     projectComponents = Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS', reference__exact=thisProject.code)
 
     if request.method == "POST":
-        thisProject.internalKey = request.POST['project-name']
-        thisProject.description = request.POST['project-description']
-        thisProject.lead = next(p.user for p in allProfiles if str(p.user.id) == request.POST['project-lead'])
-        thisProject.startDate = datetime.strptime(request.POST['project-start'], "%Y-%m-%d").date()
-        thisProject.endDate = datetime.strptime(request.POST['project-end'], "%Y-%m-%d").date()
-        thisProject.status = databaseOperations.getObjectByIdOrNone(projectStatusComponent, request.POST['project-status'])
-        thisProject.isPrivate = request.POST['project-visibility'] == 'visibility-members'
+        form = ProjectSettingsForm(request, thisProject, request.POST)
+        form.save()
+    else:
+        form = ProjectSettingsForm(request, thisProject)
 
-        if request.FILES.get('project-icon'):
-            thisProject.icon = request.FILES.get('project-icon')
-
-        thisProject.members.clear()
-        thisProject.members.add(*request.POST.getlist('project-members'))
-        componentGroup = ComponentGroup.objects.get(code='PROJECT_COMPONENTS')
-
-        Component.objects.bulk_create(
-            [
-                Component(
-                    componentGroup=componentGroup,
-                    internalKey=i,
-                    code=i.upper(),
-                    reference=thisProject.code
-                )
-                for i in request.POST.getlist('project-components') if re.search('[a-zA-Z]', i)
-            ]
-        )
-        thisProject.save()
+    # if request.method == "POST":    #
+    #     if request.FILES.get('project-icon'):
+    #         thisProject.icon = request.FILES.get('project-icon')
 
     context = {
+        'form': form,
         'project': thisProject,
         'profiles': allProfiles,
         'projectStatusComponent': projectStatusComponent,
