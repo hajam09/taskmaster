@@ -550,7 +550,7 @@ class TicketCommentsApiEventVersion1Component(View):
                 'id': comment.id,
                 'comment': comment.comment,
                 'edited': comment.edited,
-                'createdDttm': comment.createdDttm,
+                'createdDttm': datetime.strftime(comment.createdDttm, '%d %B %Y, %I:%M %p'),
                 'likes': {
                     'count': comment.likes.count(),
                     'liked': self.request in comment.likes.all()

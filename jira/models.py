@@ -42,7 +42,7 @@ class Project(BaseModel):
         return self.internalKey
 
     def getUrl(self):
-        return reverse('jira:issuesListView')+f'?projects={self.code}'
+        return reverse('jira:issuesListView')+f'?project={self.code}'
 
 
 class Board(BaseModel):

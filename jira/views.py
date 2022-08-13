@@ -214,8 +214,8 @@ def ticketDetailView(request, internalKey):
         'internalKey': ticket.internalKey,
         'summary': ticket.summary,
         'description': ticket.description,
-        'createdDate': datetime.strftime(ticket.createdDttm, '%d/%B/%Y, %I:%M %p'),
-        'modifiedDate': datetime.strftime(ticket.modifiedDttm, '%d/%B/%Y, %I:%M %p'),
+        'createdDate': datetime.strftime(ticket.createdDttm, '%d %B %Y, %I:%M %p'),
+        'modifiedDate': datetime.strftime(ticket.modifiedDttm, '%d %B %Y, %I:%M %p'),
         'link': ticket.getTicketUrl(),
         'storyPoints': ticket.storyPoints,
         'fixVersion': ticket.fixVersion or '',
@@ -443,19 +443,6 @@ def projects(request):
     return render(request, 'jira/projects.html', context)
 
 
-def project(request, url):
-    # to issuesListView
-    try:
-        thisProject = Project.objects.get(url=url)
-    except Project.DoesNotExist:
-        raise Http404
-
-    context = {
-        'project': thisProject,
-    }
-    return render(request, 'jira/project.html', context)
-
-
 def projectSettings(request, url):
     try:
         thisProject = Project.objects.get(url=url)
@@ -502,18 +489,6 @@ def projectSettings(request, url):
         'projectComponents': projectComponents,
     }
     return render(request, 'jira/projectSettings.html', context)
-
-
-def projectIssues(request, url):
-    try:
-        thisProject = Project.objects.get(url=url)
-    except Project.DoesNotExist:
-        raise Http404
-
-    context = {
-        'project': thisProject,
-    }
-    pass
 
 
 def issuesListView(request):

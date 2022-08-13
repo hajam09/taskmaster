@@ -365,7 +365,7 @@
                                                   {
                                                       this.props.ticket.components.map((component, i) =>
                                                           <a key={i} title="core Jenkins core"
-                                                             href={"{% url 'jira:issuesListView' %}?projects=" + this.props.ticket.project.code + "&component=" + component.internalKey}>
+                                                             href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.code + "&component=" + component.internalKey}>
                                                               {component.internalKey}&nbsp;&nbsp;
                                                           </a>
                                                       )
@@ -392,7 +392,7 @@
                                             // TODO: ticket filtering based on label is not Implemented.
                                             this.props.ticket.labels.map((label, i) =>
                                                 <div className="labels-wrap value" key={i}>
-                                                    <a href={"{% url 'jira:issuesListView' %}?projects=" + this.props.ticket.project.code + "&label=" + label.internalKey} className="aui-lozenge"
+                                                    <a href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.code + "&label=" + label.internalKey} className="aui-lozenge"
                                                        style={style2}
                                                        title={label.internalKey}>
                                                         {label.internalKey}
