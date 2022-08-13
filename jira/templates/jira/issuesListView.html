@@ -222,32 +222,25 @@
                 return this.value;
             }).get().join();
 
-            let currentPath = "{% url 'jira:issuesListView' %}" + "?";
+            let currentPath = "{% url 'jira:issuesListView' %}"
+            let urlParameters = [];
 
-            if (checkedProjects) {
-                currentPath += "projects=" + checkedProjects;
-            }
+            if (checkedProjects.length > 0)
+                urlParameters.push("project=" + checkedProjects);
 
-            if (checkedIssueTypes) {
-                if (checkedProjects)
-                    currentPath += "&";
-                currentPath += "issueTypes=" + checkedIssueTypes;
-            }
+            if (checkedIssueTypes.length > 0)
+                urlParameters.push("issueType=" + checkedIssueTypes);
 
-            if (checkedResolution) {
-                if (checkedIssueTypes)
-                    currentPath += "&";
-                currentPath += "resolutions=" + checkedResolution;
-            }
+            if (checkedResolution.length > 0)
+                urlParameters.push("resolution=" + checkedResolution);
 
-            if (checkedPriorities) {
-                if (checkedResolution)
-                    currentPath += "&";
-                currentPath += "priorities=" + checkedPriorities;
-            }
+            if (checkedPriorities.length > 0)
+                urlParameters.push("priority=" + checkedPriorities);
 
-            window.history.pushState("", "", currentPath);
+            if (urlParameters.length > 0)
+                currentPath += "?";
 
+            window.history.pushState("", "", currentPath + urlParameters.join("&"));
             location.reload();
         }
 
@@ -270,10 +263,10 @@
 
         function updateCheckBox() {
 
-            let projectCodes = getParameterByName('projects');
-            let issueTypeCodes = getParameterByName('issueTypes');
-            let resolutionCodes = getParameterByName('resolutions');
-            let priorityCodes = getParameterByName('priorities');
+            let projectCodes = getParameterByName('project');
+            let issueTypeCodes = getParameterByName('issueType');
+            let resolutionCodes = getParameterByName('resolution');
+            let priorityCodes = getParameterByName('priority');
 
             projectCodes = projectCodes ? projectCodes.split(',') : [];
             issueTypeCodes = issueTypeCodes ? issueTypeCodes.split(',') : [];

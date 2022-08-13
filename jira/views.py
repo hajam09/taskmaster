@@ -13,7 +13,7 @@ from django.http import Http404
 from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team, ComponentGroup
-from jira.models import Board, Project, Column, Ticket, TicketAttachment, TicketComment
+from jira.models import Board, Project, Column, Ticket, TicketAttachment
 from taskmaster.operations import databaseOperations, emailOperations
 
 cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'), None)
@@ -518,36 +518,14 @@ def projectIssues(request, url):
 
 def issuesListView(request):
     # TODO/Improvement: Move this to API.
-    # TODO/Improvement: Dynamically add filter based on url search query parameter.
-    allTickets = Ticket.objects.all().select_related(
+
+    filterDict = {}
+    for key, value in request.GET.items():
+        filterDict[f'{key}__code__in'] = value.split(',')
+
+    allTickets = Ticket.objects.filter(**filterDict).select_related(
         'resolution', 'issueType', 'assignee__profile', 'reporter__profile', 'priority', 'column'
     )
-
-    projectsList = request.GET.get('projects', [])
-    issueTypesList = request.GET.get('issueTypes', [])
-    resolutionsList = request.GET.get('resolutions', [])
-    priorityList = request.GET.get('priorities', [])
-    componentList = request.GET.get('component', [])
-
-    if len(projectsList) > 0:
-        projectsList = projectsList.split(',')
-        allTickets = allTickets.filter(project__code__in=projectsList)
-
-    if len(issueTypesList) > 0:
-        issueTypesList = issueTypesList.split(',')
-        allTickets = allTickets.filter(issueType__code__in=issueTypesList)
-
-    if len(resolutionsList) > 0:
-        resolutionsList = resolutionsList.split(',')
-        allTickets = allTickets.filter(resolution__code__in=resolutionsList)
-
-    if len(priorityList) > 0:
-        priorityList = priorityList.split(',')
-        allTickets = allTickets.filter(priority__code__in=priorityList)
-
-    if len(componentList) > 0:
-        componentList = componentList.split(',')
-        allTickets = allTickets.filter(component__internalKey__in=componentList)
 
     # TODO: serializeTickets
     tickets = [
