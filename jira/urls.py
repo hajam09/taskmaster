@@ -10,7 +10,6 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard-view'),
     path('issuesListView/', views.issuesListView, name='issuesListView'),
     path('ticket/<slug:internalKey>/', views.ticketDetailView, name='ticket-detail-view'),
-    path('browse/<slug:internalKey>/', views.ticketDetailView2, name='ticket-detail-view-2'),
     path('projects/', views.projects, name='projects-page'),
     path('projects/<slug:url>/', views.project, name='project-page'),
     path('projects/<slug:url>/settings', views.projectSettings, name='project-settings'),

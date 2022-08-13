@@ -2,22 +2,17 @@
 {% load static %}
 {% block content %}
 
-    <style type="text/css">
-        .grabbable {
-            cursor: move; /* fallback if grab cursor is unsupported */
-            cursor: grab;
-            cursor: -moz-grab;
-            cursor: -webkit-grab;
-        }
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
-        /* (Optional) Apply a "closed-hand" cursor during drag operation. */
-        .grabbable:active {
-            cursor: grabbing;
-            cursor: -moz-grabbing;
-            cursor: -webkit-grabbing;
-        }
+    <link type="text/css" rel="stylesheet" href="{% static 'css/ticketPageCss1.css' %}" media="all">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/ticketPageCss2.css' %}" media="all">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
 
-        .file-drop-area {
+    <style>
+    .file-drop-area {
             position: relative;
             display: flex;
             align-items: center;
@@ -40,21 +35,12 @@
         }
     </style>
 
-    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-
-    <link type="text/css" rel="stylesheet" href="{% static 'css/ticketPageCss1.css' %}" media="all">
-    <link type="text/css" rel="stylesheet" href="{% static 'css/ticketPageCss2.css' %}" media="all">
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-
     <div class="modal fade bd-example-modal-lg" id="editTicketModal" tabindex="-1" role="dialog"
          aria-labelledby="myLargeModalLabel" aria-hidden="true" style="color: black;">
         <div class="modal-dialog" role="document" style="max-width: 1000px;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Edit Issue: {{ ticket.internalkey }}</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Edit Issue: {{ ticket.internalKey }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -75,45 +61,37 @@
                                         <label style="font-size: 85%; color: #6c757d;">Issue type</label>
                                         <select id="ticketIssueType" data-show-content="true"
                                                 class="form-control" name="ticketIssueType">
-                                            {% for jp in ticketIssueTypes %}
-                                                {% if jp.code == ticket.issueType.code %}
-                                                    <option data-content="<img src='{{ jp.icon }}' width='20' height='20'>&nbsp; {{ jp.internalKey }}"
-                                                            selected="selected"
-                                                            value="{{ jp.id }}">{{ jp.internalKey }}</option>
-                                                {% else %}
-                                                    <option data-content="<img src='{{ jp.icon }}' width='20' height='20'>&nbsp; {{ jp.internalKey }}"
-                                                            value="{{ jp.id }}">{{ jp.internalKey }}</option>
-                                                {% endif %}
+                                            {% for it in ticketIssueTypes %}
+                                                <option data-content="<img src='{{ it.icon }}' width='20' height='20'>&nbsp; {{ it.internalKey }}"
+                                                        {% if it.code == ticket.issueType.code %}
+                                                        selected="selected" {% endif %}
+                                                        value="{{ it.id }}">{{ it.internalKey }}</option>
                                             {% endfor %}
                                         </select>
                                     </dd>
                                 </dl>
                                 <hr>
                                 <dl class="row">
-
                                     <dd class="col-sm-12">
                                         <label style="font-size: 85%; color: #6c757d;">Priority</label>
                                         <select id="ticketPriorities" data-show-content="true"
                                                 class="form-control" name="priority">
-                                            {% for jp in ticketPriorities %}
-                                                {% if jp.code == ticket.priority.code %}
-                                                    <option data-content="<img src='{{ jp.icon }}' width='20' height='20'>&nbsp; {{ jp.internalKey }}"
-                                                            selected="selected"
-                                                            value="{{ jp.id }}">{{ jp.internalKey }}</option>
-                                                {% else %}
-                                                    <option data-content="<img src='{{ jp.icon }}' width='20' height='20'>&nbsp; {{ jp.internalKey }}"
-                                                            value="{{ jp.id }}">{{ jp.internalKey }}</option>
-                                                {% endif %}
+                                            {% for tp in ticketPriorities %}
+                                                <option data-content="<img src='{{ tp.icon }}' width='20' height='20'>&nbsp; {{ tp.internalKey }}"
+                                                        {% if tp.code == ticket.priority.code %}
+                                                        selected="selected" {% endif %}
+                                                        value="{{ tp.id }}">{{ tp.internalKey }}</option>
                                             {% endfor %}
                                         </select>
                                     </dd>
                                     <dd class="col-sm-12">
                                         <label style="font-size: 85%; color: #6c757d;">Components</label>
-                                        <select class="form-control select2bs4" multiple="multiple" name="components"
+                                        <select class="form-control select2bs4" multiple="multiple" name="components" id="ticket-components"
                                                 style="width: 100%">
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
+                                            {% for component in projectComponents %}
+                                                <option value="{{ component.id }}">{{ component.internalKey }}</option>
+                                            {% endfor %}
+
                                         </select>
                                     </dd>
                                     <dd class="col-sm-12">
@@ -140,7 +118,7 @@
                                         <label style="font-size: 85%; color: #6c757d;">Attachment</label>
                                         <div class="file-drop-area border justify-content-center" style="width: 100%;">
                                             <span class="choose-file-button">Choose files </span>
-                                            <span class="file-message">	&nbsp; or drag and drop files here</span>
+                                            <span class="file-message"> or drag and drop files here</span>
                                             <input class="file-input" name="attachments" type="file" multiple>
                                         </div>
                                     </dd>
@@ -156,15 +134,13 @@
                                         <label style="font-size: 85%; color: #6c757d;">Assignee</label>
                                         <select id="assignee" data-show-content="true" class="form-control"
                                                 name="assignee">
-                                            {% for p in allProfiles %}
-                                                {% if p.user == ticket.assignee %}
-                                                    <option data-content="<img src='{{ p.profilePicture.url }}' width='20' height='20'>&nbsp; {{ p.user.get_full_name }}"
-                                                            selected="selected"
-                                                            value="{{ p.user.id }}">{{ p.user.get_full_name }}</option>
-                                                {% else %}
-                                                    <option data-content="<img src='{{ p.profilePicture.url }}' width='20' height='20'>&nbsp; {{ p.user.get_full_name }}"
-                                                            value="{{ p.user.id }}">{{ p.user.get_full_name }}</option>
-                                                {% endif %}
+                                            {% for p in profiles %}
+
+                                                <option data-content="<img src='{{ p.profilePicture.url }}' width='20' height='20'>&nbsp; {{ p.user.get_full_name }}"
+                                                        {% if p.user.id == ticket.assignee.id %}
+                                                        selected="selected" {% endif %}
+                                                        value="{{ p.user.id }}">{{ p.user.get_full_name }}</option>
+
                                             {% endfor %}
                                         </select>
                                     </dd>
@@ -175,543 +151,559 @@
                     <div class="modal-footer">
                         <input class="btn btn-primary" type="submit" style="background-color: #0052cc" value="Update">
                         <button class="btn btn-secondary" type="reset" data-dismiss="modal">Cancel</button>
-
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <div class="issue-container">
-        <div id="issue-content" class="issue-edit-form">
-            <header id="stalker" class="issue-header js-stalker">
-                <div class="issue-header-content">
-                    <div class="aui-page-header">
-                        <div class="aui-page-header-inner">
-                            <div class="aui-page-header-image">
-                                <span id="10172" class="aui-avatar aui-avatar-large aui-avatar-project">
-                                    <span class="aui-avatar-inner">
-                                        <img id="project-avatar"
-                                             alt="Uploaded image for project: '{{ ticket.project.internalKey }}'"
-                                             src="{{ ticket.project.icon.url }}">
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="aui-page-header-main">
-                                <ol class="aui-nav aui-nav-breadcrumbs" resolved="">
-                                    <li>
-                                        <a id="project-name-val"
-                                           href="{% url 'jira:project-issues' ticket.project.code %}"
-                                           class="">{{ ticket.project.internalKey }}</a>
-                                    </li>
-                                    <li>
-                                        <a class="issue-link" data-issue-key="{{ ticket.getTicketUrl }}"
-                                           href="{{ ticket.getTicketUrl }}" id="key-val"
-                                           rel="215653">{{ ticket.internalKey }}</a>
-                                    </li>
-                                </ol>
-                                <h1 id="summary-val">{{ ticket.summary }} </h1>
-                            </div>
-                        </div>
-                        <button type="button" class="btn" data-toggle="modal" style="background-color: #f5f6f8"
-                                data-target="#editTicketModal">Edit
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            <div class="issue-body-content">
-                <div class="aui-group issue-body">
-                    <div class="aui-item issue-main-column">
-                        <div id="details-module" class="module toggle-wrap">
-                            <div id="details-module_heading" class="mod-header">
-                                <button class="aui-button toggle-title" aria-label="Details"
-                                        aria-controls="details-module" aria-expanded="true" resolved="">
-                                    <span class="accicon"><i class="fas fa-angle-down rotate-icon"></i></span>
-                                </button>
-                                <h4 class="toggle-title" id="details-module-label">Details</h4>
-                                <ul class="ops"></ul>
-                            </div>
-                            <div class="mod-content">
-                                <ul id="issuedetails" class="property-list two-cols">
-                                    <li class="item">
-                                        <div class="wrap">
-                                            <strong class="name" title="Type">
-                                                <label for="issuetype">Type:</label>
-                                            </strong>
-                                            <span id="type-val" class="value">
-                                                <img alt="" height="16" src="{{ ticket.issueType.icon }}"
-                                                     title="{{ ticket.issueType.internalKey }}"
-                                                     width="16"> {{ ticket.issueType.internalKey }}
-                                            </span>
-                                        </div>
-                                    </li>
-                                    <li class="item item-right">
-                                        <div class="wrap">
-                                            <strong class="name" title="Status">Status:</strong>
-                                            <span id="status-val" class="value">
-                                                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-yellow jira-issue-status-lozenge-indeterminate jira-issue-status-lozenge-max-width-medium"
-                                                      style="background-color: {{ ticket.column.colour }}; color: white;">
-                                                    {{ ticket.column.internalKey }}
-                                                </span>
-                                            </span>
-                                        </div>
-                                    </li>
-                                    <li class="item new">
-                                        <div class="wrap">
-                                            <strong class="name" title="Priority">
-                                                <label for="priority-field">Priority:</label>
-                                            </strong>
-                                            <span id="priority-val" class="value">
-                                                <img alt="" height="16" src="{{ ticket.priority.icon }}"
-                                                     title="{{ ticket.priority.internalLey }}"
-                                                     width="16"> {{ ticket.priority.internalKey }}
-                                            </span>
-                                        </div>
-                                    </li>
-                                    <!-- TODO -->
-                                    <li class="item item-right">
-                                        <div class="wrap">
-                                            <strong class="name" title="Resolution">Resolution:</strong>
-                                            <span id="resolution-val"
-                                                  class="value {{ ticket.resolution.internalKey }}"> {{ ticket.resolution.internalKey }} </span>
-                                        </div>
-                                    </li>
-                                    <li class="item">
-                                        <div class="wrap">
-                                            <strong class="name" title="Component/s">
-                                                <label for="components">Component/s:</label>
-                                            </strong>
-                                            <span id="components-val" class="value">
-                                              <span class="shorten" id="components-field" resolved=""
-                                                    style="height: auto;">
-                                                  <!-- TODO -->
-                                                  <a href="/issues/?jql=project+%3D+JENKINS+AND+component+%3D+core"
-                                                     title="core Jenkins core">{{ ticket.component.internalKey }}</a>
-                                              </span>
-                                          </span>
-                                        </div>
-                                    </li>
-
-                                    <li class="item item-right">
-                                        <div class="wrap">
-                                            <strong class="name" title="StoryPoint">Story Point:</strong>
-                                            <span id="storyPoint-val"
-                                                  class="value {{ ticket.storyPoints }}"> {{ ticket.storyPoints }} </span>
-                                        </div>
-                                    </li>
-
-                                    <li class="item">
-                                        <div class="wrap" id="wrap-labels">
-                                            <strong class="name" title="Labels"> <label
-                                                    for="labels-textarea">Labels:</label> </strong>
-                                            <div class="labels-wrap value">
-                                                {% for label in ticket.label.all %}
-                                                    <a href="/issues/?jql=labels+%3D+regression" class="aui-lozenge"
-                                                       style="background-color: #DFE1E5; color: black;"
-                                                       title="{{ label.internalKey }}">
-                                                        {{ label.internalKey }}
-                                                    </a>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    </li>
-
-                                    <li class="item item-right">
-                                        <div class="wrap">
-                                            <strong class="name" title="fixVersion">Fix version:</strong>
-                                            <span id="fixVersion-val"
-                                                  class="value {{ ticket.fixVersion }}"> {{ ticket.fixVersion }} </span>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div id="descriptionModule" class="module toggle-wrap">
-                            <div id="descriptionModule_heading" class="mod-header">
-                                <button class="aui-button toggle-title" aria-label="Description"
-                                        aria-controls="descriptionModule" aria-expanded="true" resolved="">
-                                    <span class="accicon"><i class="fas fa-angle-down rotate-icon"></i></span>
-                                </button>
-                                <h4 class="toggle-title" id="descriptionmodule-label">Description</h4>
-                                <ul class="ops"></ul>
-                            </div>
-                            <div class="mod-content">
-                                <div id="description-val" class="field-ignore-highlight">
-                                    <div class="user-content-block">
-                                        {{ ticket.description|linebreaksbr }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="dnd-metadata" class="module toggle-wrap">
-                            <div id="dnd-metadata_heading" class="mod-header">
-                                <button class="aui-button toggle-title" aria-label="Attachments"
-                                        aria-controls="dnd-metadata" aria-expanded="true" resolved="">
-                                    <span class="accicon"><i class="fas fa-angle-down rotate-icon"></i></span>
-                                </button>
-                                <h4 class="toggle-title" id="dnd-metadata-label">Attachments</h4>
-                                <ul class="ops"></ul>
-                            </div>
-                            <div class="mod-content">
-                                <div id="dnd-metadata-webpanel" data-can-attach="false" data-project-type="software"
-                                     data-upload-limit="10485760" data-thumbnails-allowed="true"></div>
-                            </div>
-                        </div>
-                        <div id="attachmentModule" class="module toggle-wrap">
-                            <div id="attachmentModuleHeading" class="mod-header">
-                                <button class="aui-button toggle-title" aria-label="Attachments"
-                                        aria-controls="attachmentModule" aria-expanded="true" resolved="">
-                                    <span class="accicon"><i class="fas fa-angle-down rotate-icon"></i></span>
-                                </button>
-                                <h4 class="toggle-title" id="attachmentmodule-label">Attachments</h4>
-                                <ul class="ops">
-                                    <li class="drop">
-                                        <div class="aui-dd-parent">
-                                            <button class="aui-button aui-button-compact aui-button-subtle js-default-dropdown"
-                                                    title="Options" aria-label="Attachments panel options" resolved=""
-                                                    id="AJS_DROPDOWN__4" aria-controls="AJS_DROPDOWN__4_drop"
-                                                    aria-haspopup="true" aria-expanded="false"><span
-                                                    class="aui-icon aui-icon-small aui-iconfont-more">Options</span>
-                                            </button>
-                                            <div class="aui-dropdown-content aui-list">
-                                                <ul id="attachment-sorting-options" class="aui-list-section aui-first">
-                                                    <li class="aui-list-item"><a id="attachment-sort-key-name"
-                                                                                 href="/browse/JENKINS-68799?attachmentSortBy=fileName#attachmentModule"
-                                                                                 class="aui-list-checked aui-checked aui-list-item-link"
-                                                                                 title="viewissue.subtasks.tab.show.all.name"><span>Sort By Name</span></a>
-                                                    </li>
-                                                    <li class="aui-list-item"><a id="attachment-sort-key-date"
-                                                                                 href="/browse/JENKINS-68799?attachmentSortBy=dateTime#attachmentModule"
-                                                                                 class="aui-list-checked aui-list-item-link"
-                                                                                 title="Sort By Date"><span>Sort By Date</span></a>
-                                                    </li>
-                                                </ul>
-                                                <ul id="attachment-sorting-order-options" class="aui-list-section">
-                                                    <li class="aui-list-item"><a id="attachment-sort-direction-asc"
-                                                                                 href="/browse/JENKINS-68799?attachmentOrder=asc#attachmentModule"
-                                                                                 class="aui-list-checked aui-checked aui-list-item-link"
-                                                                                 title="Ascending"><span>Ascending</span></a>
-                                                    </li>
-                                                    <li class="aui-list-item"><a id="attachment-sort-direction-desc"
-                                                                                 href="/browse/JENKINS-68799?attachmentOrder=desc#attachmentModule"
-                                                                                 class="aui-list-checked aui-list-item-link"
-                                                                                 title="Descending"><span>Descending</span></a>
-                                                    </li>
-                                                </ul>
-                                                <ul id="attachment-view-mode-options" class="aui-list-section">
-                                                    <li class="aui-list-item"><a id="attachment-view-mode-gallery"
-                                                                                 href="/browse/JENKINS-68799?attachmentViewMode=gallery#attachmentModule"
-                                                                                 class="aui-list-checked aui-checked aui-list-item-link"
-                                                                                 title="Thumbnails"><span>Thumbnails</span></a>
-                                                    </li>
-                                                    <li class="aui-list-item"><a id="attachment-view-mode-list"
-                                                                                 href="/browse/JENKINS-68799?attachmentViewMode=list#attachmentModule"
-                                                                                 class="aui-list-checked aui-list-item-link"
-                                                                                 title="List"><span>List</span></a></li>
-                                                </ul>
-                                                <ul id="attachment-manage-options" class="aui-list-section aui-last">
-                                                    <li class="aui-list-item"><a id="aszip"
-                                                                                 href="/secure/attachmentzip/215653.zip"
-                                                                                 class="aui-list-checked aui-list-item-link"
-                                                                                 title="Download all attachments as a ZIP file"><span>Download All</span></a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="mod-content">
-                                <ol id="attachment_thumbnails" class="item-attachments" data-sort-key="fileName"
-                                    data-sort-order="asc">
-                                    <!-- TODO: Implement carousel and ordering -->
-                                    {% for attachment in ticket.ticketAttachments.all %}
-                                        <li class="attachment-content js-file-attachment" draggable="true"
-                                            data-downloadurl="image/png:image-2022-06-21-21-22-35-447.png:https://issues.jenkins.io/secure/attachment/58242/image-2022-06-21-21-22-35-447.png"
-                                            data-issue-id="{{ attachment.id }}" data-attachment-type="image"
-                                            data-attachment-thumbnail="true">
-                                            <div class="attachment-thumb">
-                                                <a href="{{ attachment.attachment.url }}"
-                                                   title="image-2022-06-21-21-22-35-447.png - Latest 2022-06-21 19:22 - Bartosz Nowak"
-                                                   file-preview-id="{{ attachment.id }}"
-                                                   file-preview-title="image-2022-06-21-21-22-35-447.png"
-                                                   file-preview-type="image"
-                                                   file-preview-url="https://issues.jenkins.io/secure/thumbnail/58242/_thumb_58242.png"
-                                                   resolved="">
-                                                    <img loading="lazy"
-                                                         src="{{ attachment.attachment.url }}"
-                                                         alt="image-2022-06-21-21-22-35-447.png">
-                                                </a>
-                                            </div>
-                                            <dl>
-                                                <dt>
-                                                    <span class="blender"></span>
-                                                    <a
-                                                            href="{{ attachment.attachment.url }}"
-                                                            class="attachment-title"
-                                                            title="image-2022-06-21-21-22-35-447.png - Latest 2022-06-21 19:22 - Bartosz Nowak"
-                                                            file-preview-id="58242"
-                                                            file-preview-title="image-2022-06-21-21-22-35-447.png"
-                                                            file-preview-type="image"
-                                                            file-preview-url="https://issues.jenkins.io/secure/thumbnail/58242/_thumb_58242.png"
-                                                            resolved="">{{ attachment.internalKey }}</a></dt>
-                                                <!-- TODO: Fix file size -->
-                                                <dd class="attachment-size">{{ attachment.attachment.size }} kB</dd>
-                                                <dd class="attachment-date">
-                                                    <time className="livestamp"
-                                                          dateTime="{{ attachment.createdDttm }}">{{ attachment.createdDttm|date:'Y-m-d H:i' }}
-                                                    </time>
-                                                </dd>
-                                            </dl>
-                                        </li>
-                                    {% endfor %}
-                                </ol>
-                            </div>
-                        </div>
-                        <div id="linkingmodule" class="module toggle-wrap">
-                        </div>
-                        <div id="activitymodule" class="module toggle-wrap">
-                            <div id="activitymodule_heading" class="mod-header">
-                                <button class="aui-button toggle-title" aria-label="Activity"
-                                        aria-controls="activitymodule" aria-expanded="true" resolved="">
-                                    <span class="accicon"><i class="fas fa-angle-down rotate-icon"></i></span>
-                                </button>
-                                <h4 class="toggle-title" id="activitymodule-label">Comments</h4>
-                                <ul class="ops"></ul>
-                            </div>
-                            <div class="mod-content">
-
-
-                                <div id="comment-3025721"
-                                     class="issue-data-block activity-comment twixi-block  expanded">
-                                    <div class="twixi-wrap verbose actionContainer">
-                                        <div class="action-head">
-                                            <button aria-label="Collapse comment" title="Collapse comment"
-                                                    class="twixi icon-default aui-icon aui-icon-small aui-iconfont-expanded"></button>
-                                            <div class="action-details">
-
-
-                                                <a class="user-hover user-avatar" rel="bf31e0818161"
-                                                   id="commentauthor_3025721_verbose"
-                                                   href="/secure/ViewProfile.jspa?name=bf31e0818161"><span
-                                                        class="aui-avatar aui-avatar-xsmall"><span
-                                                        class="aui-avatar-inner"><img
-                                                        src="https://jira.atlassian.com/secure/useravatar?size=xsmall&amp;avatarId=10612"
-                                                        alt="bf31e0818161"></span></span> John Price</a>
-                                                added a comment - <a
-                                                    href="/browse/JSDCLOUD-630?focusedCommentId=3025721&amp;page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-3025721"
-                                                    class="commentdate_3025721_verbose subText comment-created-date-link"><span
-                                                    class="date user-tz" title="12/Apr/2022 5:37 PM"><time
-                                                    class="livestamp" datetime="2022-04-12T17:37:36+0000">12/Apr/2022 5:37 PM</time></span></a>
-                                            </div>
-                                        </div>
-                                        <div class="action-body flooded">
-                                            <p>
-                                                COMMENT HERE!!!
-                                            </p>
-                                        </div>
-                                        <div class="action-links action-comment-actions">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div id="comment-3025721"
-                                     class="issue-data-block activity-comment twixi-block  expanded">
-                                    <div class="twixi-wrap verbose actionContainer">
-                                        <div class="action-head">
-                                            <button aria-label="Collapse comment" title="Collapse comment"
-                                                    class="twixi icon-default aui-icon aui-icon-small aui-iconfont-expanded"></button>
-                                            <div class="action-details">
-
-
-                                                <a class="user-hover user-avatar" rel="bf31e0818161"
-                                                   id="commentauthor_3025721_verbose"
-                                                   href="/secure/ViewProfile.jspa?name=bf31e0818161"><span
-                                                        class="aui-avatar aui-avatar-xsmall"><span
-                                                        class="aui-avatar-inner"><img
-                                                        src="https://jira.atlassian.com/secure/useravatar?size=xsmall&amp;avatarId=10612"
-                                                        alt="bf31e0818161"></span></span> John Price</a>
-                                                added a comment - <a
-                                                    href="/browse/JSDCLOUD-630?focusedCommentId=3025721&amp;page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-3025721"
-                                                    class="commentdate_3025721_verbose subText comment-created-date-link"><span
-                                                    class="date user-tz" title="12/Apr/2022 5:37 PM"><time
-                                                    class="livestamp" datetime="2022-04-12T17:37:36+0000">12/Apr/2022 5:37 PM</time></span></a>
-                                            </div>
-                                        </div>
-                                        <div class="action-body flooded">
-                                            <p>
-                                                COMMENT HERE!!!
-                                            </p>
-                                        </div>
-                                        <div class="action-links action-comment-actions">
-                                        </div>
-                                    </div>
-                                </div>
-
-
-                            </div>
-                        </div>
-                    </div>
-                    <div id="view-issue-sidebar" class="aui-item issue-side-column">
-                        <div id="peoplemodule" class="module toggle-wrap">
-                            <div id="peoplemodule_heading" class="mod-header">
-                                <button class="aui-button toggle-title" aria-label="People" aria-controls="peoplemodule"
-                                        aria-expanded="true" resolved="">
-                                    <span class="accicon"><i class="fas fa-angle-down rotate-icon"></i></span>
-                                </button>
-                                <h4 class="toggle-title" id="peoplemodule-label">People</h4>
-                                <ul class="ops"></ul>
-                            </div>
-                            <div class="mod-content">
-                                <div class="item-details people-details" id="peopledetails">
-                                    <dl>
-                                        <dt title="Assignee">
-                                            <label for="assignee-field">Assignee:</label>
-                                        </dt>
-                                        <dd>
-                                            {% if ticket.assignee.profile.profilePicture %}
-                                                <span id="assignee-val" class="view-issue-field">
-                                                    <span class="aui-avatar aui-avatar-small">
-                                                        <span class="aui-avatar-inner">
-                                                            <img src="{{ ticket.assignee.profile.profilePicture.url }}"
-                                                                 alt="{{ ticket.assignee.get_full_name }}">
-                                                        </span>
-                                                    </span>
-                                                {{ ticket.assignee.get_full_name }}
-                                                </span>
-                                            {% else %}
-                                                <span id="assignee-val" class="view-issue-field">
-                                                    <span class="aui-avatar aui-avatar-small">
-                                                        <span class="aui-avatar-inner">
-                                                            <img src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
-                                                                 alt="Unassigned">
-                                                        </span>
-                                                    </span>
-                                                    Unassigned
-                                                </span>
-                                            {% endif %}
-                                        </dd>
-                                    </dl>
-                                    <dl>
-                                        <dt title="Reporter">
-                                            <label for="reporter-field">Reporter:</label>
-                                        </dt>
-                                        <dd>
-                                            <span id="reporter-val" class="view-issue-field">
-                                                <span class="user-hover" id="issue_summary_reporter_dumam"
-                                                      rel="{{ ticket.reporter.get_full_name }}">
-                                                    <span class="aui-avatar aui-avatar-small">
-                                                        <span class="aui-avatar-inner">
-                                                            <img src="{{ ticket.reporter.profile.profilePicture.url }}"
-                                                                 alt="{{ ticket.reporter.get_full_name }}">
-                                                        </span>
-                                                    </span>
-                                                    {{ ticket.reporter.get_full_name }}
-                                                </span>
-                                            </span>
-                                        </dd>
-                                    </dl>
-                                </div>
-                                <div class="item-details">
-                                    <dl>
-                                        <dt title="Votes">Votes:</dt>
-                                        <dd>
-                                            <aui-badge id="vote-data" class="">0</aui-badge>
-                                            <span id="vote-label"
-                                                  title="You have to be logged in to vote for an issue.">Vote for this issue</span>
-                                        </dd>
-                                    </dl>
-                                    <dl>
-                                        <dt title="Watchers">Watchers:</dt>
-                                        <dd>
-                                            <aui-badge id="watcher-data" class="">2</aui-badge>
-                                            <span id="watch-label" title="You have to be logged in to watch an issue.">Start watching this issue</span>
-                                        </dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="datesmodule" class="module toggle-wrap">
-                            <div id="datesmodule_heading" class="mod-header">
-                                <button class="aui-button toggle-title" aria-label="Dates" aria-controls="datesmodule"
-                                        aria-expanded="true" resolved="">
-                                    <span class="accicon"><i class="fas fa-angle-down rotate-icon"></i></span>
-                                </button>
-                                <h4 class="toggle-title" id="datesmodule-label">Dates</h4>
-                                <ul class="ops"></ul>
-                            </div>
-                            <div class="mod-content">
-                                <div class="item-details">
-                                    <dl class="dates">
-                                        <dt>
-                                            Created:
-                                        </dt>
-                                        <dd class="date user-tz" title="{{ ticket.createdDttm }}">
-                                            <span data-name="Created" id="created-val" data-fieldtype="datetime">
-                                                <time class="livestamp" datetime="{{ ticket.createdDttm }}">
-                                                    {{ ticket.createdDttm }}
-                                                </time>
-                                            </span>
-                                        </dd>
-                                    </dl>
-                                    <dl class="dates">
-                                        <dt>
-                                            Updated:
-                                        </dt>
-                                        <dd class="date user-tz" title="{{ ticket.modifiedDttm }}">
-                                            <span data-name="Updated" id="updated-val" data-fieldtype="datetime">
-                                                <time class="livestamp" datetime="{{ ticket.modifiedDttm }}">
-                                                    {{ ticket.modifiedDttm }}
-                                                </time>
-                                            </span>
-                                        </dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div id="issue-content" class="issue-edit-form">
     </div>
 
     <script type="text/javascript">
 
         $('.select2bs4').select2({});
 
-        var BOARD_LABELS = [];
+        const componentsLabel = [];
 
-        {% for bl in ticket.label.all%}
-            BOARD_LABELS.push('{{ bl.id }}')
+        {% for component in ticket.components %}
+            componentsLabel.push('{{ component.id }}')
         {% endfor %}
 
-        $('#ticket-labels').select2().val(BOARD_LABELS).trigger("change");
-
-        $(function () {
-            $('#tickets-list-container').sortable(
-                {
-                    stop: function (e, ui) {
-                        const newOrder = $.map($('#tickets-list-container > div'), div => div.id);
-                        console.log(newOrder)
-
-                        $.ajax(
-                            {
-                                url: "{% url 'jira:ticketBulkOrderChangeApiEventVersion1Component' %}",
-                                data:
-                                    {
-                                        'newOrder': newOrder,
-                                    },
-                                type: 'PUT',
-                                dataType: 'json',
-                            }
-                        );
-                    }
-                }
-            );
-        });
+        $('#ticket-components').select2().val(componentsLabel).trigger("change");
     </script>
+
+
     <script type="text/babel">
+
+        class TicketHeaderComponent extends React.Component {
+            constructor(props) {
+                super(props);
+            }
+
+            render() {
+                const style1 = {
+                    backgroundColor: '#f5f6f8'
+                }
+                return (
+                    <header id="stalker" className="issue-header js-stalker">
+                        <div className="issue-header-content">
+                            <div className="aui-page-header">
+                                <div className="aui-page-header-inner">
+                                    <div className="aui-page-header-image">
+                                <span id="10172" className="aui-avatar aui-avatar-large aui-avatar-project">
+                                    <span className="aui-avatar-inner">
+                                        <img id="project-avatar"
+                                             alt={"Uploaded image for project: " + this.props.ticket.project.internalKey}
+                                             src={this.props.ticket.project.icon}></img>
+                                    </span>
+                                </span>
+                                    </div>
+                                    <div className="aui-page-header-main">
+                                        <ol className="aui-nav aui-nav-breadcrumbs" resolved="">
+                                            <li>
+                                                <a id="project-name-val"
+                                                   href={this.props.ticket.project.link}
+                                                   className="">{this.props.ticket.project.internalKey}</a>
+                                            </li>
+                                            &nbsp;
+                                            <li>
+                                                <a className="issue-link" data-issue-key={this.props.ticket.link}
+                                                   href={this.props.ticket.link} id="key-val"
+                                                   rel="215653">{this.props.ticket.internalKey}</a>
+                                            </li>
+                                        </ol>
+                                        <h1 id="summary-val">{this.props.ticket.summary} </h1>
+                                    </div>
+                                </div>
+                                <button type="button" className="btn" data-toggle="modal"
+                                        style={style1}
+                                        data-target="#editTicketModal">Edit
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+                )
+            }
+        }
+
+        class TicketDatesComponent extends React.Component {
+            constructor(props) {
+                super(props);
+            }
+
+            render() {
+                return (
+                    <div id="datesmodule" className="module toggle-wrap">
+                        <div id="datesmodule_heading" className="mod-header">
+                            <button className="aui-button toggle-title" aria-label="Dates" aria-controls="datesmodule"
+                                    aria-expanded="true" resolved="">
+                                <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
+                            </button>
+                            <h4 className="toggle-title" id="datesmodule-label">Dates</h4>
+                            <ul className="ops"></ul>
+                        </div>
+                        <div className="mod-content">
+                            <div className="item-details">
+                                <dl className="dates">
+                                    <dt>
+                                        Created:
+                                    </dt>
+                                    <dd className="date user-tz" title={this.props.ticket.createdDate}>
+                                            <span data-name="Created" id="created-val" data-fieldtype="datetime">
+                                                <time className="livestamp" dateTime={this.props.ticket.createdDate}>
+                                                    {this.props.ticket.createdDate}
+                                                </time>
+                                            </span>
+                                    </dd>
+                                </dl>
+                                <dl className="dates">
+                                    <dt>
+                                        Updated:
+                                    </dt>
+                                    <dd className="date user-tz" title={this.props.ticket.modifiedDate}>
+                                            <span data-name="Updated" id="updated-val" data-fieldtype="datetime">
+                                                <time className="livestamp" dateTime={this.props.ticket.modifiedDate}>
+                                                    {this.props.ticket.modifiedDate}
+                                                </time>
+                                            </span>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        }
+
+        class TicketDetailsComponent extends React.Component {
+            constructor(props) {
+                super(props);
+            }
+
+            render() {
+
+                const style1 = {
+                    backgroundColor: this.props.ticket.column.colour,
+                    color: 'white',
+                }
+                const style2 = {
+                    backgroundColor: ' #DFE1E5',
+                }
+                const style3 = {
+                    height: "auto"
+                }
+                return (
+                    <div id="details-module" className="module toggle-wrap">
+                        <div id="details-module_heading" className="mod-header">
+                            <button className="aui-button toggle-title" aria-label="Details"
+                                    aria-controls="details-module" aria-expanded="true" resolved="">
+                                <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
+                            </button>
+                            <h4 className="toggle-title" id="details-module-label">Details</h4>
+                            <ul className="ops"></ul>
+                        </div>
+                        <div className="mod-content">
+                            <ul id="issuedetails" className="property-list two-cols">
+                                <li className="item">
+                                    <div className="wrap">
+                                        <strong className="name" title="Type">
+                                            <label htmlFor="issuetype">Type:</label>
+                                        </strong>
+                                        <span id="type-val" className="value">
+                                                <img alt={this.props.ticket.issueType.internalKey} height="16"
+                                                     src={this.props.ticket.issueType.icon}
+                                                     title={this.props.ticket.issueType.internalKey}
+                                                     width="16"></img>
+                                            &nbsp;&nbsp;
+                                            {this.props.ticket.issueType.internalKey}
+                                            </span>
+                                    </div>
+                                </li>
+                                <li className="item item-right">
+                                    <div className="wrap">
+                                        <strong className="name" title="Status">Status:</strong>
+                                        <span id="status-val" className="value">
+                                                <span
+                                                    className=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-yellow jira-issue-status-lozenge-indeterminate jira-issue-status-lozenge-max-width-medium"
+                                                    style={style1}>
+                                                    {this.props.ticket.column.internalKey}
+                                                </span>
+                                            </span>
+                                    </div>
+                                </li>
+                                <li className="item new">
+                                    <div className="wrap">
+                                        <strong className="name" title="Priority">
+                                            <label htmlFor="priority-field">Priority:</label>
+                                        </strong>
+                                        <span id="priority-val" className="value">
+                                                <img alt={this.props.ticket.priority.internalKey} height="16"
+                                                     src={this.props.ticket.priority.icon}
+                                                     title={this.props.ticket.priority.internalKey}
+                                                     width="16"></img>
+                                            &nbsp;&nbsp;
+                                            {this.props.ticket.priority.internalKey}
+                                            </span>
+                                    </div>
+                                </li>
+                                <li className="item item-right">
+                                    <div className="wrap">
+                                        <strong className="name" title="Resolution">Resolution:</strong>
+                                        <span id="resolution-val"
+                                              className={"value " + this.props.ticket.resolution.internalKey}> {this.props.ticket.resolution.internalKey} </span>
+                                    </div>
+                                </li>
+                                <li className="item">
+                                    <div className="wrap">
+                                        <strong className="name" title="Component/s">
+                                            <label htmlFor="components">Component/s:</label>
+                                        </strong>
+                                        <span id="components-val" className="value">
+                                              <span className="shorten" id="components-field" resolved=""
+                                                    style={style3}>
+                                                  {
+                                                      this.props.ticket.components.map((component, i) =>
+                                                          <a key={i} title="core Jenkins core"
+                                                             href={"{% url 'jira:issuesListView' %}?projects=" + this.props.ticket.project.code + "&component=" + component.internalKey}>
+                                                              {component.internalKey}&nbsp;&nbsp;
+                                                          </a>
+                                                      )
+                                                  }
+                                              </span>
+                                          </span>
+                                    </div>
+                                </li>
+
+                                <li className="item item-right">
+                                    <div className="wrap">
+                                        <strong className="name" title="StoryPoint">Story Point:</strong>
+                                        <span id="storyPoint-val" className={"value " + this.props.ticket.storyPoints}>
+                                            {this.props.ticket.storyPoints}
+                                        </span>
+                                    </div>
+                                </li>
+
+                                <li className="item">
+                                    <div className="wrap" id="wrap-labels">
+                                        <strong className="name" title="Labels"> <label
+                                            htmlFor="labels-textarea">Labels:</label> </strong>
+                                        {
+                                            // TODO: ticket filtering based on label is not Implemented.
+                                            this.props.ticket.labels.map((label, i) =>
+                                                <div className="labels-wrap value" key={i}>
+                                                    <a href={"{% url 'jira:issuesListView' %}?projects=" + this.props.ticket.project.code + "&label=" + label.internalKey} className="aui-lozenge"
+                                                       style={style2}
+                                                       title={label.internalKey}>
+                                                        {label.internalKey}
+                                                    </a>
+                                                </div>
+                                            )
+                                        }
+                                    </div>
+                                </li>
+
+                                <li className="item item-right">
+                                    <div className="wrap">
+                                        <strong className="name" title="fixVersion">Fix version:</strong>
+                                        <span id="fixVersion-val" className={"value " + this.props.ticket.fixVersion}>
+                                            {this.props.ticket.fixVersion}
+                                        </span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                )
+            }
+        }
+
+        class TicketPeopleComponent extends React.Component {
+            constructor(props) {
+                super(props);
+
+                const icon = 'https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png';
+
+                let unassignedProfile = {
+                    id: 0,
+                    fullName: "Unassigned",
+                    icon: icon
+                }
+
+                let assignee = Object.keys(this.props.assignee).length === 0 ? unassignedProfile : this.props.assignee;
+                let reporter = Object.keys(this.props.reporter).length === 0 ? unassignedProfile : this.props.reporter;
+                let watchers = this.props.watchers;
+                watchers.isWatching = eval(watchers.isWatching);
+
+                this.state = {
+                    assignee: assignee,
+                    reporter: reporter,
+                    watchers: watchers,
+                }
+            }
+
+            render() {
+                return (
+                    <div id="peoplemodule" className="module toggle-wrap">
+                        <div id="peoplemodule_heading" className="mod-header">
+                            <button className="aui-button toggle-title" aria-label="People" aria-controls="peoplemodule"
+                                    aria-expanded="true" resolved="">
+                                <span className="accicon">
+                                    <i className="fas fa-angle-down rotate-icon"></i>
+                                </span>
+                            </button>
+                            <h4 className="toggle-title" id="peoplemodule-label">People</h4>
+                            <ul className="ops"></ul>
+                        </div>
+                        <div className="mod-content">
+                            <div className="item-details people-details" id="peopledetails">
+                                <dl>
+                                    <dt title="Assignee">
+                                        <label htmlFor="assignee-field">Assignee:</label>
+                                    </dt>
+                                    <dd>
+                                        <span id="assignee-val" className="view-issue-field">
+                                            <span className="aui-avatar aui-avatar-small">
+                                                <span className="aui-avatar-inner">
+                                                    <img
+                                                        src={this.state.assignee.icon}
+                                                        alt={this.state.assignee.fullName}></img>
+                                                </span>
+                                            </span>&nbsp;&nbsp;
+                                            {this.state.assignee.fullName}
+                                        </span>
+                                    </dd>
+                                </dl>
+                                <dl>
+                                    <dt title="Reporter">
+                                        <label htmlFor="reporter-field">Reporter:</label>
+                                    </dt>
+                                    <dd>
+                                        <span id="reporter-val" className="view-issue-field">
+                                            <span className="user-hover" id="issue_summary_reporter_dumam"
+                                                  rel={this.state.reporter.fullName}>
+                                                <span className="aui-avatar aui-avatar-small">
+                                                    <span className="aui-avatar-inner">
+                                                        <img src={this.state.reporter.icon}
+                                                             alt={this.state.reporter.fullName}></img>
+                                                    </span>
+                                                </span>
+                                                &nbsp;&nbsp;
+                                                {this.state.reporter.fullName}
+                                            </span>
+                                        </span>
+                                    </dd>
+                                </dl>
+                            </div>
+                            <div className="item-details">
+                                <dl>
+                                    <dt title="Votes">Votes:</dt>
+                                    <dd>
+                                        <aui-badge id="vote-data" className="">0</aui-badge>
+                                        <span id="vote-label"
+                                              title="You have to be logged in to vote for an issue.">Vote for this issue</span>
+                                    </dd>
+                                </dl>
+                                <dl>
+                                    <dt title="Watchers">Watchers:</dt>
+                                    <dd>
+                                        {this.state.watchers.isWatching ? <span
+                                                className="badge badge-pill badge-primary">{this.state.watchers.counter}</span> :
+                                            <aui-badge id="watcher-data"
+                                                       className="">{this.state.watchers.counter}</aui-badge>}
+                                        <span id="watch-label"
+                                              title={this.state.watchers.message}>{!this.state.watchers.isWatching ? " Watch this issue" : " Unwatch this issue"}</span>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        }
+
+        class TicketDescriptionComponent extends React.Component {
+            constructor(props) {
+                super(props);
+            }
+
+            render() {
+
+                const style1 = {
+                    whiteSpace: "pre-line"
+                }
+                return (
+                    <div id="descriptionModule" className="module toggle-wrap">
+                        <div id="descriptionModule_heading" className="mod-header">
+                            <button className="aui-button toggle-title" aria-label="Description"
+                                    aria-controls="descriptionModule" aria-expanded="true" resolved="">
+                                <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
+                            </button>
+                            <h4 className="toggle-title" id="descriptionmodule-label">Description</h4>
+                            <ul className="ops"></ul>
+                        </div>
+                        <div className="mod-content">
+                            <div id="description-val" className="field-ignore-highlight">
+                                <div className="user-content-block" style={style1}>
+                                    {this.props.ticket.description}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        }
+
+        class Thumbnail extends React.Component {
+            constructor(props) {
+                super(props);
+            }
+
+            render() {
+                return (
+                    <li className="attachment-content js-file-attachment" draggable="true"
+                        data-downloadurl="image/png:image-2022-06-21-21-22-35-447.png:https://issues.jenkins.io/secure/attachment/58242/image-2022-06-21-21-22-35-447.png"
+                        data-issue-id={this.props.attachment.id} data-attachment-type="image"
+                        data-attachment-thumbnail="true">
+                        <div className="attachment-thumb">
+                            <a href={this.props.attachment.url}
+                               title={this.props.attachment.name}
+                               file-preview-id={this.props.attachment.id}
+                               file-preview-title={this.props.attachment.name}
+                               file-preview-type="image"
+                               file-preview-url="https://issues.jenkins.io/secure/thumbnail/58242/_thumb_58242.png"
+                               resolved="">
+                                <img loading="lazy"
+                                     src={this.props.attachment.icon}
+                                     alt={this.props.attachment.name}></img>
+                            </a>
+                        </div>
+                        <dl>
+                            <dt>
+                                <span className="blender"></span>
+                                <a
+                                    href={this.props.attachment.url}
+                                    className="attachment-title"
+                                    title={this.props.attachment.name}
+                                    file-preview-id={this.props.attachment.id}
+                                    file-preview-title={this.props.attachment.name}
+                                    file-preview-type="image"
+                                    file-preview-url="https://issues.jenkins.io/secure/thumbnail/58242/_thumb_58242.png"
+                                    resolved="">{this.props.attachment.internalKey}</a></dt>
+                            <dd className="attachment-size">{this.props.attachment.size}</dd>
+                            <dd className="attachment-date">
+                                <time className="livestamp"
+                                      dateTime={this.props.attachment.createdDttm}>{this.props.attachment.createdDttm}
+                                </time>
+                            </dd>
+                        </dl>
+                    </li>
+                )
+            }
+        }
+
+        class TicketAttachmentComponent extends React.Component {
+            constructor(props) {
+                super(props);
+
+                this.state = {
+                    attachments: []
+                }
+
+            }
+
+            componentDidMount = () => {
+                this.fetchTicketAttachments();
+            }
+
+
+            fetchTicketAttachments()
+            {
+                fetch('{% url 'jira:ticketAttachmentsApiEventVersion1Component' ticketId=ticket.id %}')
+                    .then(response => response.json())
+                    .then(data => this.setState({
+                        attachments: data.data.attachments
+                    }))
+
+            }
+
+            render() {
+                return (
+                    <div id="attachmentModule" className="module toggle-wrap">
+                        <div id="attachmentModuleHeading" className="mod-header">
+                            <button className="aui-button toggle-title" aria-label="Attachments"
+                                    aria-controls="attachmentModule" aria-expanded="true" resolved="">
+                                <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
+                            </button>
+                            <h4 className="toggle-title" id="attachmentmodule-label">Attachments</h4>
+                            <ul className="ops">
+                                <li className="drop">
+                                    <div className="aui-dd-parent">
+                                        <button
+                                            className="aui-button aui-button-compact aui-button-subtle js-default-dropdown"
+                                            title="Options" aria-label="Attachments panel options" resolved=""
+                                            id="AJS_DROPDOWN__4" aria-controls="AJS_DROPDOWN__4_drop"
+                                            aria-haspopup="true" aria-expanded="false"><span
+                                            className="aui-icon aui-icon-small aui-iconfont-more">Options</span>
+                                        </button>
+                                        <div className="aui-dropdown-content aui-list">
+                                            <ul id="attachment-sorting-options" className="aui-list-section aui-first">
+                                                <li className="aui-list-item"><a id="attachment-sort-key-name"
+                                                                                 href="/browse/JENKINS-68799?attachmentSortBy=fileName#attachmentModule"
+                                                                                 className="aui-list-checked aui-checked aui-list-item-link"
+                                                                                 title="viewissue.subtasks.tab.show.all.name"><span>Sort By Name</span></a>
+                                                </li>
+                                                <li className="aui-list-item"><a id="attachment-sort-key-date"
+                                                                                 href="/browse/JENKINS-68799?attachmentSortBy=dateTime#attachmentModule"
+                                                                                 className="aui-list-checked aui-list-item-link"
+                                                                                 title="Sort By Date"><span>Sort By Date</span></a>
+                                                </li>
+                                            </ul>
+                                            <ul id="attachment-sorting-order-options" className="aui-list-section">
+                                                <li className="aui-list-item"><a id="attachment-sort-direction-asc"
+                                                                                 href="/browse/JENKINS-68799?attachmentOrder=asc#attachmentModule"
+                                                                                 className="aui-list-checked aui-checked aui-list-item-link"
+                                                                                 title="Ascending"><span>Ascending</span></a>
+                                                </li>
+                                                <li className="aui-list-item"><a id="attachment-sort-direction-desc"
+                                                                                 href="/browse/JENKINS-68799?attachmentOrder=desc#attachmentModule"
+                                                                                 className="aui-list-checked aui-list-item-link"
+                                                                                 title="Descending"><span>Descending</span></a>
+                                                </li>
+                                            </ul>
+                                            <ul id="attachment-view-mode-options" className="aui-list-section">
+                                                <li className="aui-list-item"><a id="attachment-view-mode-gallery"
+                                                                                 href="/browse/JENKINS-68799?attachmentViewMode=gallery#attachmentModule"
+                                                                                 className="aui-list-checked aui-checked aui-list-item-link"
+                                                                                 title="Thumbnails"><span>Thumbnails</span></a>
+                                                </li>
+                                                <li className="aui-list-item"><a id="attachment-view-mode-list"
+                                                                                 href="/browse/JENKINS-68799?attachmentViewMode=list#attachmentModule"
+                                                                                 className="aui-list-checked aui-list-item-link"
+                                                                                 title="List"><span>List</span></a></li>
+                                            </ul>
+                                            <ul id="attachment-manage-options" className="aui-list-section aui-last">
+                                                <li className="aui-list-item"><a id="aszip"
+                                                                                 href="/secure/attachmentzip/215653.zip"
+                                                                                 className="aui-list-checked aui-list-item-link"
+                                                                                 title="Download all attachments as a ZIP file"><span>Download All</span></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <div className="mod-content">
+                                <ol id="attachment_thumbnails" className="item-attachments" data-sort-key="fileName"
+                                    data-sort-order="asc">
+                                    {this.state.attachments.map((item => <Thumbnail key={item.id} attachment={item}/>))}
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        }
 
         class TicketBar extends React.Component {
             constructor(props) {
@@ -769,12 +761,64 @@
             }
         }
 
+        class LinkingModuleHead extends React.Component {
+            constructor(props) {
+                super(props);
+
+                this.state = {
+                    heading: this.props.isEpic ? "Issues in the epic" : "Subtasks"
+                }
+            }
+
+            render() {
+
+                const style1 = {
+                    fontSize: "24px",
+                    cursor: "pointer"
+                }
+                return (
+                    <div id="linkingmodule_heading" className="mod-header">
+                        <button className="aui-button toggle-title" aria-label="Issue Links"
+                                aria-controls="linkingmodule" aria-expanded="true" resolved="">
+                            <span className="accicon">
+                                <i className="fas fa-angle-down rotate-icon"></i>
+                            </span>
+                        </button>
+                        <div className="row">
+                            <div className="col">
+                                <p className="font-weight-bold">{this.state.heading}</p>
+                            </div>
+                            <div className="col-auto">
+                                <i className="fa fa-plus-square float-right"
+                                   style={style1} onClick={this.props.switchCreateMode}
+                                ></i>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+        }
+
         class LinkingModuleBody extends React.Component {
             constructor(props) {
                 super(props);
+                let issueTypeList = localStorage.getItem("issueTypeList");
+
+                if (issueTypeList != null) {
+                    issueTypeList = JSON.parse(issueTypeList).object;
+                    const STORY = "STORY";
+                    issueTypeList.sort(function (x, y) {
+                        return x.code == STORY ? -1 : y.code == STORY ? 1 : 0;
+                    });
+                }
+                else{
+                    issueTypeList = [];
+                }
+
                 this.state = {
                     issueType: null,
                     summary: null,
+                    issueTypes: issueTypeList,
                 }
             }
 
@@ -789,7 +833,7 @@
                         'Content-type': 'application/json',
                     },
                     body: JSON.stringify({
-                        'ticketId': {{ ticket.id }},
+                        'ticketId': this.props.ticket.id,
                         'ticketSummary': this.refs.summaryInput.value,
                         'issueType': this.refs.issueTypeInput.value,
                     })
@@ -806,7 +850,7 @@
                         'Content-type': 'application/json',
                     },
                     body: JSON.stringify({
-                        'ticketId': {{ ticket.id }},
+                        'ticketId': this.props.ticket.id,
                         'ticketSummary': this.refs.summaryInput.value,
                     })
                 }).then((response) => {
@@ -826,18 +870,20 @@
                                 <div className="col-4">
                                     <select id="issueType" data-show-content="true" className="form-control"
                                             ref="issueTypeInput">
-                                        {% for ji in ticketIssueTypes %}
-                                            {% if ji.code == "STORY" %}
-                                                <option
-                                                    data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"
-                                                    defaultValue="{{ ji.code }}"
-                                                    selected="selected">{{ ji.internalKey }}</option>
-                                            {% else %}
-                                                <option
-                                                    data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"
-                                                    defaultValue="{{ ji.code }}">{{ ji.internalKey }}</option>
-                                            {% endif %}
-                                        {% endfor %}
+                                        {this.state.issueTypes.map((type) => <option key={type.id}
+                                                                                     defaultValue={type.code}> {type.internalKey}</option>)}
+{#                                       {% for ji in ticketIssueTypes %}#}
+{#                                            {% if ji.code == "STORY" %}#}
+{#                                                <option#}
+{#                                                    data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"#}
+{#                                                    defaultValue="{{ ji.code }}"#}
+{#                                                    selected="selected">{{ ji.internalKey }}</option>#}
+{#                                            {% else %}#}
+{#                                                <option#}
+{#                                                    data-content="<img src='{% static ji.icon %}' width='20' height='20'>&nbsp; {{ ji }}"#}
+{#                                                    defaultValue="{{ ji.code }}">{{ ji.internalKey }}</option>#}
+{#                                            {% endif %}#}
+{#                                        {% endfor %}#}
                                     </select>
                                 </div>
                                 <div className="col-8">
@@ -888,58 +934,26 @@
             }
         }
 
-
-        class LinkingModuleHead extends React.Component {
-            constructor(props) {
-                super(props);
-
-                this.state = {
-                    heading: this.props.isEpic ? "Issues in the epic" : "Subtasks"
-                }
-            }
-
-            render() {
-
-                const style1 = {
-                    fontSize: "24px",
-                    cursor: "pointer"
-                }
-                return (
-                    <div id="linkingmodule_heading" className="mod-header">
-                        <button className="aui-button toggle-title" aria-label="Issue Links"
-                                aria-controls="linkingmodule" aria-expanded="true" resolved="">
-                            <span className="accicon">
-                                <i className="fas fa-angle-down rotate-icon"></i>
-                            </span>
-                        </button>
-                        <div className="row">
-                            <div className="col">
-                                <p className="font-weight-bold">{this.state.heading}</p>
-                            </div>
-                            <div className="col-auto">
-                                <i className="fa fa-plus-square float-right"
-                                   style={style1} onClick={this.props.switchCreateMode}
-                                ></i>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-        }
-
         class LinkingModuleComponent extends React.Component {
             constructor(props) {
                 super(props);
                 this.state = {
-                    isEpic: '{{ ticket.issueType.code }}' === 'EPIC',
+                    isEpic: this.props.ticket.issueType.internalKey === 'Epic',
                     inCreateMode: false,
-                    epicTickets: eval('{{ epicTickets|safe }}'),
-                    subTaskTickets: eval('{{ subTaskTickets|safe }}')
+                    epicTickets: [],
+                    subTaskTickets: []
                 }
 
                 this.switchCreateMode = this.switchCreateMode.bind(this)
                 this.fetchEpicTasks = this.fetchEpicTasks.bind(this)
                 this.fetchSubTasks = this.fetchSubTasks.bind(this)
+            }
+
+            componentDidMount = () => {
+                if (this.state.isEpic)
+                    this.fetchEpicTasks()
+                else
+                    this.fetchSubTasks()
             }
 
             fetchEpicTasks() {
@@ -966,50 +980,54 @@
 
             render() {
                 return (
-                    <div>
+                    <div id="linkingmodule" className="module toggle-wrap">
                         <LinkingModuleHead isEpic={this.state.isEpic} inCreateMode={this.state.inCreateMode}
                                            switchCreateMode={this.switchCreateMode}/>
                         <br></br>
                         <LinkingModuleBody isEpic={this.state.isEpic} inCreateMode={this.state.inCreateMode}
                                            switchCreateMode={this.switchCreateMode} epicTickets={this.state.epicTickets}
                                            fetchEpicTasks={this.fetchEpicTasks} fetchSubTasks={this.fetchSubTasks}
-                                           subTaskTickets={this.state.subTaskTickets}/>
+                                           subTaskTickets={this.state.subTaskTickets} ticket={this.props.ticket}/>
                     </div>
                 );
             }
         }
 
-        class CommentComponent extends React.Component {
+        class TicketCommentInstanceComponent extends React.Component {
             constructor(props) {
                 super(props);
-
-                this.state = {
-                    icon: this.props.comment.creator.icon ? this.props.comment.creator.icon : "https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png",
-                    edited: this.props.comment.edited ? "(edited)" : "",
-                }
             }
 
             render() {
-                const style2 = {
-                    maxWidth: "4%"
-                }
                 return (
-                    <div className="row">
-                        <div className="col-1" style={style2}>
-                            <span className="aui-avatar aui-avatar-small">
-                                <span className="aui-avatar-inner">
-                                    <img alt="Unassigned"
-                                         src={this.state.icon}>
-                                    </img>
-                                </span>
-                            </span>
-                        </div>
-                        <div className="col-11">
-                            <div className="row">
-                                {this.props.comment.creator.firstName} {this.props.comment.creator.lastName} {this.props.comment.createdDttm} {this.state.edited}
+                    <div id={"comment-" + this.props.comment.id}
+                         className="issue-data-block activity-comment twixi-block expanded">
+                        <div className="twixi-wrap verbose actionContainer">
+                            <div className="action-head">
+                                <button aria-label="Collapse comment" title="Collapse comment"
+                                        className="twixi icon-default aui-icon aui-icon-small aui-iconfont-expanded"></button>
+                                <div className="action-details">
+                                    <a className="user-hover user-avatar" rel="7ad1551c39c0"
+                                       id="commentauthor_2600002_verbose"
+                                       href="/secure/ViewProfile.jspa?name=7ad1551c39c0"><span
+                                        className="aui-avatar aui-avatar-xsmall"><span className="aui-avatar-inner"><img
+                                        src={this.props.comment.creator.icon}
+                                        alt="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"></img></span></span> {this.props.comment.creator.fullName}
+                                    </a>
+                                    &nbsp;added a comment at <a
+                                    href="/browse/JSDCLOUD-9247?focusedCommentId=2600002&amp;page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-2600002"
+                                    className="commentdate_2600002_verbose subText comment-created-date-link"><span
+                                    className="date user-tz" title={this.props.comment.createdDttm}>
+                                    <time className="livestamp"
+                                          dateTime={this.props.comment.createdDttm}>{this.props.comment.createdDttm}</time></span></a>
+                                    &nbsp;&nbsp;{this.props.comment.edited ?
+                                    <span className="text-secondary">(edited)</span> : <span></span>}
+                                </div>
                             </div>
-                            <div className="row">
-                                {this.props.comment.comment}
+                            <div className="action-body flooded"><span>
+                                {this.props.comment.comment.split('\n').map(str => <p key={"comment-" + this.props.comment.id}>{str}</p>)}
+                            </span></div>
+                            <div className="action-links action-comment-actions">
                             </div>
                         </div>
                     </div>
@@ -1017,27 +1035,175 @@
             }
         }
 
-        class TicketCommentComponent extends React.Component {
+        class ActivityModuleBody extends React.Component {
             constructor(props) {
                 super(props);
+
                 this.state = {
-                    ticketComments: eval('{{ ticketComments|safe }}'),
+                    inCreateMode: false,
                 }
+            }
+
+            switchCreateMode = () => {
+                this.setState({
+                    inCreateMode: !this.state.inCreateMode
+                })
+            }
+
+            renderNormalMode = () => {
+                const style1 = {
+                    backgroundColor: '#f5f6f8'
+                }
+                return <button type="button" className="btn" style={style1} onClick={this.switchCreateMode}>Add
+                    comment</button>
+            }
+
+            createNewComment = () => {
+                if (this.refs.comment.value && !this.refs.comment.value.trim() || this.refs.comment.value.length === 0)
+                    return;
+
+                fetch('{% url 'jira:ticketCommentObjectApiEventVersion1Component' %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        'ticketId': this.props.ticket.id,
+                        'comment': this.refs.comment.value,
+                    })
+                }).then((response) => {
+                    this.props.fetchComments()
+                })
+
+                this.switchCreateMode();
+            }
+
+            renderNewCommentMode = () => {
+                return (
+                    <div className="className-group">
+                        <textarea className="form-control" id="commentBox" placeholder="Write comment here..."
+                                  rows="4" ref="comment"></textarea>
+                        <br></br>
+                        <button type="button" className="btn btn-outline-primary float-right" onClick={this.createNewComment}>Submit</button>
+                        <span></span>
+                        <button type="button" className="btn btn-outline-danger float-right" onClick={this.switchCreateMode}>Cancel</button>
+                    </div>
+                );
+            }
+
+            render() {
+
+                return (
+                    <div id="ticket-comment-list-container">
+                        {this.props.comments.map((comment) => <TicketCommentInstanceComponent key={comment.id}
+                                                                                              comment={comment}/>)}
+                        <br></br>
+                        <br></br>
+                        {this.state.inCreateMode ? this.renderNewCommentMode() : this.renderNormalMode()}
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                    </div>
+                )
+            }
+
+        }
+
+
+        class TicketActivityModuleComponent extends React.Component {
+            constructor(props) {
+                super(props);
+
+                this.state = {
+                    comments: []
+                }
+                this.fetchComments = this.fetchComments.bind(this)
+            }
+
+            componentDidMount = () => {
+                this.fetchComments();
+            }
+
+            fetchComments() {
+                fetch('{% url 'jira:ticketCommentsApiEventVersion1Component' ticketId=ticket.id %}')
+                    .then(response => response.json())
+                    .then(data => this.setState({
+                        comments: data.data.comments
+                    }))
+            }
+
+            render() {
+                return (
+                    <div id="activitymodule" className="module toggle-wrap">
+                        <div id="activitymodule_heading" className="mod-header">
+                        <button className="aui-button toggle-title" aria-label="Activity"
+                                aria-controls="activitymodule" aria-expanded="true" resolved="">
+                            <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
+                        </button>
+                        <div className="row">
+                            <div className="col">
+                                <p className="font-weight-bold">Comments</p>
+                            </div>
+                        </div>
+                    </div>
+                        <br></br>
+                        <ActivityModuleBody
+                            comments={this.state.comments}
+                            fetchComments={this.fetchComments}
+                            ticket={this.props.ticket}/>
+                    </div>
+                )
+            }
+        }
+
+        class TicketViewComponent extends React.Component {
+            constructor(props) {
+                super(props);
+
+                this.state = {
+                    ticket: {{ ticket|safe }}
+                }
+
+                console.log(this.state.ticket)
             }
 
             render() {
                 return (
                     <div>
-                        {this.state.ticketComments.map((comment) => <CommentComponent key={comment.id}
-                                                                                      comment={comment}/>)}
+                        <TicketHeaderComponent ticket={this.state.ticket}/>
+                        <div className="issue-body-content">
+                            <div className="aui-group issue-body">
+
+                                <div className="aui-item issue-main-column">
+                                    <TicketDetailsComponent ticket={this.state.ticket}/>
+                                    <TicketDescriptionComponent ticket={this.state.ticket}/>
+                                    <TicketAttachmentComponent ticket={this.state.ticket}/>
+                                    <LinkingModuleComponent ticket={this.state.ticket}/>
+                                    <TicketActivityModuleComponent ticket={this.state.ticket}/>
+                                </div>
+
+                                <div id="view-issue-sidebar" className="aui-item issue-side-column">
+                                    <TicketPeopleComponent assignee={this.state.ticket.assignee}
+                                                           reporter={this.state.ticket.reporter}
+                                                           watchers={this.state.ticket.watchers}/>
+                                    <TicketDatesComponent ticket={this.state.ticket}/>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
                 )
             }
         }
 
-        ReactDOM.render(<LinkingModuleComponent/>, document.getElementById('linkingmodule'));
-        ReactDOM.render(<TicketCommentComponent/>, document.getElementById('div-id-ticket-master-comment'));
+        ReactDOM.render(<TicketViewComponent/>, document.getElementById('issue-content'));
     </script>
+
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}
