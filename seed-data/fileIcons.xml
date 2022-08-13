@@ -1,27 +1,108 @@
 <SeedData>
     <ComponentGroups>
-        <ComponentGroup internalKey="File Icons" code="FILE_ICONS"
-                        reference="https://www.imagevenue.com/GAUC1P"/>
+        <ComponentGroup internalKey="File Icons" code="FILE_ICONS" reference="https://www.imagevenue.com/GAUC1P"/>
     </ComponentGroups>
 
     <Components>
-        <Component componentGroup.code="FILE_ICON" internalKey="pdf" code="PDF"
-                   icon="https://cdn-thumbs.imagevenue.com/09/85/ad/ME1573QH_t.jpg" orderNo="1"/>
-        <Component componentGroup.code="FILE_ICON" internalKey="jpg" code="JPG"
-                   icon="https://cdn-thumbs.imagevenue.com/40/a8/a2/ME1573QG_t.jpg" orderNo="2"/>
-        <Component componentGroup.code="FILE_ICON" internalKey="doc" code="DOC"
-                   icon="https://cdn-thumbs.imagevenue.com/6b/68/5a/ME1573QF_t.jpg" orderNo="3"/>
-        <Component componentGroup.code="FILE_ICON" internalKey="zip" code="ZIP"
-                   icon="https://cdn-thumbs.imagevenue.com/f6/60/88/ME1573QE_t.jpg" orderNo="4"/>
-        <Component componentGroup.code="FILE_ICON" internalKey="xls" code="XLS"
-                   icon="https://cdn-thumbs.imagevenue.com/fc/77/5f/ME1573QD_t.jpg" orderNo="5"/>
-        <Component componentGroup.code="FILE_ICON" internalKey="txt" code="TXT"
-                   icon="https://cdn-thumbs.imagevenue.com/4f/39/42/ME1573QC_t.jpg" orderNo="6"/>
-        <Component componentGroup.code="FILE_ICON" internalKey="ppt" code="PPT"
-                   icon="https://cdn-thumbs.imagevenue.com/3e/16/3f/ME1573QB_t.jpg" orderNo="7"/>
-        <Component componentGroup.code="FILE_ICON" internalKey="png" code="PNG"
-                   icon="https://cdn-thumbs.imagevenue.com/1c/ab/bd/ME1573QA_t.jpg" orderNo="8"/>
-        <Component componentGroup.code="FILE_ICON" internalKey="php" code="PHP"
-                   icon="https://cdn-thumbs.imagevenue.com/85/75/77/ME1573Q9_t.jpg" orderNo="9"/>
+        <Component componentGroup.code="FILE_ICON" internalKey="7z" code="7Z" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="ai" code="AI" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="aif" code="AIF" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="apk" code="APK" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="avi" code="AVI" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="bak" code="BAK" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="bat" code="BAT" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="bin" code="BIN" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="bmp" code="BMP" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="c" code="C" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="cda" code="CDA" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="cgl" code="CGL" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="class" code="CLASS" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="com" code="COM" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="cpp" code="CPP" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="cs" code="CS" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="css" code="CSS" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="csv" code="CSV" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="dat" code="DAT" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="db" code="DB" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="deb" code="DEB" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="dll" code="DLL" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="dmg" code="DMG" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="doc" code="DOC" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="docx" code="DOCX" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="exe" code="EXE" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="flv" code="FLV" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="fnt" code="FNT" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="fon" code="FON" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="gif" code="GIF" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="h" code="H" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="h264" code="H264" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="htm" code="HTM" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="html" code="HTML" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="ico" code="ICO" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="ini" code="INI" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="iso" code="ISO" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="jar" code="JAR" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="java" code="JAVA" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="jpeg" code="JPEG" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="jpg" code="JPG" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="js" code="JS" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="json" code="JSON" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="log" code="LOG" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="m4v" code="M4V" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="mid" code="MID" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="mkv" code="MKV" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="mov" code="MOV" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="mp3" code="MP3" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="mp3g" code="MP3G" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="mp4" code="MP4" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="mpa" code="MPA" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="mpg" code="MPG" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="msg" code="MSG" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="msi" code="MSI" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="ods" code="ODS" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="off" code="OFF" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="pdf" code="PDF" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="php" code="PHP" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="pkg" code="PKG" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="png" code="PNG" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="ppt" code="PPT" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="pptx" code="PPTX" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="ps" code="PS" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="psd" code="PSD" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="py" code="PY" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="rar" code="RAR" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="rm" code="RM" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="rpm" code="RPM" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="rtf" code="RTF" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="sav" code="SAV" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="sh" code="SH" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="sql" code="SQL" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="svg" code="SVG" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="swf" code="SWF" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="swift" code="SWIFT" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="sys" code="SYS" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="tar" code="TAR" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="tex" code="TEX" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="tff" code="TFF" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="tif" code="TIF" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="tiff" code="TIFF" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="tmp" code="TMP" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="txt" code="TXT" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="vb" code="VB" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="vcd" code="VCD" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="vob" code="VOB" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="wav" code="WAV" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="wma" code="WMA" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="wmv" code="WMV" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="wpd" code="WPD" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="wpl" code="WPL" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="wps" code="WPS" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="wsf" code="WSF" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="xhtml" code="XHTML" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="xls" code="XLS" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="xlsm" code="XLSM" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="xlsx" code="XLSX" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="xml" code="XML" icon=""/>
+        <Component componentGroup.code="FILE_ICON" internalKey="zip" code="ZIP" icon=""/>
     </Components>
 </SeedData>
