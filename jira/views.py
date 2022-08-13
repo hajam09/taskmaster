@@ -16,12 +16,12 @@ from accounts.models import Profile, Component, Team, ComponentGroup
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, TicketComment
 from taskmaster.operations import databaseOperations, emailOperations
 
-cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'))
-cache.set('PROJECT_COMPONENTS', Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS'))
-cache.set('PROJECT_STATUS', Component.objects.filter(componentGroup__code='PROJECT_STATUS'))
-cache.set('TICKET_PRIORITY', Component.objects.filter(componentGroup__code='TICKET_PRIORITY'))
-cache.set('TICKET_RESOLUTIONS', Component.objects.filter(componentGroup__code='TICKET_RESOLUTIONS'))
-cache.set('FILE_ICONS', Component.objects.filter(componentGroup__code='FILE_ICONS'))
+cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'), None)
+cache.set('PROJECT_COMPONENTS', Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS'), None)
+cache.set('PROJECT_STATUS', Component.objects.filter(componentGroup__code='PROJECT_STATUS'), None)
+cache.set('TICKET_PRIORITY', Component.objects.filter(componentGroup__code='TICKET_PRIORITY'), None)
+cache.set('TICKET_RESOLUTIONS', Component.objects.filter(componentGroup__code='TICKET_RESOLUTIONS'), None)
+cache.set('FILE_ICONS', Component.objects.filter(componentGroup__code='FILE_ICONS'), None)
 
 
 def index(request):
@@ -294,6 +294,17 @@ def ticketDetailView(request, internalKey):
 
 
 def ticketDetailView2(request, internalKey):
+    """
+    TODO: remove unused css on the ticket css files
+    TODO: Try to move the components to external files and import it.
+    TODO: Fix spacing on the texts.
+    TODO: Implement the comment section.
+    TODO: Fix linked issue component.
+    TODO: Fix the style for right divs.
+    TODO: Collapse items
+    TODO: Fix file attachment style
+    TODO: Allow file attachment delete option
+    """
 
     try:
         ticket = Ticket.objects.select_related(
@@ -306,6 +317,34 @@ def ticketDetailView2(request, internalKey):
         ).prefetch_related('label', 'component', 'watchers').get(internalKey__iexact=internalKey)
     except Ticket.DoesNotExist:
         raise Http404
+
+    if request.method == "POST":
+        allProfiles = Profile.objects.all().select_related('user')
+
+        ticket.summary = request.POST['summary']
+        ticket.description = request.POST['description']
+        ticket.fixVersion = request.POST['fixVersion']
+        ticket.storyPoints = request.POST['storyPoints']
+
+        ticket.assignee = databaseOperations.getObjectByIdOrNone([i.user for i in allProfiles], request.POST['assignee'])
+        ticket.issueType = databaseOperations.getObjectByIdOrNone(cache.get('TICKET_ISSUE_TYPE'), request.POST['ticketIssueType'])
+        ticket.priority = databaseOperations.getObjectByIdOrNone(cache.get('TICKET_PRIORITY'), request.POST['priority'])
+
+        ticket.component.clear()
+        ticket.component.add(*request.POST.getlist('components'))
+
+        ticket.label.clear()
+        ticket.label.add(*request.POST.getlist('labels'))
+
+        TicketAttachment.objects.bulk_create(
+            TicketAttachment(
+                ticket=ticket,
+                internalKey=attachment.name,
+                attachment=attachment
+            )
+            for attachment in request.FILES.getlist('attachments')
+        )
+        ticket.save()
 
     def getWatchersMessage():
         if not request.user.is_authenticated:
@@ -349,6 +388,7 @@ def ticketDetailView2(request, internalKey):
         ],
         'issueType': {
             'internalKey': ticket.issueType.internalKey,
+            'code': ticket.issueType.code,
             'icon': ticket.issueType.icon,
         },
         'resolution': {
@@ -360,6 +400,7 @@ def ticketDetailView2(request, internalKey):
         },
         'priority': {
             'internalKey': ticket.priority.internalKey,
+            'code': ticket.priority.code,
             'icon': ticket.priority.icon
         },
         'assignee': {

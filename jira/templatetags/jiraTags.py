@@ -35,3 +35,8 @@ def ticketPriorities():
 @register.simple_tag
 def ticketResolutions():
     return cache.get('TICKET_RESOLUTIONS')
+
+
+@register.simple_tag
+def projectComponents():
+    return cache.get('PROJECT_COMPONENTS')

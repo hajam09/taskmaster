@@ -11,9 +11,167 @@
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
 
+    <style>
+    .file-drop-area {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 450px;
+            max-width: 100%;
+            padding: 25px;
+            border: 1px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 3px;
+            transition: 0.2s;
+        }
+
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            cursor: pointer;
+            opacity: 0;
+        }
+    </style>
+
+    <div class="modal fade bd-example-modal-lg" id="editTicketModal" tabindex="-1" role="dialog"
+         aria-labelledby="myLargeModalLabel" aria-hidden="true" style="color: black;">
+        <div class="modal-dialog" role="document" style="max-width: 1000px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Edit Issue: {{ ticket.internalKey }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="project-add-details" role="tabpanel">
+                                <dl class="row">
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Summary</label>
+                                        <input class="form-control col" type="text" placeholder="Summary" name="summary"
+                                               value="{{ ticket.summary }}"
+                                               required>
+                                    </dd>
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Issue type</label>
+                                        <select id="ticketIssueType" data-show-content="true"
+                                                class="form-control" name="ticketIssueType">
+                                            {% for it in ticketIssueTypes %}
+                                                <option data-content="<img src='{{ it.icon }}' width='20' height='20'>&nbsp; {{ it.internalKey }}"
+                                                        {% if it.code == ticket.issueType.code %}
+                                                        selected="selected" {% endif %}
+                                                        value="{{ it.id }}">{{ it.internalKey }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </dd>
+                                </dl>
+                                <hr>
+                                <dl class="row">
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Priority</label>
+                                        <select id="ticketPriorities" data-show-content="true"
+                                                class="form-control" name="priority">
+                                            {% for tp in ticketPriorities %}
+                                                <option data-content="<img src='{{ tp.icon }}' width='20' height='20'>&nbsp; {{ tp.internalKey }}"
+                                                        {% if tp.code == ticket.priority.code %}
+                                                        selected="selected" {% endif %}
+                                                        value="{{ tp.id }}">{{ tp.internalKey }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </dd>
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Components</label>
+                                        <select class="form-control select2bs4" multiple="multiple" name="components" id="ticket-components"
+                                                style="width: 100%">
+                                            {% for component in projectComponents %}
+                                                <option value="{{ component.id }}">{{ component.internalKey }}</option>
+                                            {% endfor %}
+
+                                        </select>
+                                    </dd>
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Labels</label>
+                                        <select class="form-control select2bs4" multiple="multiple" name="labels"
+                                                id="ticket-labels"
+                                                style="width: 100%">
+                                            {% for bl in ticket.board.boardLabels.all %}
+                                                <option value="{{ bl.id }}">{{ bl.internalKey }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </dd>
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Story Points</label>
+                                        <input class="form-control col" type="number" placeholder="Story Points"
+                                               name="storyPoints" value="{{ ticket.storyPoints }}">
+                                    </dd>
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Fix Version</label>
+                                        <input class="form-control col" type="text" placeholder="Fix Version"
+                                               name="fixVersion" value="{{ ticket.fixVersion }}">
+                                    </dd>
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Attachment</label>
+                                        <div class="file-drop-area border justify-content-center" style="width: 100%;">
+                                            <span class="choose-file-button">Choose files </span>
+                                            <span class="file-message"> or drag and drop files here</span>
+                                            <input class="file-input" name="attachments" type="file" multiple>
+                                        </div>
+                                    </dd>
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Description</label>
+                                        <textarea class="form-control col" rows="5" name="description"
+                                                  required>{{ ticket.description }}</textarea>
+                                    </dd>
+                                </dl>
+                                <hr>
+                                <dl class="row">
+                                    <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Assignee</label>
+                                        <select id="assignee" data-show-content="true" class="form-control"
+                                                name="assignee">
+                                            {% for p in profiles %}
+
+                                                <option data-content="<img src='{{ p.profilePicture.url }}' width='20' height='20'>&nbsp; {{ p.user.get_full_name }}"
+                                                        {% if p.user.id == ticket.assignee.id %}
+                                                        selected="selected" {% endif %}
+                                                        value="{{ p.user.id }}">{{ p.user.get_full_name }}</option>
+
+                                            {% endfor %}
+                                        </select>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input class="btn btn-primary" type="submit" style="background-color: #0052cc" value="Update">
+                        <button class="btn btn-secondary" type="reset" data-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <div id="issue-content" class="issue-edit-form">
     </div>
+
+    <script type="text/javascript">
+
+        $('.select2bs4').select2({});
+
+        const componentsLabel = [];
+
+        {% for component in ticket.components %}
+            componentsLabel.push('{{ component.id }}')
+        {% endfor %}
+
+        $('#ticket-components').select2().val(componentsLabel).trigger("change");
+    </script>
 
 
     <script type="text/babel">

@@ -19,4 +19,4 @@ def getObjectByIdOrNone(A, k):
 
 
 def getObjectByInternalKey(A, k):
-    return next((o for o in A if o.internalKey == k))
+    return next((o for o in A if o.internalKey == k), None)
