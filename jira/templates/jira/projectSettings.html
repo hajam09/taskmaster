@@ -6,20 +6,6 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/avatarsIcon.css' %}"/>
 
 <style type="text/css">
-    .grabbable {
-        cursor: move; /* fallback if grab cursor is unsupported */
-        cursor: grab;
-        cursor: -moz-grab;
-        cursor: -webkit-grab;
-    }
-
-    /* (Optional) Apply a "closed-hand" cursor during drag operation. */
-    .grabbable:active {
-        cursor: grabbing;
-        cursor: -moz-grabbing;
-        cursor: -webkit-grabbing;
-    }
-
     body {
         color: black;
     }
@@ -438,19 +424,19 @@
         "altFormat": "d-m-Y",
     });
 
-    var PROJECT_MEMBERS_ID = [];
-    var PROJECT_COMPONENTS_ID = [];
+    let projectMembers = [];
+    let projectComponents = [];
 
     {% for member in project.members.all %}
-        PROJECT_MEMBERS_ID.push({{member.id}});
+        projectMembers.push({{member.id}});
     {% endfor %}
 
-    {% for comp in projectComponents %}
-        PROJECT_COMPONENTS_ID.push('{{comp.internalKey}}');
+    {% for component in component %}
+        projectComponents.push('{{component}}');
     {% endfor %}
 
-    $('.project-members').select2().val(PROJECT_MEMBERS_ID).trigger("change")
-    $('.project-components').select2().val(PROJECT_COMPONENTS_ID).trigger("change")
+    $('.project-members').select2().val(projectMembers).trigger("change")
+    $('.project-components').select2().val(projectComponents).trigger("change")
 
 </script>
 {% endblock %}

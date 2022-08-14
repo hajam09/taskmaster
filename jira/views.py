@@ -450,26 +450,16 @@ def projectSettings(request, url):
     except Project.DoesNotExist:
         raise Http404
 
-    allProfiles = Profile.objects.all().select_related('user')
-    projectStatusComponent = Component.objects.filter(componentGroup__code='PROJECT_STATUS')
-    projectComponents = Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS', reference__exact=thisProject.code)
-
     if request.method == "POST":
         form = ProjectSettingsForm(request, thisProject, request.POST)
         form.save()
     else:
         form = ProjectSettingsForm(request, thisProject)
 
-    # if request.method == "POST":    #
-    #     if request.FILES.get('project-icon'):
-    #         thisProject.icon = request.FILES.get('project-icon')
-
     context = {
         'form': form,
         'project': thisProject,
-        'profiles': allProfiles,
-        'projectStatusComponent': projectStatusComponent,
-        'projectComponents': projectComponents,
+        'component': thisProject.components.values_list('internalKey', flat=True)
     }
     return render(request, 'jira/projectSettings.html', context)
 

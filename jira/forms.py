@@ -1,8 +1,9 @@
+from datetime import datetime
+
 from django import forms
 from django.core.cache import cache
 
 from accounts.models import Profile, ComponentGroup, Component
-from datetime import datetime
 
 
 class ProjectSettingsForm(forms.Form):
@@ -123,7 +124,8 @@ class ProjectSettingsForm(forms.Form):
         self.base_fields['members'].choices = leadChoices
 
         componentsChoices = [
-            (str(i.internalKey), i.internalKey) for i in cache.get('PROJECT_COMPONENTS') if i.reference == self.project.code
+            (str(i.internalKey), i.internalKey) for i in cache.get('PROJECT_COMPONENTS')
+            if i.reference == self.project.code
         ]
         self.base_fields['components'].choices = componentsChoices
         self.base_fields['visibility'].initial = 'MEMBERS' if self.project.isPrivate else 'EVERYONE'
@@ -172,5 +174,8 @@ class ProjectSettingsForm(forms.Form):
         self.project.components.add(*ids)
 
         # TODO: Implement file upload via form.
+        # TODO: Delete old file.
+        if self.request.FILES.get('project-icon'):
+            self.project.icon = self.request.FILES.get('project-icon')
 
         self.project.save()
