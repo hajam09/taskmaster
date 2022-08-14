@@ -31,6 +31,7 @@ class Project(BaseModel):
     watchers = models.ManyToManyField(User, blank=True, related_name='projectWatchers')
     icon = models.ImageField(upload_to='project-icons/', default=getRandomProjectIcon)
     isPrivate = models.BooleanField(default=False)
+    # TODO: Consider status and resolution foreign key.
 
     class Meta:
         verbose_name = "Project"

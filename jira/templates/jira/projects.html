@@ -198,6 +198,7 @@
                             <th>Key</th>
                             <th>Lead</th>
                             <th>Status</th>
+                            <th>Links</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -227,6 +228,11 @@
                                 <a href="#">{{p.lead.get_full_name}}</a>
                             </td>
                             <td><span class="{{p.status.icon}}" style="text-transform:uppercase">{{p.status.internalKey}}</span></td>
+                            <td>
+                                <a role="button" href="{% url 'jira:project-settings' p.url %}" class="btn btn-outline-secondary" data-toggle="tooltip"
+                                        data-placement="top" title="Settings"><i class="fa">&#xf085;</i>
+                                </a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

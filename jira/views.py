@@ -181,7 +181,7 @@ def ticketDetailView(request, internalKey):
         ticket.summary = request.POST['summary']
         ticket.description = request.POST['description']
         ticket.fixVersion = request.POST['fixVersion']
-        ticket.storyPoints = request.POST['storyPoints']
+        ticket.storyPoints = request.POST['storyPoints'] or None
 
         ticket.assignee = databaseOperations.getObjectByIdOrNone([i.user for i in allProfiles], request.POST['assignee'])
         ticket.issueType = databaseOperations.getObjectByIdOrNone(cache.get('TICKET_ISSUE_TYPE'), request.POST['ticketIssueType'])
@@ -214,11 +214,11 @@ def ticketDetailView(request, internalKey):
         'id': ticket.id,
         'internalKey': ticket.internalKey,
         'summary': ticket.summary,
-        'description': ticket.description,
+        'description': ticket.description if ticket.description is not None else '',
         'createdDate': datetime.strftime(ticket.createdDttm, '%d %B %Y, %I:%M %p'),
         'modifiedDate': datetime.strftime(ticket.modifiedDttm, '%d %B %Y, %I:%M %p'),
         'link': ticket.getTicketUrl(),
-        'storyPoints': ticket.storyPoints,
+        'storyPoints': ticket.storyPoints if ticket.storyPoints is not None else '',
         'fixVersion': ticket.fixVersion or '',
         'project': {
             'id': ticket.project.id,
@@ -517,10 +517,6 @@ def issuesListView(request):
         'tickets': tickets,
     }
     return render(request, 'jira/issuesListView.html', context)
-
-
-def issuesDetailView(request):
-    return render(request, 'jira/issuesDetailView.html')
 
 
 def profileAndSettings(request):
