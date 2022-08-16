@@ -1,5 +1,3 @@
-import json
-import re
 from datetime import datetime
 
 from django.contrib import messages
@@ -12,10 +10,10 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render, redirect
 
-from accounts.models import Profile, Component, Team, ComponentGroup
+from accounts.models import Profile, Component, Team
 from jira.forms import ProjectSettingsForm
 from jira.models import Board, Project, Column, Ticket, TicketAttachment
-from taskmaster.operations import databaseOperations, emailOperations
+from taskmaster.operations import emailOperations
 
 cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'), None)
 cache.set('PROJECT_COMPONENTS', Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS'), None)
@@ -176,16 +174,15 @@ def ticketDetailView(request, internalKey):
         raise Http404
 
     if request.method == "POST":
-        allProfiles = Profile.objects.all().select_related('user')
 
         ticket.summary = request.POST['summary']
         ticket.description = request.POST['description']
         ticket.fixVersion = request.POST['fixVersion']
         ticket.storyPoints = request.POST['storyPoints'] or None
 
-        ticket.assignee = databaseOperations.getObjectByIdOrNone([i.user for i in allProfiles], request.POST['assignee'])
-        ticket.issueType = databaseOperations.getObjectByIdOrNone(cache.get('TICKET_ISSUE_TYPE'), request.POST['ticketIssueType'])
-        ticket.priority = databaseOperations.getObjectByIdOrNone(cache.get('TICKET_PRIORITY'), request.POST['priority'])
+        ticket.assignee_id = request.POST['assignee']
+        ticket.issueType_id = request.POST['ticketIssueType']
+        ticket.priority_id = request.POST['priority']
 
         ticket.component.clear()
         ticket.component.add(*request.POST.getlist('components'))
@@ -412,29 +409,29 @@ def projects(request):
     if request.method == "POST":
         try:
             newProject = Project()
-            newProject.internalKey = request.POST['project-name']
-            newProject.code = request.POST['project-code']
-            newProject.description = request.POST['project-description']
+            newProject.internalKey = request.POST['projectName']
+            newProject.code = request.POST['projectCode']
+            newProject.description = request.POST['projectDescription']
             newProject.lead = request.user
-            newProject.isPrivate = request.POST['project-visibility'] == 'visibility-members'
-            newProject.status = Component.objects.get(componentGroup__code='PROJECT_STATUS', code='ON_GOING')
+            newProject.isPrivate = request.POST['projectVisibility'] == 'visibility-members'
+            newProject.status_id = next((i.id for i in cache.get('PROJECT_STATUS') if i.code == 'ON_GOING'))
 
-            if request.FILES.get('project-icon'):
-                newProject.icon = request.FILES.get('project-icon')
+            if request.FILES.get('projectIcon'):
+                newProject.icon = request.FILES.get('projectIcon')
 
-            if request.POST['project-start']:
-                newProject.startDate = request.POST['project-start']
+            if request.POST['projectStart']:
+                newProject.startDate = request.POST['projectStart']
 
-            if request.POST['project-due']:
-                newProject.endDate = request.POST['project-due']
+            if request.POST['projectDue']:
+                newProject.endDate = request.POST['projectDue']
 
             newProject.save()
-            newProject.members.add(*request.POST.getlist('project-users', []))
+            newProject.members.add(*request.POST.getlist('projectMembers', []))
             allProjects = Project.objects.filter(projectQuery).distinct().select_related('status', 'lead')
         except IntegrityError:
             messages.error(
                 request,
-                f'Project with code {request.POST["project-code"]} already exists.'
+                f'Project with code {request.POST["projectCode"]} already exists.'
             )
 
     context = {
@@ -444,22 +441,23 @@ def projects(request):
     return render(request, 'jira/projects.html', context)
 
 
+@login_required
 def projectSettings(request, url):
     try:
-        thisProject = Project.objects.get(url=url)
+        project = Project.objects.get(url=url)
     except Project.DoesNotExist:
         raise Http404
 
     if request.method == "POST":
-        form = ProjectSettingsForm(request, thisProject, request.POST)
+        form = ProjectSettingsForm(request, project, request.POST)
         form.save()
     else:
-        form = ProjectSettingsForm(request, thisProject)
+        form = ProjectSettingsForm(request, project)
 
     context = {
         'form': form,
-        'project': thisProject,
-        'component': thisProject.components.values_list('internalKey', flat=True)
+        'project': project,
+        'component': project.components.values_list('internalKey', flat=True)
     }
     return render(request, 'jira/projectSettings.html', context)
 

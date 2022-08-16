@@ -161,6 +161,8 @@
 						</a>
 						<div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
 							<!-- { uurrll 'dashboard:template' 'index' } -->
+                            <a class="dropdown-item" href="{% url 'jira:dashboard-view' %}"><i class="fas fa-chalkboard"></i> Dashboard</a>
+                            <a class="dropdown-item" href="{% url 'jira:teams-page' %}"><i class="fa fa-users"></i> Teams</a>
 							<a class="dropdown-item" href="{% url 'jira:projects-page' %}"><i class="fas fa-project-diagram"></i> Projects</a>
 							<a class="dropdown-item" href="{% url 'jira:boards-page' %}"><i class="far">&#xf24d;</i> Boards</a>
 							<a class="dropdown-item" href="#"><i class="fab fa-confluence"></i> Backlog</a>
