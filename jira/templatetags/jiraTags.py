@@ -14,7 +14,7 @@ def projects():
 
 @register.simple_tag
 def boards():
-    return Board.objects.all()
+    return Board.objects.all().prefetch_related('projects', 'admins', 'members')
 
 
 @register.simple_tag

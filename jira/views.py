@@ -281,16 +281,12 @@ def ticketDetailView(request, internalKey):
 
 @login_required
 def boards(request):
-    allBoards = Board.objects.all().prefetch_related('projects', 'admins', 'members')
-    allProfiles = Profile.objects.all().select_related('user')
-    allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)).distinct()
-
     if request.method == "POST":
         try:
             newBoard = Board.objects.create(
-                internalKey=request.POST['board-name'],
-                type=request.POST['board-type'],
-                isPrivate=request.POST['board-visibility'] == 'visibility-members'
+                internalKey=request.POST['boardName'],
+                type=request.POST['boardType'],
+                isPrivate=request.POST['boardVisibility'] == 'visibility-members'
             )
 
             # mandatory columns for a board
@@ -303,23 +299,17 @@ def boards(request):
                 ]
             )
 
-            newBoard.projects.add(*request.POST.getlist('board-projects'))
-            newBoard.members.add(*request.POST.getlist('board-members'))
-            newBoard.admins.add(*request.POST.getlist('board-admins'))
-
-            allBoards = Board.objects.all().prefetch_related('projects', 'admins', 'members')
+            newBoard.projects.add(*request.POST.getlist('boardProjects'))
+            newBoard.members.add(*request.POST.getlist('boardMembers'))
+            newBoard.admins.add(*request.POST.getlist('boardAdmins'))
         except IntegrityError:
             messages.error(
                 request,
-                f'Board with name {request.POST["board-name"]} already exists.'
+                f'Board with name {request.POST["boardName"]} already exists.'
             )
+        return redirect('jira:boards-page')
 
-    context = {
-        'projects': allProjects,
-        'profiles': allProfiles,
-        'boards': allBoards,
-    }
-    return render(request, 'jira/boards.html', context)
+    return render(request, 'jira/boards.html')
 
 
 @login_required
@@ -404,39 +394,32 @@ def yourWork(request):
 def projects(request):
     projectQuery = Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)
     allProjects = Project.objects.filter(projectQuery).distinct().select_related('status', 'lead')
-    allProfiles = Profile.objects.all().select_related('user')
 
     if request.method == "POST":
         try:
             newProject = Project()
             newProject.internalKey = request.POST['projectName']
-            newProject.code = request.POST['projectCode']
+            newProject.code = request.POST['projectCode'].upper()
             newProject.description = request.POST['projectDescription']
             newProject.lead = request.user
-            newProject.isPrivate = request.POST['projectVisibility'] == 'visibility-members'
+            newProject.startDate = request.POST['projectStart'] or None
+            newProject.endDate = request.POST['projectDue'] or None
             newProject.status_id = next((i.id for i in cache.get('PROJECT_STATUS') if i.code == 'ON_GOING'))
-
-            if request.FILES.get('projectIcon'):
-                newProject.icon = request.FILES.get('projectIcon')
-
-            if request.POST['projectStart']:
-                newProject.startDate = request.POST['projectStart']
-
-            if request.POST['projectDue']:
-                newProject.endDate = request.POST['projectDue']
+            newProject.icon = request.FILES.get('projectIcon')
+            newProject.isPrivate = request.POST['projectVisibility'] == 'visibility-members'
 
             newProject.save()
-            newProject.members.add(*request.POST.getlist('projectMembers', []))
-            allProjects = Project.objects.filter(projectQuery).distinct().select_related('status', 'lead')
+            newProject.members.add(*request.POST.getlist('projectMembers'))
+
         except IntegrityError:
             messages.error(
                 request,
                 f'Project with code {request.POST["projectCode"]} already exists.'
             )
+        return redirect('jira:projects-page')
 
     context = {
         'allProjects': allProjects,
-        'profiles': allProfiles
     }
     return render(request, 'jira/projects.html', context)
 

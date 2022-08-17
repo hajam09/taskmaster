@@ -32,10 +32,6 @@
             opacity: 0.8;
         }
 
-        #prevBtn {
-            background-color: #bbbbbb;
-        }
-
         /* Make circles that indicate the steps of the form: */
         .step {
             height: 15px;
@@ -68,7 +64,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form method="post" enctype="multipart/form-data" id="regForm">
+                <form method="post" enctype="multipart/form-data" id="projectForm">
                     {% csrf_token %}
                     <div class="modal-body">
 
@@ -97,22 +93,16 @@
                             <dl class="row">
                                 <dd class="col-sm-12">
                                     <label style="font-size: 85%; color: #6c757d;">Start Date</label>
-                                </dd>
-                                <dd class="col-sm-12">
                                     <input class="form-control col flatpickr-input" type="hidden" name="projectStart"
                                            placeholder="Select a date" data-flatpickr="" data-alt-input="true">
                                 </dd>
                                 <dd class="col-sm-12">
                                     <label style="font-size: 85%; color: #6c757d;">Due Date</label>
-                                </dd>
-                                <dd class="col-sm-12">
                                     <input class="form-control col flatpickr-input" type="hidden" name="projectDue"
                                            placeholder="Select a date" data-flatpickr="" data-alt-input="true">
                                 </dd>
                                 <dd class="col-sm-12">
                                     <label style="font-size: 85%; color: #6c757d;">Visibility</label>
-                                </dd>
-                                <dd class="col-sm-12">
                                     <div class="row">
                                         <div class="col">
                                             <div class="custom-control custom-radio">
@@ -140,8 +130,6 @@
                             <dl class="row">
                                 <dd class="col-sm-12">
                                     <label style="font-size: 85%; color: #6c757d;">Logo</label>
-                                </dd>
-                                <dd class="col-sm-12">
                                     <div class="media-body ml-4">
                                         <label class="btn btn-danger btn-sm" for="projectIcon">
                                             <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;&nbsp;
@@ -156,8 +144,6 @@
                                 </dd>
                                 <dd class="col-sm-12">
                                     <label style="font-size: 85%; color: #6c757d;">Members</label>
-                                </dd>
-                                <dd class="col-sm-12">
                                     <div class="form-group">
                                         <select class="form-control select2bs4" multiple="multiple"
                                                 name="projectMembers"
@@ -170,6 +156,7 @@
                                 </dd>
                             </dl>
                         </div>
+
                         <div style="overflow:auto;">
                             <div style="float:right;">
                                 <button type="button" id="prevBtn" class="btn btn-outline-secondary"
@@ -292,6 +279,23 @@
             "altFormat": "d-m-Y",
         });
 
+        $(function () {
+                $("#projectTable").DataTable(
+                    {
+                        "responsive": true,
+                        "autoWidth": false,
+                        "paging": true,
+                        "searching": true,
+                        "ordering": true,
+                        "info": false,
+                        "pageLength": 10,
+                    }
+                );
+
+                $('#projectTable_length').remove();
+            }
+        );
+
         let currentTab = 0; // Current tab is set to be the first tab (0)
         showTab(currentTab); // Display the current tab
 
@@ -326,7 +330,7 @@
             // if you have reached the end of the form...
             if (currentTab >= x.length) {
                 // ... the form gets submitted:
-                document.getElementById("regForm").submit();
+                document.getElementById("projectForm").submit();
                 return false;
             }
             // Otherwise, display the correct tab:
@@ -365,22 +369,5 @@
             //... and adds the "active" class on the current step:
             x[n].className += " active";
         }
-
-        $(function () {
-                $("#projectTable").DataTable(
-                    {
-                        "responsive": true,
-                        "autoWidth": false,
-                        "paging": true,
-                        "searching": true,
-                        "ordering": true,
-                        "info": false,
-                        "pageLength": 10,
-                    }
-                );
-
-                $('#projectTable_length').remove();
-            }
-        );
     </script>
 {% endblock %}
