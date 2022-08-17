@@ -11,7 +11,7 @@ from django.http import Http404
 from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team
-from jira.forms import ProjectSettingsForm
+from jira.forms import ProjectSettingsForm, TeamForm
 from jira.models import Board, Project, Column, Ticket, TicketAttachment
 from taskmaster.operations import emailOperations
 
@@ -80,29 +80,22 @@ def dashboard(request):
 
 def teams(request):
     allTeams = Team.objects.all().prefetch_related('admins', 'members')
-    allProfiles = Profile.objects.all().select_related('user')
 
     if request.method == "POST":
-        try:
-            newTeam = Team.objects.create(
-                internalKey=request.POST['team-name'],
-                description=request.POST['team-description'],
-                isPrivate=request.POST['team-visibility'] == 'visibility-members'
-            )
+        form = TeamForm(request, request.POST)
+        if len(form.errors) == 2:
+            form.save()
+            return redirect('jira:teams-page')
 
-            newTeam.members.add(*request.POST.getlist('team-members'))
-            newTeam.admins.add(*request.POST.getlist('team-admins'))
+        del form.errors['admins']
+        del form.errors['members']
 
-            allTeams = Team.objects.all().prefetch_related('admins', 'members')
-        except IntegrityError:
-            messages.error(
-                request,
-                f'Team with name {request.POST["team-name"]} already exists.'
-            )
+    else:
+        form = TeamForm(request)
 
     context = {
         'teams': allTeams,
-        'profiles': allProfiles,
+        'form': form,
     }
     return render(request, "jira/teams.html", context)
 

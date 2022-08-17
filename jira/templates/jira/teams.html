@@ -24,56 +24,53 @@
                         <div class="tab-content">
                             <dl class="row">
                                 <dd class="col-md-12">
-                                    <label style="font-size: 85%; color: #6c757d;">Name</label>
-                                    <input class="form-control col" type="text" placeholder="Team name"
-                                           name="team-name" required>
+                                    <label style="font-size: 85%; color: #6c757d;">{{ form.name.label_tag }}</label>
+                                    {{ form.name }}
+                                    {% for error in form.name.errors %}
+                                        <p class="text-center" style="color: #dc3545;">
+                                            <small><strong>{{ error }}</strong></small></p>
+                                    {% endfor %}
+
                                 </dd>
                                 <dd class="col-md-12">
-                                    <label style="font-size: 85%; color: #6c757d;">Description</label>
-                                    <textarea class="form-control col" rows="5" name="team-description"
-                                              required></textarea>
+                                    <label style="font-size: 85%; color: #6c757d;">{{ form.description.label_tag }}</label>
+                                    {{ form.description }}
                                 </dd>
+
                                 <dd class="col-md-12">
-                                    <label style="font-size: 85%; color: #6c757d;">Admins</label>
+                                    <label style="font-size: 85%; color: #6c757d;">{{ form.admins.label_tag }}</label>
                                     <div class="form-group">
-                                        <select class="form-control select2bs4" multiple="multiple" name="team-admins"
-                                                data-placeholder="Select team admins." style="width: 100%" required>
-                                            {% for p in profiles %}
-                                                <option value="{{ p.user.id }}">{{ p.user.get_full_name }}</option>
-                                            {% endfor %}
-                                        </select>
+                                        {{ form.admins }}
                                     </div>
+                                    {% for error in form.admins.errors %}
+                                        <p class="text-center" style="color: #dc3545;">
+                                            <small><strong>{{ error }}</strong></small></p>
+                                    {% endfor %}
                                 </dd>
                                 <dd class="col-md-12">
-                                    <label style="font-size: 85%; color: #6c757d;">Members</label>
+                                    <label style="font-size: 85%; color: #6c757d;">{{ form.members.label_tag }}</label>
                                     <div class="form-group">
-                                        <select class="form-control select2bs4" multiple="multiple" name="team-members"
-                                                data-placeholder="Select team members." style="width: 100%" required>
-                                            {% for p in profiles %}
-                                                <option value="{{ p.user.id }}">{{ p.user.get_full_name }}</option>
-                                            {% endfor %}
-                                        </select>
+                                        {{ form.members }}
+                                    </div>
+                                    {% for error in form.members.errors %}
+                                        <p class="text-center" style="color: #dc3545;">
+                                            <small><strong>{{ error }}</strong></small></p>
+                                    {% endfor %}
+                                </dd>
+                                <dd class="col-sm-9">
+                                    <label style="font-size: 85%; color: #6c757d;">{{ form.visibility.label_tag }}</label>
+                                    <div class="row">
+                                        {% for radio in form.visibility %}
+                                            <div class="col">
+                                                <div class="custom-control custom-radio">
+                                                    {{ radio }}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+
                                     </div>
                                 </dd>
                             </dl>
-                            <hr>
-                            <h6>Visibility</h6>
-                            <div class="row">
-                                <div class="col">
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="visibility-everyone" name="team-visibility"
-                                               value="visibility-everyone" class="custom-control-input" checked="">
-                                        <label class="custom-control-label" for="visibility-everyone">Everyone</label>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="visibility-members" name="team-visibility"
-                                               value="visibility-members" class="custom-control-input">
-                                        <label class="custom-control-label" for="visibility-members">Members</label>
-                                    </div>
-                                </div>
-                            </div>
                             <br>
                             <div class="alert alert-warning alert-dismissible fade show" role="alert">
                                 You can these details at any time.

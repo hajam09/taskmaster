@@ -1,9 +1,92 @@
 from datetime import datetime
 
 from django import forms
+from django.contrib import messages
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 
-from accounts.models import Profile, ComponentGroup, Component
+from accounts.models import Profile, ComponentGroup, Component, Team
+
+
+class TeamForm(forms.Form):
+    name = forms.CharField(
+        label='Name',
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control col',
+                'placeholder': 'Team name',
+
+            }
+        ),
+    )
+    description = forms.CharField(
+        label='Description',
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control col',
+                'placeholder': 'Team description',
+                'rows': 5,
+            }
+        )
+    )
+    admins = forms.MultipleChoiceField(
+        label='Admins',
+        widget=forms.Select(
+            attrs={
+                'class': 'form-control select2bs4 teamAdmins',
+                'multiple': 'multiple',
+                'style': 'width: 100%',
+                'required': 'required',
+            }
+        ),
+    )
+    members = forms.MultipleChoiceField(
+        label='Members',
+        widget=forms.Select(
+            attrs={
+                'class': 'form-control select2bs4 teamMembers',
+                'multiple': 'multiple',
+                'style': 'width: 100%',
+                'required': 'required',
+            }
+        ),
+    )
+    visibility = forms.ChoiceField(
+        label='Visibility',
+        choices=[('EVERYONE', 'Everyone'), ('MEMBERS', 'Members')],
+        widget=forms.RadioSelect(
+        )
+    )
+
+    def __init__(self, request, *args, **kwargs):
+        super(TeamForm, self).__init__(*args, **kwargs)
+        self.request = request
+        userChoices = [(str(i.user.id), i.user.get_full_name()) for i in Profile.objects.all().select_related('user')]
+        self.base_fields['admins'].choices = userChoices
+        self.base_fields['members'].choices = userChoices
+        self.base_fields['visibility'].initial = 'EVERYONE'
+
+    def clean(self):
+        super(TeamForm, self).clean()
+        name = self.cleaned_data.get("name")
+        if Team.objects.filter(internalKey=name).exists():
+            messages.error(
+                self.request,
+                f'Team with name {name} already exists.'
+            )
+            raise ValidationError({'name': [f'Team with name {name} already exists!', ]})
+        return self.cleaned_data
+
+    def save(self):
+        team = Team()
+        team.internalKey = self.cleaned_data.get("name")
+        team.description = self.cleaned_data.get("description")
+        team.isPrivate = self.cleaned_data.get("visibility") == 'MEMBERS'
+        team.save()
+
+        team.admins.add(*self.request.POST.getlist('admins'))
+        team.members.add(*self.request.POST.getlist('members'))
+        return team
 
 
 class ProjectSettingsForm(forms.Form):
