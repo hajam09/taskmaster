@@ -302,7 +302,7 @@
             {% endfor %}
             localStorage.setItem("labelList", JSON.stringify({object: labelListArray}));
         } else {
-            const labelList = JSON.parse(priorityCache).object;
+            const labelList = JSON.parse(labelCache).object;
             if ($.isEmptyObject(labelList)) {
                 const labelListArray = [];
                 {% for t in labels %}

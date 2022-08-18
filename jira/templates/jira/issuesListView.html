@@ -126,6 +126,7 @@
                     <div class="col-auto">
                         <div class="dropdown">
                             <input class="btn btn-primary" type="button" onclick="updateQuery();" value="Submit">
+                            <input class="btn btn-danger" type="button" onclick="clearAllQuery();" value="Clear all">
                         </div>
                     </div>
                 </div>
@@ -207,7 +208,7 @@
                     </table>
                 {% else %}
                     <div class="alert alert-primary text-center" role="alert">
-                        Looks like there's no project to see. Create one.
+                        No issues were found to match your search. Try to broaden your filters.
                     </div>
                 {% endif %}
             </div>
@@ -215,6 +216,12 @@
     </div>
 
     <script type="text/javascript">
+
+        function clearAllQuery() {
+            let currentPath = "{% url 'jira:issuesListView' %}";
+            window.history.pushState("", "", currentPath);
+            location.reload();
+        }
 
         function updateQuery() {
             const checkedProjects = $('.projects:checkbox:checked').map(function () {
