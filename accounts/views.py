@@ -154,6 +154,14 @@ def passwordReset(request, uidb64, token):
 
 
 @login_required
+def accountPersonalSettings(request):
+    context = {
+        'activeTab': 'personalSettings'
+    }
+    return render(request, 'accounts/accountPersonalSettings.html', context)
+
+
+@login_required
 def accountProfileAndVisibility(request):
     context = {
         'activeTab': 'profileAndVisibility'
@@ -180,3 +188,11 @@ def accountSecurity(request):
         'activeTab': 'accountSecurity'
     }
     return render(request, 'accounts/accountSecurity.html', context)
+
+
+@login_required
+def accountNotifications(request):
+    context = {
+        'activeTab': 'Notifications'
+    }
+    return render(request, 'accounts/accountNotifications.html', context)

@@ -2,7 +2,6 @@ from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
@@ -12,7 +11,7 @@ from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team
 from jira.forms import ProjectSettingsForm, TeamForm
-from jira.models import Board, Project, Column, Ticket, TicketAttachment
+from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label
 from taskmaster.operations import emailOperations
 
 cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'), None)
@@ -28,7 +27,7 @@ def index(request):
 
 
 def dashboard(request):
-    projectComponents = cache.get('PROJECT_COMPONENTS').prefetch_related('ticketComponents__issueType', 'ticketComponents__priority')
+    projectComponents = Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS').prefetch_related('ticketComponents__issueType', 'ticketComponents__priority')
     ticketIssueType = cache.get('TICKET_ISSUE_TYPE')
     ticketPriority = cache.get('TICKET_PRIORITY')
     componentListByIssueType = []
@@ -78,6 +77,7 @@ def dashboard(request):
     return render(request, "jira/dashboard.html", context)
 
 
+@login_required
 def teams(request):
     allTeams = Team.objects.all().prefetch_related('admins', 'members')
 
@@ -102,18 +102,14 @@ def teams(request):
 
 @login_required
 def team(request, url):
-    # TODO/Story: Record team/user activity session and display.
+    # TODO/Story: Implement team chat box.
     try:
-        thisTeam = Team.objects.prefetch_related('members__profile').get(url=url)
+        thisTeam = Team.objects.get(url=url)
     except Team.DoesNotExist:
         raise Http404
 
     if not thisTeam.hasAccessPermission(request.user):
         raise PermissionDenied()
-
-    allProfiles = Profile.objects.all().select_related('user')
-    excludedMembers = allProfiles.exclude(user__id__in=[i.id for i in thisTeam.members.all()])
-    excludedAdmins = allProfiles.exclude(user__id__in=[i.id for i in thisTeam.admins.all()])
 
     if request.method == "POST":
         teamAdmins = request.POST.getlist('team-admins')
@@ -124,21 +120,32 @@ def team(request, url):
         for user in set(thisTeam.admins.filter(id__in=teamAdmins) | thisTeam.members.filter(id__in=teamMembers)):
             emailOperations.sendEmailToNotifyUserAddedToTeam(request, user)
 
+        return redirect('jira:team-page', url=url)
+
+    memberIds = thisTeam.members.values_list('id', flat=True)
+    adminIds = thisTeam.admins.values_list('id', flat=True)
+    uniqueAssociateIds = set(memberIds | adminIds)
+
+    allProfiles = Profile.objects.all().select_related('user')
+    excludedMembers = allProfiles.exclude(user__id__in=memberIds)
+    excludedAdmins = allProfiles.exclude(user__id__in=adminIds)
+
+    teamTickets = Ticket.objects.filter(
+        Q(assignee_id__in=uniqueAssociateIds) | Q(reporter_id__in=uniqueAssociateIds)
+    ).select_related('priority', 'issueType', 'assignee__profile').order_by('-modifiedDttm')[:5]
+
+    uniqueAssociates = set(
+        thisTeam.admins.prefetch_related('profile') | thisTeam.members.prefetch_related('profile')
+    )
+
     context = {
         "team": thisTeam,
+        "teamTickets": teamTickets,
         "members": excludedMembers,
         "admins": excludedAdmins,
-        "associates": set(thisTeam.admins.all() | thisTeam.members.all())
+        "associates": uniqueAssociates
     }
     return render(request, "jira/team.html", context)
-
-
-def peopleAndTeamSearch(request):
-    pass
-
-
-def profileView(request, url):
-    pass
 
 
 def ticketDetailView(request, internalKey):
@@ -152,6 +159,7 @@ def ticketDetailView(request, internalKey):
     TODO: Collapse items
     TODO: Fix file attachment style
     TODO: Allow file attachment delete option
+    TODO: Optimise the post request.
     """
 
     try:
@@ -167,7 +175,6 @@ def ticketDetailView(request, internalKey):
         raise Http404
 
     if request.method == "POST":
-
         ticket.summary = request.POST['summary']
         ticket.description = request.POST['description']
         ticket.fixVersion = request.POST['fixVersion']
@@ -180,8 +187,24 @@ def ticketDetailView(request, internalKey):
         ticket.component.clear()
         ticket.component.add(*request.POST.getlist('components'))
 
+        # Add and amend labels
+        updatedLabels = request.POST.getlist('labels')
+        existingLabels = list(Label.objects.filter(internalKey__in=updatedLabels).values_list('internalKey', flat=True))
+
+        Label.objects.bulk_create(
+            [
+                Label(
+                    internalKey=i,
+                    code=i.upper(),
+                )
+                for i in updatedLabels if i not in existingLabels
+            ]
+        )
+
+        ids = list(Label.objects.filter(internalKey__in=updatedLabels).values_list('id', flat=True))
         ticket.label.clear()
-        ticket.label.add(*request.POST.getlist('labels'))
+        ticket.label.add(*ids)
+        #
 
         TicketAttachment.objects.bulk_create(
             TicketAttachment(
@@ -192,6 +215,7 @@ def ticketDetailView(request, internalKey):
             for attachment in request.FILES.getlist('attachments')
         )
         ticket.save()
+        return redirect('jira:ticket-detail-view', internalKey=internalKey)
 
     def getWatchersMessage():
         if not request.user.is_authenticated:
@@ -221,6 +245,7 @@ def ticketDetailView(request, internalKey):
             {
                 'id': label.id,
                 'internalKey': label.internalKey,
+                'code': label.code,
                 'colour': label.colour,
             }
             for label in ticket.label.all()
@@ -266,8 +291,12 @@ def ticketDetailView(request, internalKey):
             'message': getWatchersMessage(),
         }
     }
+    projectComponents = Component.objects.filter(
+        componentGroup__code='PROJECT_COMPONENTS', reference__exact=ticket.project.code
+    )
     context = {
-        'ticket': ticketDetails
+        'ticket': ticketDetails,
+        'projectComponents': projectComponents,
     }
     return render(request, "jira/ticketDetailViewPage.html", context)
 
@@ -379,10 +408,6 @@ def backlog(request, url):
     return render(request, TEMPLATE, context)
 
 
-def yourWork(request):
-    pass
-
-
 @login_required
 def projects(request):
     projectQuery = Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)
@@ -439,8 +464,6 @@ def projectSettings(request, url):
 
 
 def issuesListView(request):
-    # TODO/Improvement: Move this to API.
-
     filterDict = {}
     for key, value in request.GET.items():
         filterDict[f'{key}__code__in'] = value.split(',')
@@ -493,35 +516,41 @@ def issuesListView(request):
     return render(request, 'jira/issuesListView.html', context)
 
 
+def yourWork(request):
+    pass
+
+
 def profileAndSettings(request):
+    pass
+
+
+def peopleAndTeamSearch(request):
+    pass
+
+
+def profileView(request, url):
     pass
 
 
 @login_required
 def newTicketObject(request):
     thisProject = Project.objects.filter(id=request.POST['project']).first()
-    issueType = Component.objects.get(componentGroup__code='TICKET_ISSUE_TYPE', id=request.POST["ticketIssueType"])
-    priority = Component.objects.get(componentGroup__code='TICKET_PRIORITY', id=request.POST["ticketPriority"])
     newTicketNumber = thisProject.projectTickets.count() + 1
-    thisBoard = Board.objects.get(id=request.POST['board'])
-    assignee = User.objects.get(id=request.POST['assignee'])
+    boardId = request.POST['board'] or None
 
     newTicket = Ticket()
     newTicket.internalKey = thisProject.code + "-" + str(newTicketNumber)
-    newTicket.summary = request.POST["summary"]
-    newTicket.description = request.POST["description"]
-    newTicket.resolution = Component.objects.get(componentGroup__code='TICKET_RESOLUTIONS', code="UNRESOLVED")
+    newTicket.summary = request.POST["summary"] or None
+    newTicket.description = request.POST["description"] or None
+    newTicket.resolution_id = next((i.id for i in cache.get('TICKET_RESOLUTIONS') if i.code == 'UNRESOLVED'))
     newTicket.project = thisProject
-    newTicket.assignee = assignee
+    newTicket.assignee_id = request.POST['assignee'] or None
     newTicket.reporter = request.user
-
-    if request.POST['storyPoints']:
-        newTicket.storyPoints = request.POST["storyPoints"]
-
-    newTicket.issueType = issueType
-    newTicket.priority = priority
-    newTicket.board = thisBoard
-    newTicket.column = Column.objects.get(board=thisBoard, internalKey='TO DO')
+    newTicket.storyPoints = request.POST["storyPoints"] or None
+    newTicket.issueType_id = request.POST["ticketIssueType"] or None
+    newTicket.priority_id = request.POST["ticketPriority"] or None
+    newTicket.board_id = boardId
+    newTicket.column = Column.objects.get(board_id=boardId, internalKey='TO DO')
     newTicket.orderNo = newTicketNumber
     newTicket.save()
 

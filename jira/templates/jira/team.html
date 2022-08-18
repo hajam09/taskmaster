@@ -5,6 +5,18 @@
         body {
             color: black;
         }
+
+        .ghx-avatar-img {
+            -webkit-border-radius: 50%;
+            border-radius: 48%;
+            height: 30px;
+            width: 29px;
+            min-width: 28px;
+            cursor: default;
+            display: inline-block;
+            vertical-align: middle;
+            overflow: hidden;
+        }
     </style>
     <link rel="stylesheet" type="text/css" href="{% static 'css/avatarsIcon.css' %}"/>
     <div class="modal fade bd-example-modal-lg" id="addPeopleModal" tabindex="-1" role="dialog"
@@ -100,21 +112,21 @@
                             <small>{{ associates|length }} members</small>
                         </div>
                         <div class="card card-body">
-                            {% for t in associates %}
+                            {% for associate in associates %}
                                 <div class="row">
                                     <div class="col-2">
                                         {% if debug %}
-                                            <img alt="{{ t.get_full_name }}" class="avatar filter-by-alt"
+                                            <img alt="{{ associate.get_full_name }}" class="avatar filter-by-alt"
                                                  src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
                                                  data-filter-by="alt">
                                         {% elif t.profile.profilePicture %}
-                                            <img alt="{{ t.get_full_name }}" class="avatar filter-by-alt"
-                                                 src="{{ t.profile.profilePicture.url }}" data-filter-by="alt">
+                                            <img alt="{{ associate.get_full_name }}" class="avatar filter-by-alt"
+                                                 src="{{ associate.profile.profilePicture.url }}" data-filter-by="alt">
                                         {% endif %}
                                     </div>
                                     <div class="col-10">
-                                        {{ t.get_full_name }}<br><small
-                                            class="text-secondary">{{ t.profile.jobTitle }}</small>
+                                        {{ associate.get_full_name }}<br><small
+                                            class="text-secondary">{{ associate.profile.jobTitle }}</small>
                                     </div>
                                 </div>
                                 <div style="height:15px;"></div>
@@ -123,31 +135,61 @@
                     </div>
                     <div class="col-md-1"></div>
                     <div class="col-md-7" id="div-id-forum-list-container">
-                        <!-- TODO: Update container to reflect the teams activity -->
                         <h5>Team activity</h5>
                         <div class="card">
-                            <div class="card card-body">
-                                {% for t in associates %}
-                                    <div class="row">
-                                        <div class="col-1">
-                                            {% if debug %}
-                                                <img alt="{{ t.get_full_name }}" class="avatar filter-by-alt"
-                                                     src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
-                                                     data-filter-by="alt">
-                                            {% elif t.profile.profilePicture %}
-                                                <img alt="{{ t.get_full_name }}" class="avatar filter-by-alt"
-                                                     src="{{ t.profile.profilePicture.url }}" data-filter-by="alt">
-                                            {% endif %}
-                                        </div>
-                                        <div class="col-11">
-                                            {{ t.get_full_name }}<br><small
-                                                class="text-secondary">{{ t.profile.jobTitle }}</small>
+                                {% for ticket in teamTickets %}
+                                    <div class="card" id={{ ticket.id }}>
+                                        <div class="card-body" style="height: 10px;">
+                                            <div class="row">
+                                                <div class="col-auto" style="margin-top: -13px; margin-left: -10px;">
+                                                    <img src={{ ticket.issueType.icon }} width="20" height="20"
+                                                         data-toggle="tooltip"
+                                                         data-placement="top"
+                                                         title={{ ticket.issueType.internalKey }}/>
+                                                </div>
+                                                <div class="col-auto" style="margin-top: -11px; margin-left: -13px;">
+                                                    <a href={{ ticket.getTicketUrl }}>{{ ticket.internalKey }}</a>
+                                                </div>
+                                                <div class="col" style="margin-top: -11px; margin-left: -13px;">
+                                                    <span>{{ ticket.summary }}</span>
+                                                </div>
+                                                <div class="col-auto" style="margin-top: -13px; margin-left: -13px;">
+                                                    <img src={{ ticket.priority.icon }} width="20" height="20"
+                                                         data-toggle="tooltip"
+                                                         data-placement="top"
+                                                         title={{ ticket.priority.internalKey }}>
+                                                </div>
+                                                <div class="col-auto" style="margin-top: -12px; margin-left: -25px;">
+                                                    <span class="badge badge-pill badge-secondary">
+                                                        {% if ticket.storyPoints %}
+                                                            {{ ticket.storyPoints }}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </span>
+                                                </div>
+                                                <div class="col-auto" style="margin-top: -15px; margin-left: -25px;">
+                                                    {% if ticket.assignee %}
+                                                        <img src="{{ ticket.assignee.profile.profilePicture.url }}"
+                                                             class="ghx-avatar-img"
+                                                             data-toggle="tooltip"
+                                                             data-placement="top"
+                                                             title={{ ticket.assignee.get_full_name }}
+                                                             loading="lazy">
+                                                    {% else %}
+                                                        <img src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
+                                                             class="ghx-avatar-img"
+                                                             data-toggle="tooltip"
+                                                             data-placement="top"
+                                                             title="Unassigned"
+                                                             loading="lazy">
+                                                    {% endif %}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div style="height:15px;"></div>
                                 {% endfor %}
                             </div>
-                        </div>
 
                         <!--  -->
                         <div style="height:30px;"></div>

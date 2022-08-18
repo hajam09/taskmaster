@@ -2,7 +2,7 @@ from django import template
 from django.core.cache import cache
 
 from accounts.models import Profile
-from jira.models import Project, Board
+from jira.models import Project, Board, Label
 
 register = template.Library()
 
@@ -10,6 +10,11 @@ register = template.Library()
 @register.simple_tag
 def projects():
     return Project.objects.all()
+
+
+@register.simple_tag
+def labels():
+    return Label.objects.all()
 
 
 @register.simple_tag
@@ -35,8 +40,3 @@ def ticketPriorities():
 @register.simple_tag
 def ticketResolutions():
     return cache.get('TICKET_RESOLUTIONS')
-
-
-@register.simple_tag
-def projectComponents():
-    return cache.get('PROJECT_COMPONENTS')

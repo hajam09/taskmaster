@@ -207,9 +207,19 @@ class ProjectSettingsForm(forms.Form):
         self.base_fields['members'].choices = leadChoices
 
         componentsChoices = [
-            (str(i.internalKey), i.internalKey) for i in cache.get('PROJECT_COMPONENTS')
+            (str(i.internalKey), i.internalKey)
+            for i in Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS')
             if i.reference == self.project.code
         ]
+        """
+        # WIP
+        componentsChoices = [
+            (i[0], i[0])
+            for i in Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS').values_list('internalKey', 'reference')
+            if i[1] == self.project.code
+        ]        
+        """
+
         self.base_fields['components'].choices = componentsChoices
         self.base_fields['visibility'].initial = 'MEMBERS' if self.project.isPrivate else 'EVERYONE'
 
@@ -234,18 +244,17 @@ class ProjectSettingsForm(forms.Form):
             reference__exact=self.project.code
         ).values_list('internalKey', flat=True))
 
-        newComponents = Component.objects.bulk_create(
+        Component.objects.bulk_create(
             [
                 Component(
                     componentGroup=componentGroup,
                     internalKey=i,
+                    code=i.upper(),
                     reference=self.project.code
                 )
                 for i in updatedComponents if i not in componentsList
             ]
         )
-
-        updatedComponents += [i.internalKey for i in newComponents]
 
         ids = list(Component.objects.filter(
             componentGroup__code='PROJECT_COMPONENTS',

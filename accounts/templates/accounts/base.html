@@ -37,8 +37,8 @@
     {% ticketIssueTypes as ticketIssueTypes %}
     {% ticketPriorities as ticketPriorities %}
     {% ticketResolutions as ticketResolutions %}
-    {% projectComponents as projectComponents %}
     {% projects as projects %}
+    {% labels as labels %}
     {% boards as boards %}
     {% profiles as profiles %}
 
@@ -216,6 +216,7 @@
         let issueTypeCache = localStorage.getItem("issueTypeList");
         let resolutionCache = localStorage.getItem("resolutionList");
         let priorityCache = localStorage.getItem("priorityList");
+        let labelCache = localStorage.getItem("labelList");
 
         if (projectCache == null) {
             const projectListArray = [];
@@ -291,6 +292,23 @@
                     priorityListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
                 {% endfor %}
                 localStorage.setItem("priorityList", JSON.stringify({object: priorityListArray}));
+            }
+        }
+
+        if (labelCache == null) {
+            const labelListArray = [];
+            {% for t in labels %}
+                labelListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
+            {% endfor %}
+            localStorage.setItem("labelList", JSON.stringify({object: labelListArray}));
+        } else {
+            const labelList = JSON.parse(priorityCache).object;
+            if ($.isEmptyObject(labelList)) {
+                const labelListArray = [];
+                {% for t in labels %}
+                    labelListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
+                {% endfor %}
+                localStorage.setItem("labelList", JSON.stringify({object: labelListArray}));
             }
         }
     </script>

@@ -72,7 +72,6 @@
                             <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
                                 id="projectLists">
 
-
                             </ul>
                         </div>
                     </div>
@@ -108,6 +107,18 @@
                             </button>
                             <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
                                 id="priorityList">
+
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" id="projectsDropdown"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Label:
+                            </button>
+                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
+                                id="labelList">
 
                             </ul>
                         </div>
@@ -222,6 +233,10 @@
                 return this.value;
             }).get().join();
 
+            const checkedLabels = $('.label:checkbox:checked').map(function () {
+                return this.value;
+            }).get().join();
+
             let currentPath = "{% url 'jira:issuesListView' %}"
             let urlParameters = [];
 
@@ -236,6 +251,9 @@
 
             if (checkedPriorities.length > 0)
                 urlParameters.push("priority=" + checkedPriorities);
+
+            if (checkedLabels.length > 0)
+                urlParameters.push("label=" + checkedLabels);
 
             if (urlParameters.length > 0)
                 currentPath += "?";
@@ -267,11 +285,13 @@
             let issueTypeCodes = getParameterByName('issueType');
             let resolutionCodes = getParameterByName('resolution');
             let priorityCodes = getParameterByName('priority');
+            let labelCodes = getParameterByName('label');
 
             projectCodes = projectCodes ? projectCodes.split(',') : [];
             issueTypeCodes = issueTypeCodes ? issueTypeCodes.split(',') : [];
             resolutionCodes = resolutionCodes ? resolutionCodes.split(',') : [];
             priorityCodes = priorityCodes ? priorityCodes.split(',') : [];
+            labelCodes = labelCodes ? labelCodes.split(',') : [];
 
             $('.projects:checkbox').map(function () {
                 if (projectCodes.includes(this.value))
@@ -292,6 +312,11 @@
                 if (priorityCodes.includes(this.value))
                     this.checked = "checked";
             })
+
+            $('.label:checkbox').map(function () {
+                if (labelCodes.includes(this.value))
+                    this.checked = "checked";
+            })
         }
 
         function fillCheckBox() {
@@ -300,6 +325,7 @@
             const issueTypeList = localStorage.getItem("issueTypeList");
             const resolutionList = localStorage.getItem("resolutionList");
             const priorityList = localStorage.getItem("priorityList");
+            const labelList = localStorage.getItem("labelList");
 
             if (projectList != null) {
                 const objects = JSON.parse(projectList).object;
@@ -357,6 +383,22 @@
                         <li>
                             <label>
                                 <input class="priority" type="checkbox"
+                                       value="${item.code}"> ${item.internalKey}
+                            </label>
+                        </li>
+                        `
+                    );
+                }
+            }
+
+            if (labelList != null) {
+                const objects = JSON.parse(labelList).object;
+                for (const item of objects) {
+                    $("#labelList").append(
+                        `
+                        <li>
+                            <label>
+                                <input class="label" type="checkbox"
                                        value="${item.code}"> ${item.internalKey}
                             </label>
                         </li>

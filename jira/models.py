@@ -78,10 +78,9 @@ class Board(BaseModel):
 
 
 class Label(BaseModel):
-    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='boardLabels')
-    internalKey = models.CharField(max_length=2048)
+    internalKey = models.CharField(max_length=2048, unique=True)
+    code = models.CharField(max_length=2048, unique=True)
     colour = ColorField(default='#FF0000')
-    # TODO: Consider board -> project.
 
     class Meta:
         verbose_name = "Label"
