@@ -104,5 +104,6 @@
         <Component componentGroup.code="FILE_ICONS" internalKey="xlsx" code="XLSX" icon=""/>
         <Component componentGroup.code="FILE_ICONS" internalKey="xml" code="XML" icon=""/>
         <Component componentGroup.code="FILE_ICONS" internalKey="zip" code="ZIP" icon=""/>
+        <Component componentGroup.code="FILE_ICONS" internalKey="unknown" code="UNKNOWN" icon=""/>
     </Components>
 </SeedData>

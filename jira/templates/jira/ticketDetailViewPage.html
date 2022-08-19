@@ -1087,7 +1087,29 @@
                         'comment': this.refs.comment.value,
                     })
                 }).then((response) => {
-                    this.props.fetchComments()
+                    switch (response.status) {
+                        case 200:
+                            this.props.fetchComments();
+                            break;
+                        case 401:
+                            Swal.fire(
+                                {
+                                    icon: 'error',
+                                    title: "Can't do that!",
+                                    text: 'Please login to add a comment'
+                                }
+                            );
+                            break;
+                        default:
+                            Swal.fire(
+                                {
+                                    icon: 'error',
+                                    title: "Can't do that!",
+                                    text: 'Unable to perform this action'
+                                }
+                            );
+                    }
+
                 })
 
                 this.switchCreateMode();

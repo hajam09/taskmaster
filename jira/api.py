@@ -432,6 +432,13 @@ class TicketCommentObjectApiEventVersion1Component(View):
         ticketId = body.get("ticketId")
         comment = body.get("comment")
 
+        if not self.request.user.is_authenticated:
+            response = {
+                "success": False,
+                "message": "Please login to add a comment"
+            }
+            return JsonResponse(response, status=HTTPStatus.UNAUTHORIZED)
+
         try:
             ticket = Ticket.objects.get(id=ticketId)
         except Ticket.DoesNotExist:
@@ -445,7 +452,7 @@ class TicketCommentObjectApiEventVersion1Component(View):
 
         ticketComment = TicketComment()
         ticketComment.ticket = ticket
-        ticketComment.creator = self.request.user or None
+        ticketComment.creator = self.request.user
         ticketComment.comment = comment
         ticketComment.orderNo = newCommentNumber + 1
         ticketComment.save()
@@ -585,6 +592,7 @@ class TicketAttachmentsApiEventVersion1Component(View):
 
         ticketAttachments = TicketAttachment.objects.filter(ticket__id=ticketId)
         fileIcons = cache.get('FILE_ICONS')
+        unknownFileType = databaseOperations.getObjectByInternalKey(fileIcons, 'unknown')
 
         def getIcon(i):
             extension = imghdr.what(i.attachment)
@@ -593,11 +601,10 @@ class TicketAttachmentsApiEventVersion1Component(View):
             if isImage:
                 return i.attachment.url
 
-            fileIcon = databaseOperations.getObjectByInternalKey(fileIcons, i.attachment.name.split('.')[-1])
-            # TODO: Create a custom unknown file icon.
-            if fileIcon is None:
-                return 'https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png'
-            return fileIcon.icon
+            otherFileType = databaseOperations.getObjectByInternalKey(fileIcons, i.attachment.name.split('.')[-1])
+            if otherFileType is not None:
+                return otherFileType.icon
+            return unknownFileType.icon
 
         attachments = [
             {
