@@ -26,7 +26,9 @@ def index(request):
 
 
 def dashboard(request):
-    projectComponents = Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS').prefetch_related('ticketComponents__issueType', 'ticketComponents__priority')
+    projectComponents = Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS').prefetch_related(
+        'ticketComponents__issueType', 'ticketComponents__priority'
+    )
     ticketIssueType = cache.get('TICKET_ISSUE_TYPE')
     ticketPriority = cache.get('TICKET_PRIORITY')
     componentListByIssueType = []
@@ -337,6 +339,7 @@ def boards(request):
 def boardSettings(request, url):
     """
     TODO: Only admins can edit.
+    TODO: Refactor usage and creation of Label object because of board column removal.
     // Contact a TaskMaster or the board administrator to configure this board
     """
     try:

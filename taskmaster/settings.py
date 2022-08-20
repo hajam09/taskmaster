@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
+    'channels',
     'crispy_forms',
     'colorfield',
     'debug_toolbar',
@@ -74,7 +75,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'taskmaster.wsgi.application'
+ASGI_APPLICATION = 'taskmaster.asgi.application'
 
 
 # Database
