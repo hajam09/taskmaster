@@ -35,6 +35,7 @@ class TeamChatConsumer(AsyncConsumer):
         thisUser = self.scope['user']
         teamUrl = self.scope['url_route']['kwargs']['url']
         team = await self.getTeamObject(teamUrl)
+        lastTeamChatMessage = await self.getLastTeamChatMessage()
         await self.createTeamChatMessage(team, thisUser, msg)
 
         today = timezone.datetime.today()
@@ -43,6 +44,7 @@ class TeamChatConsumer(AsyncConsumer):
         meridiem = "am" if hour < 12 else "pm"
 
         response = {
+            'id': lastTeamChatMessage.id + 1,
             'message': msg,
             'sender': {
                 'id': thisUser.id,
@@ -73,6 +75,10 @@ class TeamChatConsumer(AsyncConsumer):
     @database_sync_to_async
     def getTeamObject(self, url):
         return Team.objects.filter(url__exact=url).first()
+
+    @database_sync_to_async
+    def getLastTeamChatMessage(self):
+        return TeamChatMessage.objects.last()
 
     @database_sync_to_async
     def createTeamChatMessage(self, team, user, message):

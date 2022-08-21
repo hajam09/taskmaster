@@ -388,7 +388,7 @@
         let socket = new WebSocket(endpoint);
 
         socket.onopen = async function (e) {
-            console.log('open', e);
+            //console.log('open', e);
             messageForm.on('submit', function (e) {
                 e.preventDefault()
                 let message = inputMessage.val();
@@ -402,23 +402,23 @@
         }
 
         socket.onmessage = async function (e) {
-            console.log('message received', e)
+            //console.log('message received', e)
             let data = JSON.parse(e.data);
             let isAtBottom = isAtBottomOfMessageContainer();
 
-            renderMessageComponent(null, data['message'], data['time'], data['sender']['id'], data['sender']['fullName']);
+            renderMessageComponent(data.id, data.message, data.time, data.sender.id, data.sender.fullName);
 
-            let isSentByThisUser = String(data['sender']['id']) === String(thisUserId);
+            let isSentByThisUser = String(data.sender.id) === String(thisUserId);
             if (isSentByThisUser || isAtBottom)
                 scrollToBottomOfMessage();
         }
 
         socket.onerror = async function (e) {
-            console.log('error', e)
+            //console.log('error', e)
         }
 
         socket.onclose = async function (e) {
-            console.log('close', e)
+            //console.log('close', e)
         }
         //
 
