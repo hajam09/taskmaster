@@ -7,6 +7,7 @@ from django.db import connection
 from faker import Faker
 
 from accounts.models import Profile, Team
+from taskmaster import settings
 from taskmaster.operations import seedDataOperations
 
 all_tables = connection.introspection.table_names()
@@ -55,7 +56,7 @@ def createUserObjects(limit=20, maxLimit=20):
         firstName = fake.unique.first_name()
         lastName = fake.unique.last_name()
         email = firstName.lower() + '.' + lastName.lower() + random.choice(EMAIL_DOMAINS) + random.choice(DOMAINS)
-        password = 'RanDomPasWord56'
+        password = settings.TEST_PASSWORD
 
         BULK_USERS.append(
             User(username=email, email=email, password=password, first_name=firstName, last_name=lastName)

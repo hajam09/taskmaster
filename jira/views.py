@@ -103,7 +103,6 @@ def teams(request):
 
 @login_required
 def team(request, url):
-    # TODO/Story: Implement team chat box.
     try:
         thisTeam = Team.objects.get(url=url)
     except Team.DoesNotExist:
@@ -144,7 +143,8 @@ def team(request, url):
         "teamTickets": teamTickets,
         "members": excludedMembers,
         "admins": excludedAdmins,
-        "associates": uniqueAssociates
+        "associates": uniqueAssociates,
+        "hasChatPermission": request.user in uniqueAssociates,
     }
     return render(request, "jira/team.html", context)
 

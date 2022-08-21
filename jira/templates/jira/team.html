@@ -243,302 +243,332 @@
                         <div style="height:30px;"></div>
 
                         <h5>Team chat</h5>
-                        <div class="card">
-                            <div class="">
-                                <div class="py-2 px-4 border-bottom d-none d-lg-block">
-                                    <div class="d-flex align-items-center py-1">
-                                        <div class="position-relative">
-                                            <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
-                                                 class="rounded-circle mr-1" alt="Sharon Lessman" width="40"
-                                                 height="40">
-                                        </div>
-                                        <div class="flex-grow-1 pl-3">
-                                            <strong>Sharon Lessman</strong>
-                                            <div class="text-muted small"><em>Typing...</em></div>
+                        {% if hasChatPermission %}
+                            <div class="card">
+                                <div>
+                                    <div class="py-2 px-4 border-bottom d-none d-lg-block">
+                                        <div class="d-flex align-items-center py-1">
+                                            <div class="position-relative">
+                                                <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
+                                                     class="rounded-circle mr-1" alt="Sharon Lessman" width="40"
+                                                     height="40">
+                                            </div>
+                                            <div class="flex-grow-1 pl-3">
+                                                <strong>Sharon Lessman</strong>
+                                                <div class="text-muted small"><em>Typing...</em></div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="position-relative">
-                                    <div class="chat-messages p-4">
+                                    <div class="position-relative">
+                                        <div class="chat-messages p-4">
 
-                                        <div class="chat-message-right pb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                                                     class="rounded-circle mr-1" alt="Chris Wood" width="40"
-                                                     height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:33 am</div>
+                                            <div class="chat-message-right pb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
+                                                         class="rounded-circle mr-1" alt="Chris Wood" width="40"
+                                                         height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:33 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
+                                                    <div class="font-weight-bold mb-1">You</div>
+                                                    Lorem ipsum dolor sit amet, vis erat denique in, dicunt
+                                                    prodesset te vix.
+                                                </div>
                                             </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
-                                                <div class="font-weight-bold mb-1">You</div>
-                                                Lorem ipsum dolor sit amet, vis erat denique in, dicunt
-                                                prodesset te vix.
+
+                                            <div class="chat-message-left pb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
+                                                         class="rounded-circle mr-1" alt="Sharon Lessman"
+                                                         width="40" height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:34 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
+                                                    <div class="font-weight-bold mb-1">Sharon Lessman</div>
+                                                    Sit meis deleniti eu, pri vidit meliore docendi ut, an eum
+                                                    erat animal commodo.
+                                                </div>
                                             </div>
+
+                                            <div class="chat-message-right mb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
+                                                         class="rounded-circle mr-1" alt="Chris Wood" width="40"
+                                                         height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:35 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
+                                                    <div class="font-weight-bold mb-1">You</div>
+                                                    Test
+                                                </div>
+                                            </div>
+
+                                            <div class="chat-message-left pb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
+                                                         class="rounded-circle mr-1" alt="Sharon Lessman"
+                                                         width="40" height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:36 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
+                                                    <div class="font-weight-bold mb-1">Sharon Lessman</div>
+                                                    Sed pulvinar, massa vitae interdum pulvinar, risus lectus
+                                                    porttitor magna, vitae commodo lectus mauris et velit.
+                                                    Proin ultricies placerat imperdiet. Morbi varius quam ac
+                                                    venenatis tempus.
+                                                </div>
+                                            </div>
+
+                                            <div class="chat-message-left pb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
+                                                         class="rounded-circle mr-1" alt="Sharon Lessman"
+                                                         width="40" height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:37 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
+                                                    <div class="font-weight-bold mb-1">Sharon Lessman</div>
+                                                    Cras pulvinar, sapien id vehicula aliquet, diam velit
+                                                    elementum orci.
+                                                </div>
+                                            </div>
+
+                                            <div class="chat-message-right mb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
+                                                         class="rounded-circle mr-1" alt="Chris Wood" width="40"
+                                                         height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:38 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
+                                                    <div class="font-weight-bold mb-1">You</div>
+                                                    Lorem ipsum dolor sit amet, vis erat denique in, dicunt
+                                                    prodesset te vix.
+                                                </div>
+                                            </div>
+
+                                            <div class="chat-message-left pb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
+                                                         class="rounded-circle mr-1" alt="Sharon Lessman"
+                                                         width="40" height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:39 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
+                                                    <div class="font-weight-bold mb-1">Sharon Lessman</div>
+                                                    Sit meis deleniti eu, pri vidit meliore docendi ut, an eum
+                                                    erat animal commodo.
+                                                </div>
+                                            </div>
+
+                                            <div class="chat-message-right mb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
+                                                         class="rounded-circle mr-1" alt="Chris Wood" width="40"
+                                                         height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:40 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
+                                                    <div class="font-weight-bold mb-1">You</div>
+                                                    Test.
+                                                </div>
+                                            </div>
+
+                                            <div class="chat-message-right mb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
+                                                         class="rounded-circle mr-1" alt="Chris Wood" width="40"
+                                                         height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:41 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
+                                                    <div class="font-weight-bold mb-1">You</div>
+                                                    Morbi finibus, lorem id placerat ullamcorper, nunc enim
+                                                    ultrices massa, id dignissim metus urna eget purus.
+                                                </div>
+                                            </div>
+
+                                            <div class="chat-message-left pb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
+                                                         class="rounded-circle mr-1" alt="Sharon Lessman"
+                                                         width="40" height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:42 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
+                                                    <div class="font-weight-bold mb-1">Sharon Lessman</div>
+                                                    Sed pulvinar, massa vitae interdum pulvinar, risus lectus
+                                                    porttitor magna, vitae commodo lectus mauris et velit.
+                                                    Proin ultricies placerat imperdiet. Morbi varius quam ac
+                                                    venenatis tempus.
+                                                </div>
+                                            </div>
+
+                                            <div class="chat-message-right mb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
+                                                         class="rounded-circle mr-1" alt="Chris Wood" width="40"
+                                                         height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:43 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
+                                                    <div class="font-weight-bold mb-1">You</div>
+                                                    Lorem ipsum dolor sit amet, vis erat denique in, dicunt
+                                                    prodesset te vix.
+                                                </div>
+                                            </div>
+
+                                            <div class="chat-message-left pb-4">
+                                                <div>
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
+                                                         class="rounded-circle mr-1" alt="Sharon Lessman"
+                                                         width="40" height="40">
+                                                    <div class="text-muted small text-nowrap mt-2">2:44 am</div>
+                                                </div>
+                                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
+                                                    <div class="font-weight-bold mb-1">Sharon Lessman</div>
+                                                    Sit meis deleniti eu, pri vidit meliore docendi ut, an eum
+                                                    erat animal commodo.
+                                                </div>
+                                            </div>
+
                                         </div>
-
-                                        <div class="chat-message-left pb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
-                                                     class="rounded-circle mr-1" alt="Sharon Lessman"
-                                                     width="40" height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:34 am</div>
-                                            </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
-                                                <div class="font-weight-bold mb-1">Sharon Lessman</div>
-                                                Sit meis deleniti eu, pri vidit meliore docendi ut, an eum
-                                                erat animal commodo.
-                                            </div>
-                                        </div>
-
-                                        <div class="chat-message-right mb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                                                     class="rounded-circle mr-1" alt="Chris Wood" width="40"
-                                                     height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:35 am</div>
-                                            </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
-                                                <div class="font-weight-bold mb-1">You</div>
-                                                Test
-                                            </div>
-                                        </div>
-
-                                        <div class="chat-message-left pb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
-                                                     class="rounded-circle mr-1" alt="Sharon Lessman"
-                                                     width="40" height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:36 am</div>
-                                            </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
-                                                <div class="font-weight-bold mb-1">Sharon Lessman</div>
-                                                Sed pulvinar, massa vitae interdum pulvinar, risus lectus
-                                                porttitor magna, vitae commodo lectus mauris et velit.
-                                                Proin ultricies placerat imperdiet. Morbi varius quam ac
-                                                venenatis tempus.
-                                            </div>
-                                        </div>
-
-                                        <div class="chat-message-left pb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
-                                                     class="rounded-circle mr-1" alt="Sharon Lessman"
-                                                     width="40" height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:37 am</div>
-                                            </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
-                                                <div class="font-weight-bold mb-1">Sharon Lessman</div>
-                                                Cras pulvinar, sapien id vehicula aliquet, diam velit
-                                                elementum orci.
-                                            </div>
-                                        </div>
-
-                                        <div class="chat-message-right mb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                                                     class="rounded-circle mr-1" alt="Chris Wood" width="40"
-                                                     height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:38 am</div>
-                                            </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
-                                                <div class="font-weight-bold mb-1">You</div>
-                                                Lorem ipsum dolor sit amet, vis erat denique in, dicunt
-                                                prodesset te vix.
-                                            </div>
-                                        </div>
-
-                                        <div class="chat-message-left pb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
-                                                     class="rounded-circle mr-1" alt="Sharon Lessman"
-                                                     width="40" height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:39 am</div>
-                                            </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
-                                                <div class="font-weight-bold mb-1">Sharon Lessman</div>
-                                                Sit meis deleniti eu, pri vidit meliore docendi ut, an eum
-                                                erat animal commodo.
-                                            </div>
-                                        </div>
-
-                                        <div class="chat-message-right mb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                                                     class="rounded-circle mr-1" alt="Chris Wood" width="40"
-                                                     height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:40 am</div>
-                                            </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
-                                                <div class="font-weight-bold mb-1">You</div>
-                                                Test.
-                                            </div>
-                                        </div>
-
-                                        <div class="chat-message-right mb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                                                     class="rounded-circle mr-1" alt="Chris Wood" width="40"
-                                                     height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:41 am</div>
-                                            </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
-                                                <div class="font-weight-bold mb-1">You</div>
-                                                Morbi finibus, lorem id placerat ullamcorper, nunc enim
-                                                ultrices massa, id dignissim metus urna eget purus.
-                                            </div>
-                                        </div>
-
-                                        <div class="chat-message-left pb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
-                                                     class="rounded-circle mr-1" alt="Sharon Lessman"
-                                                     width="40" height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:42 am</div>
-                                            </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
-                                                <div class="font-weight-bold mb-1">Sharon Lessman</div>
-                                                Sed pulvinar, massa vitae interdum pulvinar, risus lectus
-                                                porttitor magna, vitae commodo lectus mauris et velit.
-                                                Proin ultricies placerat imperdiet. Morbi varius quam ac
-                                                venenatis tempus.
-                                            </div>
-                                        </div>
-
-                                        <div class="chat-message-right mb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
-                                                     class="rounded-circle mr-1" alt="Chris Wood" width="40"
-                                                     height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:43 am</div>
-                                            </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
-                                                <div class="font-weight-bold mb-1">You</div>
-                                                Lorem ipsum dolor sit amet, vis erat denique in, dicunt
-                                                prodesset te vix.
-                                            </div>
-                                        </div>
-
-                                        <div class="chat-message-left pb-4">
-                                            <div>
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
-                                                     class="rounded-circle mr-1" alt="Sharon Lessman"
-                                                     width="40" height="40">
-                                                <div class="text-muted small text-nowrap mt-2">2:44 am</div>
-                                            </div>
-                                            <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
-                                                <div class="font-weight-bold mb-1">Sharon Lessman</div>
-                                                Sit meis deleniti eu, pri vidit meliore docendi ut, an eum
-                                                erat animal commodo.
-                                            </div>
-                                        </div>
-
                                     </div>
-                                </div>
 
-                                <div class="flex-grow-0 py-3 px-4 border-top">
-                                    <form id="send-message-form">
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" id="input-message"
-                                                   placeholder="Type your message">
-                                            <button class="btn btn-primary">Send</button>
-                                        </div>
-                                    </form>
-                                </div>
+                                    <div class="flex-grow-0 py-3 px-4 border-top">
+                                        <form id="send-message-form">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="input-message"
+                                                       placeholder="Type your message">
+                                                <button class="btn btn-primary">Send</button>
+                                            </div>
+                                        </form>
+                                    </div>
 
+                                </div>
                             </div>
-                        </div>
+                        {% else %}
+                            <div class="alert alert-danger" role="alert">
+                                Unfortunately you do not have the permission to view this team chat. If this is a
+                                mistake then please contact this teams administrators!
+                            </div>
+                        {% endif %}
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
     <script type="text/javascript">
 
-    // chat application
+        // chat application
 
-    function ownerMessageComponent(message) {
-        return `<div class="chat-message-right pb-4">
+        function ownerMessageComponent(message, time) {
+            return `<div class="chat-message-right pb-4">
             <div>
                 <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
                      class="rounded-circle mr-1" alt="Chris Wood" width="40"
                      height="40">
-                <div class="text-muted small text-nowrap mt-2">2:33 am</div>
+                <div class="text-muted small text-nowrap mt-2">${time}</div>
             </div>
             <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
                 <div class="font-weight-bold mb-1">You</div>
                 ${message}
             </div>
         </div>`
-    }
+        }
 
-    function recipientMessageComponent(message,fullName)
-    {
-        return `<div class="chat-message-left pb-4">
+        function recipientMessageComponent(message, time, fullName) {
+            return `<div class="chat-message-left pb-4">
             <div>
                 <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
                      class="rounded-circle mr-1" alt="${fullName}"
                      width="40" height="40">
-                <div class="text-muted small text-nowrap mt-2">2:36 am</div>
+                <div class="text-muted small text-nowrap mt-2">${time}</div>
             </div>
             <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
                 <div class="font-weight-bold mb-1">${fullName}</div>
                 ${message}
             </div>
         </div>`
-    }
-
-    let inputMessage = $('#input-message');
-    //let message_body = $('.msg_card_body')
-    let messageForm = $('#send-message-form');
-    const thisUserId = '{{ user.id }}';
-
-    let loc = window.location
-    let wsStart = 'ws://';
-
-    if (loc.protocol === 'https') {
-        wsStart = 'wss://';
-    }
-
-    let endpoint = wsStart + loc.host + loc.pathname;
-    let socket = new WebSocket(endpoint);
-
-    socket.onopen = async function (e) {
-        console.log('open', e);
-        messageForm.on('submit', function (e) {
-            e.preventDefault()
-            let message = inputMessage.val();
-            let data = {
-                'message': message,
-            }
-            data = JSON.stringify(data);
-            socket.send(data);
-            $(this)[0].reset();
-        })
-    }
-
-    socket.onmessage = async function (e) {
-        console.log('message received', e)
-        let data = JSON.parse(e.data);
-        let message = data['message'];
-        let fullName = data['sender']['fullName'];
-        let isSentByThisUser =  String(data['sender']['id']) === String(thisUserId);
-
-        if (isSentByThisUser) {
-            $('.chat-messages').append(ownerMessageComponent(message));
-        } else {
-            $('.chat-messages').append(recipientMessageComponent(message, fullName));
         }
-    }
 
-    socket.onerror = async function (e) {
-        console.log('error', e)
-    }
+        function renderMessageComponent(id, message, time, senderId, fullName) {
+            let isSentByThisUser = String(senderId) === String(thisUserId);
+            if (isSentByThisUser) {
+                $('.chat-messages').append(ownerMessageComponent(message, time));
+            } else {
+                $('.chat-messages').append(recipientMessageComponent(message, time, fullName));
+            }
+        }
 
-    socket.onclose = async function (e) {
-        console.log('close', e)
-    }
-    //
+        window.onload = function () {
+            $.ajax(
+                {
+                    url: "{% url 'jira:teamChatMessagesApiEventVersion1Component' url=team.url %}",
+                    type: 'get',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (!response.success) {
+                            Swal.fire(
+                                {
+                                    icon: 'error',
+                                    title: "Can't do that!",
+                                    text: response.message
+                                }
+                            );
+                        } else {
+                            for (const item of response.data) {
+                                renderMessageComponent(null, item.message, item.time, item.sender.id, item.sender.fullName);
+                            }
+                        }
+                    }
+                }
+            );
+        };
+
+        let inputMessage = $('#input-message');
+        let messageForm = $('#send-message-form');
+        const thisUserId = '{{ user.id }}';
+
+        let loc = window.location
+        let wsStart = 'ws://';
+
+        if (loc.protocol === 'https') {
+            wsStart = 'wss://';
+        }
+
+        let endpoint = wsStart + loc.host + loc.pathname;
+        let socket = new WebSocket(endpoint);
+
+        socket.onopen = async function (e) {
+            console.log('open', e);
+            messageForm.on('submit', function (e) {
+                e.preventDefault()
+                let message = inputMessage.val();
+                let data = {
+                    'message': message,
+                }
+                data = JSON.stringify(data);
+                socket.send(data);
+                $(this)[0].reset();
+            })
+        }
+
+        socket.onmessage = async function (e) {
+            console.log('message received', e)
+            let data = JSON.parse(e.data);
+            renderMessageComponent(null, data['message'], data['time'], data['sender']['id'], data['sender']['fullName']);
+        }
+
+        socket.onerror = async function (e) {
+            console.log('error', e)
+        }
+
+        socket.onclose = async function (e) {
+            console.log('close', e)
+        }
+        //
 
         $(document).ready(function () {
             $('.select2bs4').select2();

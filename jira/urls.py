@@ -139,6 +139,11 @@ urlpatterns += [
         name='epicDetailsForBoardApiEventVersion1Component'
     ),
     path(
+        'api/v1/teamChatMessagesApiEventVersion1Component/<slug:url>',
+        TeamChatMessagesApiEventVersion1Component.as_view(),
+        name='teamChatMessagesApiEventVersion1Component'
+    ),
+    path(
         'api/v1/ticketObjectBulkCreateApiEventVersion1Component',
         TicketObjectBulkCreateApiEventVersion1Component.as_view(),
         name='ticketObjectBulkCreateApiEventVersion1Component'

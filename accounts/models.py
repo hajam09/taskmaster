@@ -110,3 +110,29 @@ class Profile(BaseModel):
     class Meta:
         verbose_name = "Profile"
         verbose_name_plural = "Profiles"
+
+
+class TeamChatMessage(BaseModel):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='teamChatMessages')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+
+    class Meta:
+        verbose_name = "TeamChatMessage"
+        verbose_name_plural = "TeamChatMessages"
+
+    def getUserProfilePicture(self):
+        profile = self.user.profile.profilePicture.url
+
+        if profile is None:
+            return getRandomAvatar()
+
+        return profile.profilePicture.url
+
+    def getChatTime(self):
+        hour = self.createdDttm.hour
+        minute = self.createdDttm.minute
+        if len(str(minute)) == 1:
+            minute = f'0{minute}'
+        meridiem = "am" if hour < 12 else "pm"
+        return f'{hour}:{minute} {meridiem}'

@@ -14,7 +14,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from accounts.models import Team, Component
+from accounts.models import Team, Component, TeamChatMessage
 from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment, TicketAttachment
 from taskmaster.operations import databaseOperations
 
@@ -1224,6 +1224,34 @@ class EpicDetailsForBoardApiEventVersion1Component(View):
             }
         }
         return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TeamChatMessagesApiEventVersion1Component(View):
+    def get(self, *args, **kwargs):
+        url = self.kwargs.get("url", None)
+
+        teamChatMessageList = TeamChatMessage.objects.filter(team__url__exact=url).select_related('user__profile')
+        teamChatMessages = [
+            {
+                'id': message.id,
+                'message': message.message,
+                'sender': {
+                    'id': message.user_id,
+                    'fullName': message.user.get_full_name()
+                },
+                'time': message.getChatTime()
+            }
+            for message in teamChatMessageList
+        ]
+
+        response = {
+            "success": True,
+            "data": teamChatMessages
+        }
+
+        return JsonResponse(response, status=HTTPStatus.OK)
+
 
 #
 # @method_decorator(csrf_exempt, name='dispatch')
