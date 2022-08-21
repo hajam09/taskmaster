@@ -292,11 +292,16 @@
     <script type="text/javascript">
 
         // chat application
+        // TODO: Consider storing in array with dict like: [{'id': 1, 'url: url}] incase if no picture is found.
+        let teamAssociatesPictures = {};
+        {% for user in associates %}
+            teamAssociatesPictures['{{ user.id }}'] = '{{ user.profile.profilePicture.url }}';
+        {% endfor %}
 
         function ownerMessageComponent(message, time) {
             return `<div class="chat-message-right pb-4">
             <div>
-                <img src="https://bootdey.com/img/Content/avatar/avatar1.png"
+                <img src=${teamAssociatesPictures[thisUserId]}
                      class="rounded-circle mr-1" alt="Chris Wood" width="40"
                      height="40">
                 <div class="text-muted small text-nowrap mt-2">${time}</div>
@@ -308,10 +313,10 @@
         </div>`
         }
 
-        function recipientMessageComponent(message, time, fullName) {
+        function recipientMessageComponent(message, time, fullName, senderId) {
             return `<div class="chat-message-left pb-4">
             <div>
-                <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
+                <img src=${teamAssociatesPictures[senderId]}
                      class="rounded-circle mr-1" alt="${fullName}"
                      width="40" height="40">
                 <div class="text-muted small text-nowrap mt-2">${time}</div>
@@ -328,7 +333,7 @@
             if (isSentByThisUser) {
                 $('.chat-messages').append(ownerMessageComponent(message, time));
             } else {
-                $('.chat-messages').append(recipientMessageComponent(message, time, fullName));
+                $('.chat-messages').append(recipientMessageComponent(message, time, fullName, senderId));
             }
         }
 
