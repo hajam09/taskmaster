@@ -129,6 +129,11 @@ urlpatterns += [
         name='kanbanBoardBacklogInActiveTicketsApiEventVersion1Component'
     ),
     path(
+        'api/v1/scrumBoardBacklogDetailsApiEventVersion1Component/<int:boardId>',
+        ScrumBoardBacklogDetailsApiEventVersion1Component.as_view(),
+        name='scrumBoardBacklogDetailsApiEventVersion1Component'
+    ),
+    path(
         'api/v1/kanbanBoardBacklogActiveTicketsApiEventVersion1Component/<int:boardId>',
         KanbanBoardBacklogActiveTicketsApiEventVersion1Component.as_view(),
         name='kanbanBoardBacklogActiveTicketsApiEventVersion1Component'

@@ -1095,6 +1095,76 @@ class ScrumBoardSprintTicketsApiEventVersion1Component(View):
         thisSprint.tickets.add(ticket)
 
 
+class ScrumBoardBacklogDetailsApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('boardSprints').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        if board.type != Board.Types.SCRUM:
+            raise Exception
+
+        activeAndUpcomingSprints = Sprint.objects.filter(board_id=boardId, isComplete=False).order_by('orderNo')
+        sprints = []
+
+        for sprint in activeAndUpcomingSprints:
+            serializedTickets = []
+            sprintTickets = sprint.tickets.filter(~Q(issueType__code="EPIC")).select_related('assignee__profile',
+                                                                                             'column',
+                                                                                             'epic', 'issueType',
+                                                                                             'priority',
+                                                                                             'resolution')
+            serializeTickets(sprintTickets, serializedTickets, False)
+            sprintData = {
+                'id': sprint.id,
+                'internalKey': sprint.internalKey,
+                'isActive': activeAndUpcomingSprints[0].id == sprint.id,
+                'tickets': serializedTickets,
+            }
+            sprints.append(sprintData)
+
+
+
+        # Get backlog tickets and append it to the list
+
+        backlogTickets = Ticket.objects.filter(
+            ~Q(issueType__code="EPIC"), board_id=boardId, column__internalKey="BACKLOG"
+        ).select_related(
+            'assignee__profile',
+            'column',
+            'epic', 'issueType',
+            'priority',
+            'resolution')
+
+        serializedTickets = []
+        serializeTickets(backlogTickets, serializedTickets, False)
+        sprints.append(
+            {
+                'id': 0,
+                'internalKey': 'Backlog',
+                'isActive': False,
+                'tickets': serializedTickets,
+            }
+        )
+
+        response = {
+            "success": True,
+            "data": {
+                "sprints": sprints
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class KanbanBoardActiveEpicLessTicketsApiEventVersion1Component(View):
     def get(self, *args, **kwargs):
@@ -1231,7 +1301,38 @@ class TeamChatMessagesApiEventVersion1Component(View):
     def get(self, *args, **kwargs):
         url = self.kwargs.get("url", None)
 
-        teamChatMessageList = TeamChatMessage.objects.filter(team__url__exact=url).select_related('user__profile')
+        teamChatMessageList = TeamChatMessage.objects.filter(
+            team__url__exact=url
+        ).select_related('user__profile').order_by('-id')[:100]
+
+        # WIP: Group messages by day.
+        # lst = []
+        # lst2 = []
+        #
+        # for i in teamChatMessageList:
+        #     createdDate = i.createdDttm.date()
+        #
+        #     if lst2 != [] and lst2[-1]['createdDate'] != createdDate:
+        #         lst.append(lst2)
+        #         lst2 = []
+        #
+        #     thisDict = {
+        #         'id': i.id,
+        #         'message': i.message,
+        #         'sender': {
+        #             'id': i.user_id,
+        #             'fullName': i.user.get_full_name()
+        #         },
+        #         'time': i.getChatTime(),
+        #         'createdDate': createdDate,
+        #     }
+        #
+        #     if not lst2:
+        #         lst2.append(thisDict)
+        #     else:
+        #         if lst2[-1]['createdDate'] == createdDate:
+        #             lst2.append(thisDict)
+
         teamChatMessages = [
             {
                 'id': message.id,
@@ -1243,7 +1344,7 @@ class TeamChatMessagesApiEventVersion1Component(View):
                 'time': message.getChatTime()
             }
             for message in teamChatMessageList
-        ]
+        ][::-1]
 
         response = {
             "success": True,
@@ -1306,7 +1407,6 @@ class TeamChatMessagesApiEventVersion1Component(View):
 class SprintObjectApiEventVersion1Component(View):
 
     def post(self, *args, **kwargs):
-        # TODO: Manual test needed.
         boardId = self.kwargs.get("boardId", None)
 
         try:
@@ -1319,31 +1419,15 @@ class SprintObjectApiEventVersion1Component(View):
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
         recentSprint = board.boardSprints.last()
-        sprintCount = 0 if recentSprint is None else board.boardSprints.count() + 1
-        startDate = recentSprint.endDate if recentSprint.endDate >= timezone.now().date() else timezone.now()
-        endDate = startDate + timezone.timedelta(days=14)
+        sprintCount = 1 if recentSprint is None else board.boardSprints.count() + 1
 
-        sprint = Sprint.objects.create(
+        Sprint.objects.create(
             board=board,
             internalKey=f'{board.internalKey} Sprint {sprintCount}',
-            startDate=startDate,
-            endDate=endDate
+            orderNo=sprintCount,
         )
         response = {
             "success": True,
-            "data": {
-                "sprint": {
-                    "id": sprint.id,
-                    "board": {
-                        "id": sprint.board.id,
-                        "internalKey": sprint.board.internalKey,
-                        "url": sprint.board.url,
-                    },
-                    "internalKey": sprint.internalKey,
-                    "startDate": sprint.startDate.date(),
-                    "endDate": sprint.endDate.date()
-                },
-            }
         }
         return JsonResponse(response, status=HTTPStatus.OK)
 

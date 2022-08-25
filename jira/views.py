@@ -103,6 +103,9 @@ def teams(request):
 
 @login_required
 def team(request, url):
+    """
+    TODO: Group messages by each day and display the date if message is sent on a new date.
+    """
     try:
         thisTeam = Team.objects.get(url=url)
     except Team.DoesNotExist:
@@ -161,6 +164,8 @@ def ticketDetailView(request, internalKey):
     TODO: Fix file attachment style
     TODO: Allow file attachment delete option
     TODO: Optimise the post request.
+    TODO: Allow users to change EPIC colour on the ticket page.
+    TODO: Implement a carousel in ticket page attachments when it exceeds the horizontal length.
     """
 
     try:
@@ -343,17 +348,15 @@ def boardSettings(request, url):
     // Contact a TaskMaster or the board administrator to configure this board
     """
     try:
-        thisBoard = Board.objects.prefetch_related('boardColumns', 'boardLabels').get(url=url)
+        thisBoard = Board.objects.prefetch_related('boardColumns').get(url=url)
     except Board.DoesNotExist:
         raise Http404
 
     allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)).distinct()
-    allProfiles = Profile.objects.all().select_related('user')
 
     context = {
         'board': thisBoard,
         'projects': allProjects,
-        'profiles': allProfiles
     }
     return render(request, 'jira/boardSettings.html', context)
 
@@ -371,6 +374,8 @@ def board(request, url):
     if not thisBoard.hasAccessPermission(request.user):
         raise PermissionDenied()
 
+    boardsInProject = Board.objects.filter(projects__in=thisBoard.projects.all().values_list('id', flat=True))
+
     if thisBoard.type == "KANBAN":
         TEMPLATE = "jira/kanbanBoard.html"
     else:
@@ -378,6 +383,7 @@ def board(request, url):
 
     context = {
         "board": thisBoard,
+        "boardsInProject": boardsInProject,
     }
     return render(request, TEMPLATE, context)
 
@@ -390,6 +396,8 @@ def backlog(request, url):
 
     if not thisBoard.hasAccessPermission(request.user):
         raise PermissionDenied()
+
+    boardsInProject = Board.objects.filter(projects__in=thisBoard.projects.all().values_list('id', flat=True))
 
     if thisBoard.type == "KANBAN":
         TEMPLATE = "jira/kanbanBacklog.html"
@@ -405,6 +413,7 @@ def backlog(request, url):
 
     context = {
         "board": thisBoard,
+        "boardsInProject": boardsInProject,
         "columns": activeAndInActive
     }
     return render(request, TEMPLATE, context)

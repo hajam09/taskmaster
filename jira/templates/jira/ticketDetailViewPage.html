@@ -380,7 +380,7 @@
                                                   {
                                                       this.props.ticket.components.map((component, i) =>
                                                           <a key={i} title="core Jenkins core"
-                                                             href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.code + "&component=" + component.internalKey}>
+                                                             href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.code + "&component=" + component.code}>
                                                               {component.internalKey}&nbsp;&nbsp;
                                                           </a>
                                                       )
@@ -516,7 +516,7 @@
                                     <dd>
                                         <aui-badge id="vote-data" className="">0</aui-badge>
                                         <span id="vote-label"
-                                              title="You have to be logged in to vote for an issue.">Vote for this issue</span>
+                                              title="You have to be logged in to vote for an issue.">&nbsp;&nbsp;Vote for this issue</span>
                                     </dd>
                                 </dl>
                                 <dl>
@@ -526,6 +526,7 @@
                                                 className="badge badge-pill badge-primary">{this.state.watchers.counter}</span> :
                                             <aui-badge id="watcher-data"
                                                        className="">{this.state.watchers.counter}</aui-badge>}
+                                        &nbsp;
                                         <span id="watch-label"
                                               title={this.state.watchers.message}>{!this.state.watchers.isWatching ? " Watch this issue" : " Unwatch this issue"}</span>
                                     </dd>

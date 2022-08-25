@@ -30,15 +30,41 @@
                      aria-label="Sidebar">
                 <div class="aui-sidebar-wrapper" style="height: 583px;">
                     <div class="col" style="margin-top: 10px">
-                        <a href="{% url 'jira:board-settings' url=board.url %}" data-toggle="tooltip"
-                           data-placement="right" title="Settings"><i style="font-size:24px" class="fa">&#xf085;</i></a>
-                        <hr>
-                        <a href="{% url 'jira:board-page' url=board.url %}" data-toggle="tooltip"
-                           data-placement="right" title="Board"><i style='font-size:24px' class='far'>&#xf24d;</i></a>
-                        <hr>
-                        <a href="{% url 'jira:board-backlog' url=board.url %}" data-toggle="tooltip"
-                           data-placement="right" title="Backlog"><i style="font-size:24px"
-                                                                     class="fas fa-tasks"></i></a>
+
+                        <ul class="navbar-nav mr-auto">
+                            <li class="nav-item active">
+                                <a class="nav-link" href="{% url 'jira:board-settings' url=board.url %}"
+                                   data-toggle="tooltip"
+                                   data-placement="right" title="Settings"><i style="font-size:24px"
+                                                                              class="fa">&#xf085;</i></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'jira:board-page' url=board.url %}"
+                                   data-toggle="tooltip"
+                                   data-placement="right" title="Board"><i style='font-size:24px'
+                                                                           class='far'>&#xf24d;</i></a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown" href="#" id="navbarDropdown" role="button"
+                                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                   title="Boards in this project">
+                                    <i style='font-size:24px'
+                                       class='far'>&#xf24d;</i>
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    {% for otherBoard in boardsInProject %}
+                                        <a class="dropdown-item"
+                                           href="{{ otherBoard.getUrl }}">{{ otherBoard.internalKey }}</a>
+                                    {% endfor %}
+                                </div>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'jira:board-backlog' url=board.url %}"
+                                   data-toggle="tooltip"
+                                   data-placement="right" title="Backlog"><i style="font-size:24px"
+                                                                             class="fas fa-tasks"></i></a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </section>

@@ -198,8 +198,9 @@ class Sprint(BaseModel):
     board = models.ForeignKey(Board, on_delete=models.SET_NULL, blank=True, null=True, related_name='boardSprints')
     internalKey = models.CharField(max_length=2048, blank=True, null=True)
     tickets = models.ManyToManyField(Ticket, related_name='ticketSprints')
-    startDate = models.DateField()
-    endDate = models.DateField()
+    startDate = models.DateField(blank=True, null=True)
+    endDate = models.DateField(blank=True, null=True)
+    isComplete = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Sprint"
