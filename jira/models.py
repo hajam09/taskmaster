@@ -134,7 +134,7 @@ class Ticket(BaseModel):
     subTask = models.ManyToManyField('Ticket', blank=True, related_name='ticketSubTask')
     label = models.ManyToManyField(Label, blank=True, related_name='ticketLabels')
     epic = models.ForeignKey('Ticket', null=True, blank=True, on_delete=models.SET_NULL, related_name='epicTickets', limit_choices_to={'issueType__code': 'EPIC'})
-
+    # Is the board attribute still needed. It can be obtained from column.board
     class Meta:
         verbose_name = "Ticket"
         verbose_name_plural = "Tickets"

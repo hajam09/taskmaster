@@ -16,6 +16,7 @@ urlpatterns = [
     path('boards/<slug:url>/', views.board, name='board-page'),
     path('boards/<slug:url>/settings/', views.boardSettings, name='board-settings'),
     path('boards/<slug:url>/backlog/', views.backlog, name='board-backlog'),
+    path('boards/<slug:url>/backlog2/', views.backlog2, name='board-backlog2'),
     path('teams/', views.teams, name='teams-page'),
     path('teams/<slug:url>/', views.team, name='team-page'),
     path('new-ticket-object', views.newTicketObject, name='new-ticket-object'),
@@ -129,9 +130,9 @@ urlpatterns += [
         name='kanbanBoardBacklogInActiveTicketsApiEventVersion1Component'
     ),
     path(
-        'api/v1/scrumBoardBacklogDetailsApiEventVersion1Component/<int:boardId>',
-        ScrumBoardBacklogDetailsApiEventVersion1Component.as_view(),
-        name='scrumBoardBacklogDetailsApiEventVersion1Component'
+        'api/v1/backlogDetailsApiEventVersion1Component/<int:boardId>',
+        BacklogDetailsApiEventVersion1Component.as_view(),
+        name='backlogDetailsApiEventVersion1Component'
     ),
     path(
         'api/v1/kanbanBoardBacklogActiveTicketsApiEventVersion1Component/<int:boardId>',

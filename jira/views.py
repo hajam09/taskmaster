@@ -419,6 +419,24 @@ def backlog(request, url):
     return render(request, TEMPLATE, context)
 
 
+def backlog2(request, url):
+    try:
+        thisBoard = Board.objects.get(url=url)
+    except Board.DoesNotExist:
+        raise Http404
+
+    if not thisBoard.hasAccessPermission(request.user):
+        raise PermissionDenied()
+
+    boardsInProject = Board.objects.filter(projects__in=thisBoard.projects.all().values_list('id', flat=True))
+
+    context = {
+        "board": thisBoard,
+        "boardsInProject": boardsInProject,
+    }
+    return render(request, "jira/backlog.html", context)
+
+
 @login_required
 def projects(request):
     projectQuery = Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)

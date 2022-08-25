@@ -1095,7 +1095,7 @@ class ScrumBoardSprintTicketsApiEventVersion1Component(View):
         thisSprint.tickets.add(ticket)
 
 
-class ScrumBoardBacklogDetailsApiEventVersion1Component(View):
+class BacklogDetailsApiEventVersion1Component(View):
 
     def get(self, *args, **kwargs):
         boardId = self.kwargs.get("boardId", None)
@@ -1109,56 +1109,83 @@ class ScrumBoardBacklogDetailsApiEventVersion1Component(View):
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
-        if board.type != Board.Types.SCRUM:
-            raise Exception
+        backlogGroups = []
+        if board.type == Board.Types.SCRUM:
+            activeAndUpcomingSprints = Sprint.objects.filter(board__id=boardId, isComplete=False).order_by('orderNo')
+            for sprint in activeAndUpcomingSprints:
+                serializedTickets = []
+                sprintTickets = sprint.tickets.filter(~Q(issueType__code="EPIC")).select_related('assignee__profile',
+                                                                                                 'column',
+                                                                                                 'epic', 'issueType',
+                                                                                                 'priority',
+                                                                                                 'resolution')
+                serializeTickets(sprintTickets, serializedTickets, False)
+                sprintData = {
+                    'id': sprint.id,
+                    'internalKey': sprint.internalKey,
+                    'isActive': activeAndUpcomingSprints[0].id == sprint.id,
+                    'tickets': serializedTickets,
+                }
+                backlogGroups.append(sprintData)
 
-        activeAndUpcomingSprints = Sprint.objects.filter(board_id=boardId, isComplete=False).order_by('orderNo')
-        sprints = []
+            # Get backlog group and its tickets.
+            backlogTickets = Ticket.objects.filter(
+                ~Q(issueType__code="EPIC"), board__id=boardId, column__internalKey="BACKLOG"
+            ).select_related(
+                'assignee__profile',
+                'column',
+                'epic', 'issueType',
+                'priority',
+                'resolution')
 
-        for sprint in activeAndUpcomingSprints:
             serializedTickets = []
-            sprintTickets = sprint.tickets.filter(~Q(issueType__code="EPIC")).select_related('assignee__profile',
-                                                                                             'column',
-                                                                                             'epic', 'issueType',
-                                                                                             'priority',
-                                                                                             'resolution')
-            serializeTickets(sprintTickets, serializedTickets, False)
-            sprintData = {
-                'id': sprint.id,
-                'internalKey': sprint.internalKey,
-                'isActive': activeAndUpcomingSprints[0].id == sprint.id,
-                'tickets': serializedTickets,
-            }
-            sprints.append(sprintData)
+            serializeTickets(backlogTickets, serializedTickets, False)
+            backlogGroups.append(
+                {
+                    'id': 0,
+                    'internalKey': 'Backlog',
+                    'isActive': False,
+                    'tickets': serializedTickets,
+                }
+            )
 
+        else:
+            boardTickets = Ticket.objects.filter(~Q(issueType__code="EPIC"), column__board__id=boardId).select_related(
+                'assignee__profile',
+                'column',
+                'epic', 'issueType',
+                'priority',
+                'resolution')
+            developmentTickets = [i for i in boardTickets if i.column.internalKey != "BACKLOG"]
+            backlogTickets = [i for i in boardTickets if i.column.internalKey == "BACKLOG"]
 
+            emptyDevelopmentTickets = []
+            emptyBacklogTickets = []
 
-        # Get backlog tickets and append it to the list
+            serializeTickets(developmentTickets, emptyDevelopmentTickets, False)
+            serializeTickets(backlogTickets, emptyBacklogTickets, False)
 
-        backlogTickets = Ticket.objects.filter(
-            ~Q(issueType__code="EPIC"), board_id=boardId, column__internalKey="BACKLOG"
-        ).select_related(
-            'assignee__profile',
-            'column',
-            'epic', 'issueType',
-            'priority',
-            'resolution')
-
-        serializedTickets = []
-        serializeTickets(backlogTickets, serializedTickets, False)
-        sprints.append(
-            {
-                'id': 0,
-                'internalKey': 'Backlog',
-                'isActive': False,
-                'tickets': serializedTickets,
-            }
-        )
+            backlogGroups.append(
+                {
+                    "id": 1,
+                    "internalKey": "In development",
+                    "isActive": True,
+                    "tickets": emptyDevelopmentTickets
+                }
+            )
+            backlogGroups.append(
+                {
+                    "id": 0,
+                    "internalKey": "Backlog",
+                    "isActive": False,
+                    "tickets": emptyBacklogTickets
+                }
+            )
 
         response = {
             "success": True,
             "data": {
-                "sprints": sprints
+                "backlogGroups": backlogGroups,
             }
         }
         return JsonResponse(response, status=HTTPStatus.OK)
