@@ -14,10 +14,8 @@ urlpatterns = [
     path('projects/<slug:url>/settings', views.projectSettings, name='project-settings'),
     path('boards/', views.boards, name='boards-page'),
     path('boards/<slug:url>/', views.board, name='board-page'),
-    path('boards/<slug:url>/2', views.board2, name='board-page2'),
     path('boards/<slug:url>/settings/', views.boardSettings, name='board-settings'),
     path('boards/<slug:url>/backlog/', views.backlog, name='board-backlog'),
-    path('boards/<slug:url>/backlog2/', views.backlog2, name='board-backlog2'),
     path('teams/', views.teams, name='teams-page'),
     path('teams/<slug:url>/', views.team, name='team-page'),
     path('new-ticket-object', views.newTicketObject, name='new-ticket-object'),
@@ -96,29 +94,9 @@ urlpatterns += [
         name='subTaskTicketsForTicketApiEventVersion1Component'
     ),
     path(
-        'api/v1/kanbanBoardActiveEpicLessTicketsApiEventVersion1Component/<int:boardId>',
-        KanbanBoardActiveEpicLessTicketsApiEventVersion1Component.as_view(),
-        name='kanbanBoardActiveEpicLessTicketsApiEventVersion1Component'
-    ),
-    path(
-        'api/v1/kanbanBoardInActiveEpicLessTicketsApiEventVersion1Component/<int:boardId>',
-        KanbanBoardInActiveEpicLessTicketsApiEventVersion1Component.as_view(),
-        name='kanbanBoardInActiveEpicLessTicketsApiEventVersion1Component'
-    ),
-    path(
-        'api/v1/scrumBoardSprintTicketsApiEventVersion1Component/<int:boardId>',
-        ScrumBoardSprintTicketsApiEventVersion1Component.as_view(),
-        name='scrumBoardSprintTicketsApiEventVersion1Component'
-    )
-    , path(
         'api/v1/sprintObjectApiEventVersion1Component/<int:boardId>',
         SprintObjectApiEventVersion1Component.as_view(),
         name='sprintObjectApiEventVersion1Component'
-    ),
-    path(
-        'api/v1/kanbanBoardDetailsAndItemsApiEventVersion1Component/<int:boardId>',
-        KanbanBoardDetailsAndItemsApiEventVersion1Component.as_view(),
-        name='kanbanBoardDetailsAndItemsApiEventVersion1Component'
     ),
     path(
         'api/v1/agileBoardDetailsApiEventVersion1Component/<int:boardId>',
@@ -131,11 +109,6 @@ urlpatterns += [
         name='agileBoardTicketColumnUpdateApiEventVersion1Component'
     ),
     path(
-        'api/v1/kanbanBoardBacklogInActiveTicketsApiEventVersion1Component/<int:boardId>',
-        KanbanBoardBacklogInActiveTicketsApiEventVersion1Component.as_view(),
-        name='kanbanBoardBacklogInActiveTicketsApiEventVersion1Component'
-    ),
-    path(
         'api/v1/backlogDetailsEpicLessTicketsApiEventVersion1Component/<int:boardId>',
         BacklogDetailsEpicLessTicketsApiEventVersion1Component.as_view(),
         name='backlogDetailsEpicLessTicketsApiEventVersion1Component'
@@ -144,11 +117,6 @@ urlpatterns += [
         'api/v1/backlogDetailsApiEventVersion1Component/<int:boardId>',
         BacklogDetailsApiEventVersion1Component.as_view(),
         name='backlogDetailsApiEventVersion1Component'
-    ),
-    path(
-        'api/v1/kanbanBoardBacklogActiveTicketsApiEventVersion1Component/<int:boardId>',
-        KanbanBoardBacklogActiveTicketsApiEventVersion1Component.as_view(),
-        name='kanbanBoardBacklogActiveTicketsApiEventVersion1Component'
     ),
     path(
         'api/v1/epicDetailsForBoardApiEventVersion1Component/<int:boardId>',

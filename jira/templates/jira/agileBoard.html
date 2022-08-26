@@ -469,25 +469,6 @@
                 }
             );
 
-            $(".droppable").droppable({
-                drop: function (event, ui) {
-                    var columnId = $(event.target).attr('columnid');
-                    var ticketId = ui.draggable.attr('data-issue-id');
-                    $.ajax(
-                        {
-                            url: "{% url 'jira:agileBoardTicketColumnUpdateApiEventVersion1Component' %}",
-                            data:
-                                {
-                                    'columnId': columnId,
-                                    'ticketId': ticketId,
-                                },
-                            type: 'PUT',
-                            dataType: 'json',
-                        }
-                    );
-                }
-            });
-
             $("ul, li").disableSelection();
         }
     </script>
