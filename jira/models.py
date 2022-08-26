@@ -205,3 +205,9 @@ class Sprint(BaseModel):
     class Meta:
         verbose_name = "Sprint"
         verbose_name_plural = "Sprints"
+
+    def removeTicketsFromSprint(self, tickets):
+        self.tickets.remove(*tickets)
+
+    def addTicketsToSprint(self, tickets):
+        self.tickets.add(*tickets)

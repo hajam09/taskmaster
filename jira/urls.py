@@ -14,6 +14,7 @@ urlpatterns = [
     path('projects/<slug:url>/settings', views.projectSettings, name='project-settings'),
     path('boards/', views.boards, name='boards-page'),
     path('boards/<slug:url>/', views.board, name='board-page'),
+    path('boards/<slug:url>/2', views.board2, name='board-page2'),
     path('boards/<slug:url>/settings/', views.boardSettings, name='board-settings'),
     path('boards/<slug:url>/backlog/', views.backlog, name='board-backlog'),
     path('boards/<slug:url>/backlog2/', views.backlog2, name='board-backlog2'),
@@ -120,14 +121,24 @@ urlpatterns += [
         name='kanbanBoardDetailsAndItemsApiEventVersion1Component'
     ),
     path(
-        'api/v1/kanbanBoardTicketColumnUpdateApiEventVersion1Component',
-        KanbanBoardTicketColumnUpdateApiEventVersion1Component.as_view(),
-        name='kanbanBoardTicketColumnUpdateApiEventVersion1Component'
+        'api/v1/agileBoardDetailsApiEventVersion1Component/<int:boardId>',
+        AgileBoardDetailsApiEventVersion1Component.as_view(),
+        name='agileBoardDetailsApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/agileBoardTicketColumnUpdateApiEventVersion1Component',
+        AgileBoardTicketColumnUpdateApiEventVersion1Component.as_view(),
+        name='agileBoardTicketColumnUpdateApiEventVersion1Component'
     ),
     path(
         'api/v1/kanbanBoardBacklogInActiveTicketsApiEventVersion1Component/<int:boardId>',
         KanbanBoardBacklogInActiveTicketsApiEventVersion1Component.as_view(),
         name='kanbanBoardBacklogInActiveTicketsApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/backlogDetailsEpicLessTicketsApiEventVersion1Component/<int:boardId>',
+        BacklogDetailsEpicLessTicketsApiEventVersion1Component.as_view(),
+        name='backlogDetailsEpicLessTicketsApiEventVersion1Component'
     ),
     path(
         'api/v1/backlogDetailsApiEventVersion1Component/<int:boardId>',

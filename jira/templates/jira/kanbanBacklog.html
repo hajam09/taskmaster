@@ -106,11 +106,11 @@
 
                     $.ajax(
                         {
-                            url: "{% url 'jira:kanbanBoardTicketColumnUpdateApiEventVersion1Component' %}",
+                            url: "{% url 'jira:agileBoardTicketColumnUpdateApiEventVersion1Component' %}",
                             data:
                                 {
-                                    'column-id': columnId,
-                                    'ticket-id': ticketId,
+                                    'columnId': columnId,
+                                    'ticketId': ticketId,
                                 },
                             type: 'PUT',
                             dataType: 'json',

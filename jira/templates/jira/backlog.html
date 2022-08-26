@@ -81,43 +81,19 @@
 
     <script type="text/javascript">
 
+    // connectedSortable, draggable, sortable, listOfActiveTicketsContainer
+
         window.onload = function () {
 
-            $(".connectedSortable").sortable(
-                {
-                    // revert: true
-                    connectWith: ".connectedSortable"
-                }
-            ).disableSelection();
 
-            $("#draggable").draggable(
+
+            /*$("#draggable").draggable(
                 {
                     connectToSortable: "#sortable",
                     helper: "clone",
                     revert: "invalid"
                 }
-            );
-
-            $(".droppable").droppable({
-                drop: function (event, ui) {
-                    const columnName = $(event.target).attr('columnid');
-                    const ticketId = ui.draggable.attr('data-issue-id');
-                    const columnId = columnName === "listOfActiveTicketsContainer" ? '{{ columns.active.id }}' : '{{ columns.inActive.id }}'
-
-                    $.ajax(
-                        {
-                            url: "{% url 'jira:kanbanBoardTicketColumnUpdateApiEventVersion1Component' %}",
-                            data:
-                                {
-                                    'column-id': columnId,
-                                    'ticket-id': ticketId,
-                                },
-                            type: 'PUT',
-                            dataType: 'json',
-                        }
-                    );
-                }
-            });
+            );*/
 
             $("ul, li").disableSelection();
         }
@@ -428,17 +404,102 @@
         class GroupComponent extends React.Component {
             constructor(props) {
                 super(props);
+
+                const Column = {
+                    TO_DO: 'TO DO',
+                    IN_PROGRESS: 'IN PROGRESS',
+                    DONE: 'DONE',
+                };
+
+                let _notStartedPoints = 0;
+                let _inProgressPoints = 0;
+                let _completedPoints = 0;
+
+
+                // collect unique assigned users.
+                // calculate story points for metric.
+
+                let workers = [];
+                for (const ticket of this.props.group.tickets) {
+                    if (ticket.assignee != null) {
+                        workers.push(ticket.assignee);
+                    }
+
+                    if (typeof ticket.storyPoints === "number") {
+                        let intPoint = parseInt(ticket.storyPoints);
+
+                        if (ticket.column === Column.TO_DO)
+                            _notStartedPoints += intPoint;
+                        else if (ticket.column === Column.IN_PROGRESS)
+                            _inProgressPoints += intPoint;
+                        else if (ticket.column === Column.DONE)
+                            _completedPoints += intPoint;
+                    }
+
+                }
+
+                let uniqueWorkers = [...new Map(workers.map((m) => [m.id, m])).values()];
+
+                this.state = {
+                    assignedWorkers: uniqueWorkers,
+                    activeStoryPoints: {
+                        notStartedPoints: _notStartedPoints,
+                        inProgressPoints: _inProgressPoints,
+                        completedPoints: _completedPoints,
+                        totalPoints: _notStartedPoints + _inProgressPoints + _completedPoints,
+                    }
+                }
+
             }
 
+            componentDidMount = () => {
+                $(".connectedSortable").sortable(
+                    {
+                        // revert: true
+                        connectWith: ".connectedSortable"
+                    }
+                ).disableSelection();
+
+                $(".droppable").droppable({
+                    drop: function (event, ui) {
+                        const ticketId = ui.draggable.attr('data-issue-id');
+                        const columnId = $(event.target).attr('columnid');
+
+                        let ticketIds = $.map($(`#planGroupId-${columnId} > div`), div => div.id);
+                        for(let i = 0; i< ticketIds.length; i++)
+                        {
+                            if(ticketIds[i] === '')
+                                ticketIds[i] = String(ticketId);
+                        }
+
+                        $.ajax(
+                        {
+                            url: "{% url 'jira:backlogDetailsApiEventVersion1Component' boardId=board.id%}",
+                            data:
+                                {
+                                    'columnId': columnId,
+                                    'ticketIds': ticketIds,
+                                },
+                            type: 'PUT',
+                            dataType: 'json',
+                        }
+                    );
+                    }
+                });
+            }
+
+
             render() {
+                const style1 = {
+                    minHeight: "50px",
+            }
                 return (
                     <div className="ghx-sprint-group">
                         <div data-sprint-id="9951"
                              className="ghx-backlog-container ghx-sprint-active js-sprint-container ghx-open ui-droppable">
                             <div className="ghx-backlog-header js-sprint-header" data-sprint-id="9951">
                                 <button className="aui-button ghx-expander ghx-heading-expander" aria-expanded="true"
-                                        title="Toggle swimlane visibility" data-toggle="collapse"
-                                        data-target="#listOfActiveTicketsContainer">
+                                        title="Toggle swimlane visibility" data-toggle="collapse">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14">
                                         <g fill="none" fillRule="evenodd">
                                             <path
@@ -461,28 +522,30 @@
                                 }
 
                                 <div className="ghx-badge-group ghx-right">
-                                    <aui-badge classname="ghx-not-started" title="Not Started: 2 of 2 (Story Points)">2
+                                    <aui-badge className="ghx-not-started"
+                                               title={"Not Started: " + this.state.activeStoryPoints.notStartedPoints + " of " + this.state.activeStoryPoints.totalPoints + " (Story Points)"}>
+                                        {this.state.activeStoryPoints.notStartedPoints}
                                     </aui-badge>
-                                    <aui-badge classname="ghx-in-progress" title="In Progress: 0 of 2 (Story Points)">0
+                                    <aui-badge className="ghx-in-progress"
+                                               title={"In Progress: " + this.state.activeStoryPoints.inProgressPoints + " of " + this.state.activeStoryPoints.totalPoints + " (Story Points)"}>
+                                        {this.state.activeStoryPoints.inProgressPoints}
                                     </aui-badge>
-                                    <aui-badge classname="ghx-done" title="Done: 0 of 2 (Story Points)">0</aui-badge>
+                                    <aui-badge className="ghx-done"
+                                               title={"Done: " + this.state.activeStoryPoints.completedPoints + " of " + this.state.activeStoryPoints.totalPoints + " (Story Points)"}>
+                                        {this.state.activeStoryPoints.completedPoints}
+                                    </aui-badge>
                                 </div>
                                 <div className="ghx-sprint-info">
                                     <div className="ghx-assigned-work-stats">
-                                        <img src="/media/avatars/elephant.png" className="ghx-avatar-img"
-                                             alt="Patricia Hood" title="Patricia Hood" loading="lazy"></img>
-                                        <img src="/media/avatars/dove.png" className="ghx-avatar-img" alt="Django Admin"
-                                             title="Django Admin" loading="lazy"></img>
-                                        <span></span>
+                                        {this.state.assignedWorkers.map((worker) => <UserComponent2
+                                                        key={worker.id} user={worker}/>)}
                                     </div>
                                 </div>
                             </div>
                             <div className="ghx-meta ghx-disabled">
                                 <div
-                                    className="ghx-issues js-issue-list ghx-has-issues tickets connectedSortable ui-sortable droppable ui-droppable"
-                                    data-skate-ignore=""
-                                    id="listOfActiveTicketsContainer"//TODO: REMOVE this type of ids
-                                    columnid="listOfActiveTicketsContainer">
+                                    className="ghx-issues js-issue-list ghx-has-issues tickets connectedSortable ui-sortable droppable ui-droppable" style={style1}
+                                    data-skate-ignore="" columnid={this.props.group.id} id={"planGroupId-"+this.props.group.id}>
                                     {this.props.group.tickets.map((ticket) => <TicketBar key={ticket.id}
                                                                                          ticket={ticket}/>)}
                                 </div>
@@ -494,7 +557,7 @@
             }
         }
 
-        class KanbanBoardBacklogDetailView2 extends React.Component {
+        class KanbanBoardBacklogDetailView extends React.Component {
             constructor(props) {
                 super(props);
             }
@@ -508,299 +571,6 @@
 
                                 {this.props.backlogGroups.map((group) => <GroupComponent key={group.id}
                                                                                          group={group}/>)}
-                                <br></br>
-                                <br></br>
-                                <br></br>
-                                <br></br>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-        }
-
-        class KanbanBoardBacklogDetailView extends React.Component {
-            constructor(props) {
-                super(props);
-            }
-
-            render() {
-
-                const style1 = {
-                    height: "10px",
-                    cursor: "grab"
-                }
-
-                const style2 = {
-                    marginTop: "-11px",
-                    marginLeft: "-10px"
-                }
-
-                const style3 = {
-                    marginTop: "-9px",
-                    marginLeft: "-20px"
-                }
-
-                const style5 = {
-                    marginTop: "-11px",
-                    marginLeft: "-20px"
-                }
-
-                const style6 = {
-                    color: "grey"
-                }
-
-                const style21 = {
-                    marginTop: "-3px",
-                }
-
-                const style41 = {
-                    backgroundColor: "#e7e7e7",
-                    fontSize: "14px"
-                }
-
-                const style51 = {
-                    backgroundColor: "#e7e7e7",
-                    color: "black"
-                }
-                return (
-                    <div id="ghx-backlog-column" className="ghx-backlog-column">
-                        <div id="ghx-backlog" className="ghx-backlog" data-loaded="1653826422372" data-load-time="385"
-                             data-rendered="1653826422484" data-draw-time="149">
-                            <div id="ghx-content-group" data-card-color-strategy="none" className="ui-sortable">
-                                <div className="ghx-sprint-group">
-                                    <div data-sprint-id="9951"
-                                         className="ghx-backlog-container ghx-sprint-active js-sprint-container ghx-open ui-droppable">
-                                        <div className="ghx-backlog-header js-sprint-header" data-sprint-id="9951">
-                                            <button className="aui-button ghx-expander ghx-heading-expander"
-                                                    aria-expanded="true" title="Toggle swimlane visibility"
-                                                    data-toggle="collapse" data-target="#listOfActiveTicketsContainer">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14">
-                                                    <g fill="none" fillRule="evenodd">
-                                                        <path
-                                                            d="M3.29175 4.793c-.389.392-.389 1.027 0 1.419l2.939 2.965c.218.215.5.322.779.322s.556-.107.769-.322l2.93-2.955c.388-.392.388-1.027 0-1.419-.389-.392-1.018-.392-1.406 0l-2.298 2.317-2.307-2.327c-.194-.195-.449-.293-.703-.293-.255 0-.51.098-.703.293z"
-                                                            fill="#344563"></path>
-                                                    </g>
-                                                </svg>
-                                            </button>
-                                            <div className="ghx-name">
-                                                <span className="field-value ghx-readonly">In development</span>
-                                            </div>
-                                            <div className="ghx-issue-count">
-                                                <span id="activeTicketsCounter"> 3 </span> issues
-                                            </div>
-                                            <span
-                                                className="active-sprint-lozenge aui-lozenge aui-lozenge-success">Active</span>
-                                            <div className="ghx-badge-group ghx-right">
-                                                <aui-badge classname="ghx-not-started"
-                                                           title="Not Started: 2 of 2 (Story Points)">2
-                                                </aui-badge>
-                                                <aui-badge classname="ghx-in-progress"
-                                                           title="In Progress: 0 of 2 (Story Points)">0
-                                                </aui-badge>
-                                                <aui-badge classname="ghx-done" title="Done: 0 of 2 (Story Points)">0
-                                                </aui-badge>
-                                            </div>
-                                            <div className="ghx-sprint-info">
-                                                <div className="ghx-assigned-work-stats">
-                                                    <img src="/media/avatars/elephant.png" className="ghx-avatar-img"
-                                                         alt="Patricia Hood" title="Patricia Hood" loading="lazy"></img>
-                                                    <img src="/media/avatars/dove.png" className="ghx-avatar-img"
-                                                         alt="Django Admin" title="Django Admin" loading="lazy"></img>
-                                                    <span></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="ghx-meta ghx-disabled">
-                                            <div
-                                                className="ghx-issues js-issue-list ghx-has-issues tickets connectedSortable ui-sortable droppable ui-droppable"
-                                                data-skate-ignore="" id="listOfActiveTicketsContainer"
-                                                columnid="listOfActiveTicketsContainer">
-                                                <div className="card grabbable" id="1" data-issue-id="1">
-                                                    <div className="card-body" style={style1}>
-                                                        <div className="row">
-                                                            <div className="col-auto" style={style2}>
-                                                                <img
-                                                                    src="https://cdn-thumbs.imagevenue.com/76/05/cc/ME14ZPM0_t.jpg"
-                                                                    width="20" height="20" data-toggle="tooltip"
-                                                                    data-placement="top" title="Bug"></img>
-                                                            </div>
-                                                            <div className="col" style={style3}>
-                                                                <span>Rate Tutors</span>
-                                                            </div>
-                                                            <div className="col-auto" style={style3}>
-                                                                <span></span>
-                                                            </div>
-                                                            <div className="col-auto" style={style2}>
-                                                                <img src="/media/avatars/elephant.png" width="25"
-                                                                     height="25" data-toggle="tooltip"
-                                                                     data-placement="top" title="Patricia Hood"></img>
-                                                            </div>
-                                                            <div className="col-auto" style={style3}>
-                                                                <a href="/jira/ticket/ONETUTOR-1"
-                                                                   style={style6}>ONETUTOR-1</a>
-                                                            </div>
-                                                            <div className="col-auto" style={style5}>
-                                                                <img
-                                                                    src="https://cdn-thumbs.imagevenue.com/61/79/e5/ME14ZPLL_t.jpg"
-                                                                    width="20" height="20" data-toggle="tooltip"
-                                                                    data-placement="top" title="Minor"></img>
-                                                            </div>
-                                                            <div className="col-auto" style={style5}>
-                                                                <span className="badge badge-pill badge-light"
-                                                                      style={style41}>1</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="card grabbable" id="2" data-issue-id="2">
-                                                    <div className="card-body" style={style1}>
-                                                        <div className="row">
-                                                            <div className="col-auto" style={style2}>
-                                                                <img
-                                                                    src="https://cdn-thumbs.imagevenue.com/d1/5c/cd/ME14ZPM9_t.jpg"
-                                                                    width="20" height="20" data-toggle="tooltip"
-                                                                    data-placement="top" title="Task"></img>
-                                                            </div>
-                                                            <div className="col" style={style3}>
-                                                                <span>Copyright footer</span>
-                                                            </div>
-                                                            <div className="col-auto" style={style3}>
-                                                                <span></span>
-                                                            </div>
-                                                            <div className="col-auto" style={style2}>
-                                                                <img src="/media/avatars/dove.png" width="25"
-                                                                     height="25" data-toggle="tooltip"
-                                                                     data-placement="top" title="Django Admin"></img>
-                                                            </div>
-                                                            <div className="col-auto" style={style3}>
-                                                                <a href="/jira/ticket/ONETUTOR-2"
-                                                                   style={style6}>ONETUTOR-2</a>
-                                                            </div>
-                                                            <div className="col-auto" style={style5}>
-                                                                <img
-                                                                    src="https://cdn-thumbs.imagevenue.com/17/d5/e6/ME14ZPLK_t.jpg"
-                                                                    width="20" height="20" data-toggle="tooltip"
-                                                                    data-placement="top" title="Medium"></img>
-                                                            </div>
-                                                            <div className="col-auto" style={style5}>
-                                                                <span className="badge badge-pill badge-light"
-                                                                      style={style41}>1</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <br></br>
-                                <br></br>
-                                <div className="ghx-backlog-group">
-                                    <div data-sprint-id="9951"
-                                         className="ghx-backlog-container ghx-sprint-active js-sprint-container ghx-open ui-droppable">
-                                        <div className="ghx-backlog-header js-sprint-header" data-sprint-id="9951">
-                                            <button className="aui-button ghx-expander ghx-heading-expander"
-                                                    aria-expanded="true" title="Toggle swimlane visibility" resolved=""
-                                                    data-toggle="collapse"
-                                                    data-target="#listOfInActiveTicketsContainer">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14">
-                                                    <g fill="none" fillRule="evenodd">
-                                                        <path
-                                                            d="M3.29175 4.793c-.389.392-.389 1.027 0 1.419l2.939 2.965c.218.215.5.322.779.322s.556-.107.769-.322l2.93-2.955c.388-.392.388-1.027 0-1.419-.389-.392-1.018-.392-1.406 0l-2.298 2.317-2.307-2.327c-.194-.195-.449-.293-.703-.293-.255 0-.51.098-.703.293z"
-                                                            fill="#344563"></path>
-                                                    </g>
-                                                </svg>
-                                            </button>
-                                            <div className="ghx-name">
-                                                <span className="field-value ghx-readonly"
-                                                      data-maxdisplaylength="">Backlog</span>
-                                            </div>
-                                            <div className="ghx-issue-count">
-                                                <span id="inActiveTicketsCounter"> 21 </span> issues
-                                            </div>
-                                        </div>
-                                        <div className="ghx-meta ghx-disabled">
-                                            <div
-                                                className="ghx-issues js-issue-list ghx-has-issues tickets connectedSortable ui-sortable droppable ui-droppable"
-                                                id="listOfInActiveTicketsContainer"
-                                                columnid="listOfInActiveTicketsContainer">
-                                                <div className="card grabbable" id="67" data-issue-id="67">
-                                                    <div className="card-body" style={style1}>
-                                                        <div className="row">
-                                                            <div className="col-auto" style={style2}>
-                                                                <img
-                                                                    src="https://cdn-thumbs.imagevenue.com/12/1c/8d/ME14ZPM2_t.jpg"
-                                                                    width="20" height="20" data-toggle="tooltip"
-                                                                    data-placement="top" title="Improvement"></img>
-                                                            </div>
-                                                            <div className="col" style={style3}>
-                                                                <span>imo</span>
-                                                            </div>
-                                                            <div className="col-auto" style={style3}>
-                                                                <h5 style={style21}>
-                                                                    <span className="badge" style={style51}>Metric Collection</span>
-                                                                </h5>
-                                                            </div>
-                                                            <span></span>
-                                                            <div className="col-auto" style={style3}>
-                                                                <a href="/jira/ticket/DASHBOARD-31"
-                                                                   style={style6}>DASHBOARD-31</a>
-                                                            </div>
-                                                            <div className="col-auto" style={style5}>
-                                                                <img
-                                                                    src="https://cdn-thumbs.imagevenue.com/17/d5/e6/ME14ZPLK_t.jpg"
-                                                                    width="20" height="20" data-toggle="tooltip"
-                                                                    data-placement="top" title="Medium"></img>
-                                                            </div>
-                                                            <div className="col-auto" style={style5}>
-                                                                <span className="badge badge-pill badge-light"
-                                                                      style={style41}>-</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="card grabbable" id="68" data-issue-id="68">
-                                                    <div className="card-body" style={style1}>
-                                                        <div className="row">
-                                                            <div className="col-auto" style={style2}>
-                                                                <img
-                                                                    src="https://cdn-thumbs.imagevenue.com/45/69/8d/ME14ZPMA_t.jpg"
-                                                                    width="20" height="20" data-toggle="tooltip"
-                                                                    data-placement="top" title="Test"></img>
-                                                            </div>
-                                                            <div className="col" style={style3}>
-                                                                <span>TEST</span>
-                                                            </div>
-                                                            <div className="col-auto" style={style3}>
-                                                                <h5 style={style21}>
-                                                                    <span className="badge" style={style51}>Metric Collection</span>
-                                                                </h5>
-                                                            </div>
-                                                            <span></span>
-                                                            <div className="col-auto" style={style3}>
-                                                                <a href="/jira/ticket/DASHBOARD-32"
-                                                                   style={style6}>DASHBOARD-32</a>
-                                                            </div>
-                                                            <div className="col-auto" style={style5}>
-                                                                <img
-                                                                    src="https://cdn-thumbs.imagevenue.com/17/d5/e6/ME14ZPLK_t.jpg"
-                                                                    width="20" height="20" data-toggle="tooltip"
-                                                                    data-placement="top" title="Medium"></img>
-                                                            </div>
-                                                            <div className="col-auto" style={style5}>
-                                                                <span className="badge badge-pill badge-light"
-                                                                      style={style41}>-</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <br></br>
-                                <br></br>
                                 <br></br>
                                 <br></br>
                                 <br></br>
@@ -934,111 +704,39 @@
                 super(props);
 
                 this.state = {
-                    visibility: "",
+                    visibility: "none",
                     allIssuesVisibility: "none",
                     epicTickets: [],
                     showEpicLess: false,
-                    activeTickets: [],
-                    inActiveTickets: [],
-                    activeStoryPoints: {
-                        notStartedPoints: 0,
-                        inProgressPoints: 0,
-                        completedPoints: 0,
-                        totalPoints: 0,
-                    },
                     backlogGroups: []
                 }
             }
 
 
-            showBacklogGroupsComponent = () => {
+            showAllBacklogGroupsAllTicketsComponent = () => {
                 fetch('{% url 'jira:backlogDetailsApiEventVersion1Component' boardId=board.id%}', {
                     method: 'GET',
                 }).then((response) => response.json())
                     .then((json) => {
-
                         this.setState({
                             backlogGroups: json.data.backlogGroups
                         })
                     })
             }
 
-            showActiveTicketsComponent = () => {
-                fetch('{% url 'jira:kanbanBoardBacklogActiveTicketsApiEventVersion1Component' boardId=board.id%}', {
-                    method: 'GET',
-                }).then((response) => response.json())
-                    .then((json) => {
-
-                        this.setState({
-                            activeTickets: json.data.tickets
-                        })
-
-                        this.updateActiveStoryPoints();
-                    })
-            }
-
-            updateActiveStoryPoints = () => {
-                let _notStartedPoints = 0;
-                let _inProgressPoints = 0;
-                let _completedPoints = 0;
-
-                for (let i = 0; i < this.state.activeTickets.length; i++) {
-                    let ticket = this.state.activeTickets[i];
-
-                    if ((typeof ticket.storyPoints) !== "number")
-                        continue;
-
-                    let intPoint = parseInt(ticket.storyPoints);
-
-                    if (ticket.column === "TO DO")
-                        _notStartedPoints += intPoint;
-                    else if (ticket.column === "IN PROGRESS")
-                        _inProgressPoints += intPoint;
-                    else if (ticket.column === "DONE")
-                        _completedPoints += intPoint;
-                }
-
-                this.setState({
-                    activeStoryPoints: {
-                        notStartedPoints: _notStartedPoints,
-                        inProgressPoints: _inProgressPoints,
-                        completedPoints: _completedPoints,
-                        totalPoints: _notStartedPoints + _inProgressPoints + _completedPoints,
-                    }
-                })
-
-            }
-
-            showInActiveTicketsComponent = () => {
-                fetch('{% url 'jira:kanbanBoardBacklogInActiveTicketsApiEventVersion1Component' boardId=board.id%}', {
+            showAllBacklogGroupsEpicLessTicketsComponent = () => {
+                fetch('{% url 'jira:backlogDetailsEpicLessTicketsApiEventVersion1Component' boardId=board.id%}', {
                     method: 'GET',
                 }).then((response) => response.json())
                     .then((json) => {
                         this.setState({
-                            inActiveTickets: json.data.tickets
+                            backlogGroups: json.data.backlogGroups
                         })
                     })
             }
 
             componentDidMount = () => {
-
-                /*this.showActiveTicketsComponent();
-                this.showInActiveTicketsComponent();
-
-                fetch('
-
-
-
-
-                {% url 'jira:epicDetailsForBoardApiEventVersion1Component' boardId=board.id%}', {
-                    method: 'GET',
-                }).then((response) => response.json())
-                    .then((json) => {
-                        this.setState({
-                            epicTickets: json.data.epicTickets
-                        })
-                    })*/
-                this.showBacklogGroupsComponent();
+                this.showAllBacklogGroupsAllTicketsComponent();
             }
 
             hideEpicPanel = () => {
@@ -1073,27 +771,9 @@
                 })
 
                 if (!this.state.showEpicLess) {
-                    fetch('{% url 'jira:kanbanBoardActiveEpicLessTicketsApiEventVersion1Component' boardId=board.id%}', {
-                        method: 'GET',
-                    }).then((response) => response.json())
-                        .then((json) => {
-                            this.setState({
-                                activeTickets: json.data.tickets
-                            })
-                            this.updateActiveStoryPoints();
-                        })
-
-                    fetch('{% url 'jira:kanbanBoardInActiveEpicLessTicketsApiEventVersion1Component' boardId=board.id%}', {
-                        method: 'GET',
-                    }).then((response) => response.json())
-                        .then((json) => {
-                            this.setState({
-                                inActiveTickets: json.data.tickets
-                            })
-                        })
+                    this.showAllBacklogGroupsEpicLessTicketsComponent();
                 } else {
-                    this.showActiveTicketsComponent();
-                    this.showInActiveTicketsComponent();
+                    this.showAllBacklogGroupsAllTicketsComponent();
                 }
             }
 
@@ -1215,11 +895,7 @@
                             </div>
                         </div>
 
-                        <KanbanBoardBacklogDetailView activeTickets={this.state.activeTickets}
-                                                      activeStoryPoints={this.state.activeStoryPoints}
-                                                      inActiveTickets={this.state.inActiveTickets}/>
-
-                        <KanbanBoardBacklogDetailView2 backlogGroups={this.state.backlogGroups}/>
+                        <KanbanBoardBacklogDetailView backlogGroups={this.state.backlogGroups}/>
 
                         <div id="ghx-detail-view" className="ghx-detail-view gh-editable-detail-view"
                              style={style3}></div>

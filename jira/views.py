@@ -362,7 +362,7 @@ def boardSettings(request, url):
 
 
 @login_required
-def board(request, url):
+def board2(request, url):
     """
     TODO: Remove unused css files from kanbanBoardCSS1-5
     """
@@ -388,7 +388,25 @@ def board(request, url):
     return render(request, TEMPLATE, context)
 
 
-def backlog(request, url):
+@login_required
+def board(request, url):
+    try:
+        thisBoard = Board.objects.get(url=url)
+    except Board.DoesNotExist:
+        raise Http404
+
+    if not thisBoard.hasAccessPermission(request.user):
+        raise PermissionDenied()
+
+    boardsInProject = Board.objects.filter(projects__in=thisBoard.projects.all().values_list('id', flat=True))
+    context = {
+        "board": thisBoard,
+        "boardsInProject": boardsInProject,
+    }
+    return render(request, 'jira/agileBoard.html', context)
+
+
+def backlog2(request, url):
     try:
         thisBoard = Board.objects.get(url=url)
     except Board.DoesNotExist:
@@ -419,7 +437,7 @@ def backlog(request, url):
     return render(request, TEMPLATE, context)
 
 
-def backlog2(request, url):
+def backlog(request, url):
     try:
         thisBoard = Board.objects.get(url=url)
     except Board.DoesNotExist:

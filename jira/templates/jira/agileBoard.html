@@ -311,6 +311,7 @@
                          data-issue-id={this.props.ticket.id} data-issue-key={this.props.ticket.internalKey}
                          role="listitem"
                          tabIndex="0"
+                         id={this.props.ticket.id}
                          aria-label={this.props.ticket.internalKey + " " + this.props.ticket.summary}>
                         <div className="ghx-issue-content">
                             <div className="ghx-issue-fields">
@@ -338,9 +339,38 @@
                 }
             }
 
+            componentDidMount = () => {
+                $(".connectedSortable").sortable(
+                    {
+                        // revert: true
+                        connectWith: ".connectedSortable"
+                    }
+                ).disableSelection();
+
+                $(".droppable").droppable({
+                    drop: function (event, ui) {
+                        const ticketId = ui.draggable.attr('data-issue-id');
+                        const columnId = $(event.target).attr('columnid');
+
+                        $.ajax(
+                        {
+                            url: "{% url 'jira:agileBoardTicketColumnUpdateApiEventVersion1Component' %}",
+                            data:
+                                {
+                                    'columnId': columnId,
+                                    'ticketId': ticketId,
+                                },
+                            type: 'PUT',
+                            dataType: 'json',
+                        }
+                    );
+                    }
+                });
+            }
+
             render() {
                 return (
-                    <li className="ghx-column ui-sortable connectedSortable droppable" columnid={this.props.column.id}>
+                    <li className="ghx-column ui-sortable connectedSortable droppable" columnid={this.props.column.id} id={"columnGroupId-"+this.props.column.id}>
                         {this.state.tickets.map((ticket) => <TicketComponent key={ticket.id} ticket={ticket}/>)}
                     </li>
                 )
@@ -379,7 +409,7 @@
             }
 
             componentDidMount = () => {
-                fetch('{% url 'jira:kanbanBoardDetailsAndItemsApiEventVersion1Component' boardId=board.id%}', {
+                fetch('{% url 'jira:agileBoardDetailsApiEventVersion1Component' boardId=board.id%}', {
                     method: 'GET',
                 }).then((response) => response.json())
                     .then((json) => {
@@ -393,6 +423,9 @@
                 const style1 = {
                     display: "block",
                 }
+                const style2 = {
+                    minHeight: "100%",
+                }
                 return (
                     <div id="ghx-pool-wrapper">
                         <div id="ghx-column-header-group" className="ghx-column-header-group ghx-has-stats">
@@ -404,12 +437,14 @@
                              style={style1}>
                             <div className="ghx-swimlane" swimlane-id="4693" id="ghx-swimlane"
                                  data-card-color-strategy="none">
-                                <ul className="ghx-columns" id="ghx-columns-body">
+                                <ul className="ghx-columns" id="ghx-columns-body" style={style2}>
                                     {this.state.columns.map((column) => <Column key={column.id} column={column}/>)}
                                 </ul>
                             </div>
                             <span id="js-pool-end" data-rendered="1653574328783"></span>
                         </div>
+                        <br></br>
+                        <br></br>
                     </div>
                 )
             }
@@ -417,9 +452,6 @@
 
         ReactDOM.render(<BoardComponent/>, document.getElementById('ghx-pool-column'));
     </script>
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-
     <script type="text/javascript">
         window.onload = function () {
             $(".connectedSortable").sortable(
@@ -459,5 +491,7 @@
             $("ul, li").disableSelection();
         }
     </script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 {% endblock %}
