@@ -362,34 +362,10 @@ def boardSettings(request, url):
 
 
 @login_required
-def board2(request, url):
-    """
-    TODO: Remove unused css files from kanbanBoardCSS1-5
-    """
-    try:
-        thisBoard = Board.objects.get(url=url)
-    except Board.DoesNotExist:
-        raise Http404
-
-    if not thisBoard.hasAccessPermission(request.user):
-        raise PermissionDenied()
-
-    boardsInProject = Board.objects.filter(projects__in=thisBoard.projects.all().values_list('id', flat=True))
-
-    if thisBoard.type == "KANBAN":
-        TEMPLATE = "jira/kanbanBoard.html"
-    else:
-        TEMPLATE = "jira/scrumBoard.html"
-
-    context = {
-        "board": thisBoard,
-        "boardsInProject": boardsInProject,
-    }
-    return render(request, TEMPLATE, context)
-
-
-@login_required
 def board(request, url):
+    """
+        TODO: Remove unused css files from kanbanBoardCSS1-5
+    """
     try:
         thisBoard = Board.objects.get(url=url)
     except Board.DoesNotExist:
@@ -404,37 +380,6 @@ def board(request, url):
         "boardsInProject": boardsInProject,
     }
     return render(request, 'jira/agileBoard.html', context)
-
-
-def backlog2(request, url):
-    try:
-        thisBoard = Board.objects.get(url=url)
-    except Board.DoesNotExist:
-        raise Http404
-
-    if not thisBoard.hasAccessPermission(request.user):
-        raise PermissionDenied()
-
-    boardsInProject = Board.objects.filter(projects__in=thisBoard.projects.all().values_list('id', flat=True))
-
-    if thisBoard.type == "KANBAN":
-        TEMPLATE = "jira/kanbanBacklog.html"
-        columns = thisBoard.boardColumns.all()
-        activeAndInActive = {
-            "active": next((c for c in columns if c.internalKey == "TO DO")),
-            "inActive": next((c for c in columns if c.internalKey == "BACKLOG")),
-        }
-
-    else:
-        TEMPLATE = "jira/scrumBacklog.html"
-        activeAndInActive = {}
-
-    context = {
-        "board": thisBoard,
-        "boardsInProject": boardsInProject,
-        "columns": activeAndInActive
-    }
-    return render(request, TEMPLATE, context)
 
 
 def backlog(request, url):
