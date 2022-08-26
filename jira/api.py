@@ -1283,7 +1283,7 @@ class SprintObjectApiEventVersion1Component(View):
         boardId = self.kwargs.get("boardId", None)
 
         try:
-            board = Board.objects.prefetch_related('boardSprints').get(id=boardId)
+            board = Board.objects.prefetch_related('boardSprints', 'boardColumns').get(id=boardId)
         except Board.DoesNotExist:
             response = {
                 "success": False,
@@ -1327,6 +1327,14 @@ class SprintObjectApiEventVersion1Component(View):
             currentSprint.isComplete = True
             currentSprint.save()
             nextSprint.addTicketsToSprint(unDoneTicketIds)
+
+        elif function == 'DELETE_SPRINT':
+            sprint = Sprint.objects.get(id=sprintId, board__id=boardId, isComplete=False)
+            sprintTicketsId = sprint.tickets.values_list('id', flat=True)
+            sprint.removeTicketsFromSprint(sprintTicketsId)
+            sprint.delete()
+            backLogColumn = databaseOperations.getObjectByInternalKey(board.boardColumns.all(), 'BACKLOG')
+            Ticket.objects.filter(id__in=list(sprintTicketsId)).update(board_id=boardId, column_id=backLogColumn.id)
 
         response = {
             "success": True,
