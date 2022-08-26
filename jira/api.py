@@ -1279,6 +1279,60 @@ class SprintObjectApiEventVersion1Component(View):
         }
         return JsonResponse(response, status=HTTPStatus.OK)
 
+    def put(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('boardSprints').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        put = QueryDict(self.request.body)
+        sprintId = put.get("sprintId")
+        function = put.get("function")
+
+        if function == 'COMPLETE_SPRINT':
+            # TODO: OPTIMISE THIS!!!
+            """
+                get all the tickets which are not in DONE. move them to next sprint if available else create one.
+                set the current sprint to complete.
+            """
+            openSprints = Sprint.objects.filter(
+                board__id=boardId, isComplete=False,
+            ).order_by('orderNo')
+
+            try:
+                nextSprint = openSprints[1]
+            except IndexError:
+                sprintCount = board.boardSprints.count() + 1
+                nextSprint = Sprint.objects.create(
+                    board=board,
+                    internalKey=f'{board.internalKey} Sprint {sprintCount}',
+                    orderNo=sprintCount,
+                )
+
+            currentSprint = databaseOperations.getObjectByIdOrNone(openSprints, sprintId)
+
+            unDoneTicketIds = [
+                ticket.id
+                for ticket in currentSprint.tickets.all()
+                if ticket.resolution.code != "RESOLVED" and ticket.issueType.code != "EPIC"
+            ]
+
+            currentSprint.removeTicketsFromSprint(unDoneTicketIds)
+            currentSprint.isComplete = True
+            currentSprint.save()
+            nextSprint.addTicketsToSprint(unDoneTicketIds)
+
+        response = {
+            "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TicketObjectBulkCreateApiEventVersion1Component(View):
