@@ -330,9 +330,9 @@ def boards(request):
             # mandatory ColumnStatus for a board
             ColumnStatus.objects.bulk_create(
                 [
-                    ColumnStatus(internalKey="TO DO", column=c2, category=Column.Category.TODO, colour="#dfe1e5"),
-                    ColumnStatus(internalKey="IN PROGRESS", column=c3, category=Column.Category.IN_PROGRESS, colour="#deebff"),
-                    ColumnStatus(internalKey="DONE", column=c4, setResolution=True, category=Column.Category.DONE, colour="#e3fcef")
+                    ColumnStatus(internalKey="TO DO", board=newBoard, column=c2, category=Column.Category.TODO, colour="#dfe1e5"),
+                    ColumnStatus(internalKey="IN PROGRESS", board=newBoard, column=c3, category=Column.Category.IN_PROGRESS, colour="#deebff"),
+                    ColumnStatus(internalKey="DONE", board=newBoard, column=c4, setResolution=True, category=Column.Category.DONE, colour="#e3fcef")
                 ]
             )
 

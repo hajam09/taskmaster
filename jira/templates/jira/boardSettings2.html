@@ -70,18 +70,19 @@
                         <div id="ghx-modes-tools">
                             <div id="ghx-view-modes" style=""></div>
                             <span id="ghx-view-pluggable" style="visibility: visible;">
-                                <div class="btn-group ghx-view-section">
-                                    <button id="board-tools-section-button" type="button"
-                                            class="btn aui-button dropdown-toggle" data-toggle="dropdown"
-                                            aria-haspopup="true"
-                                            aria-expanded="false">
-                                        Board
-                                    </button>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="{% url 'jira:board-settings' url=board.url %}">Settings</a>
-                                    </div>
-                                </div>
-                            </span>
+                                        <div class="btn-group ghx-view-section">
+                                            <button id="board-tools-section-button" type="button"
+                                                    class="btn aui-button dropdown-toggle" data-toggle="dropdown"
+                                                    aria-haspopup="true"
+                                                    aria-expanded="false">
+                                                Board
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item"
+                                                   href="{% url 'jira:board-settings' url=board.url %}">Settings</a>
+                                            </div>
+                                        </div>
+                                    </span>
                             <div id="ghx-view-tools"></div>
                             <div id="ghx-view-presentation">
                                 <button class="aui-button ghx-compact-toggle js-compact-toggle"
@@ -101,13 +102,13 @@
                             <h1>
                                 <!-- <span id="ghx-board-name" class="subnav-page-header">WA PET Board</span> -->
                                 <span class="subnav-container">
-                                <span id="subnav-title">
-                                  <span class="subnavigator-title"
-                                        title="Kanban board">{{ board.internalKey }} board</span>
-                                </span>
-                                <span id="subnav-trigger"></span>
-                                <span id="subnav-opts"></span>
-                              </span>
+                                        <span id="subnav-title">
+                                          <span class="subnavigator-title"
+                                                title="Kanban board">{{ board.internalKey }} board</span>
+                                        </span>
+                                        <span id="subnav-trigger"></span>
+                                        <span id="subnav-opts"></span>
+                                      </span>
                             </h1>
                         </div>
                     </div>
@@ -192,7 +193,7 @@
 
                 if (this.props.status.category === "TODO") {
                     lozenge = "jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-long";
-                } else if (this.props.status.category === "IN_PROGRESS") {
+                } else if (this.props.status.category === "IN_PROGRESS" || this.props.status.category === null) {
                     lozenge = "jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-yellow jira-issue-status-lozenge-indeterminate aui-lozenge-subtle jira-issue-status-lozenge-max-width-long";
                 } else if (this.props.status.category === "DONE") {
                     lozenge = "jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-green jira-issue-status-lozenge-done aui-lozenge-subtle jira-issue-status-lozenge-max-width-long";
@@ -210,9 +211,9 @@
                             <div className="ghx-name">
                                 {#<div className="ghx-lozenge-wrap">#}
                                 <div>
-                                    <span
-                                        className={this.state.lozenge}
-                                        aria-describedby="aui-tooltip">{this.props.status.internalKey}</span>
+                                            <span
+                                                className={this.state.lozenge}
+                                                aria-describedby="aui-tooltip">{this.props.status.internalKey}</span>
                                 </div>
                             </div>
                             <br></br>
@@ -290,7 +291,8 @@
                 super(props);
 
                 this.state = {
-                    columnGroups: []
+                    columnGroups: [],
+                    unMappedStatusColumn: null,
                 }
             }
 
@@ -300,7 +302,8 @@
                 }).then((response) => response.json())
                     .then((json) => {
                         this.setState({
-                            columnGroups: json.data.columnGroups
+                            columnGroups: json.data.columnGroups,
+                            unMappedStatusColumn: json.data.unMappedStatusColumn
                         })
                     })
             }
@@ -337,8 +340,34 @@
 
             }
 
+            createStatusInstance = () => {
+                let name = this.refs.statusNameInput.value;
+                let category = this.refs.statusCategoryInput.value;
+
+                fetch('{% url 'jira:agileBoardColumnOperationApiEventVersion1Component' boardId=board.id%}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        'function': 'CREATE_COLUMN_STATUS',
+                        'name': name,
+                        'category': category,
+                    })
+                }).then((response) => response.json())
+                    .then((json) => {
+                        this.fetchAgileBoardColumn();
+                    })
+
+                this.resetAddStatusModal();
+            }
+
             resetAddColumnModal = () => {
                 this.refs.columnNameInput.value = "";
+            }
+
+            resetAddStatusModal = () => {
+                this.refs.statusNameInput.value = "";
             }
 
             saveBoard = () => {
@@ -390,6 +419,10 @@
                 const style3 = {
                     marginRight: "40px",
                 }
+
+                const style4 = {
+                    maxWidth: "300px",
+                }
                 return (
                     <div>
                         <div className="modal fade" id="addColumnModal" tabIndex="-1" role="dialog"
@@ -430,13 +463,53 @@
                             </div>
                         </div>
 
-
                         <div style={style2}></div>
+
+                        <div className="modal fade" id="addStatusModal" tabIndex="-1" role="dialog"
+                             aria-labelledby="addStatusModalLabel" aria-hidden="true">
+                            <div className="modal-dialog" role="document">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h3 className="modal-title">Add status</h3>
+                                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div className="modal-body">
+                                        <div className="form-group">
+                                            <label htmlFor="statusName">Name</label>
+                                            <input type="text" className="form-control" id="statusName"
+                                                   ref="statusNameInput"></input>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="statusCategory">Category</label>
+                                            <select className="form-control" id="statusCategory"
+                                                    defaultValue="IN_PROGRESS" ref="statusCategoryInput">
+                                                <option value="TODO">To Do</option>
+                                                <option value="IN_PROGRESS" selected>In progress</option>
+                                                <option value="DONE">Done</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-light" data-dismiss="modal"
+                                                onClick={this.createStatusInstance}>Add
+                                        </button>
+                                        <button type="button" className="btn btn-danger" data-dismiss="modal"
+                                                onClick={this.resetAddStatusModal}>Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <button type="button" className="btn aui-button float-right" hidden></button>
                         <button type="button" className="btn aui-button float-right" style={style3}
                                 onClick={this.saveBoard}>Save Board
                         </button>
-                        <button type="button" className="btn aui-button float-right">Add Status</button>
+                        <button type="button" className="btn aui-button float-right" data-toggle="modal"
+                                data-target="#addStatusModal">Add Status
+                        </button>
                         <button type="button" className="btn aui-button float-right" data-toggle="modal"
                                 data-target="#addColumnModal">Add Column
                         </button>
@@ -448,8 +521,14 @@
                                 <div id="ghx-mapping-columns">
                                     {this.state.columnGroups.map((column) => <ColumnInstanceComponent key={column.id}
                                                                                                       column={column}/>)}
+                                    {
+                                        this.state.unMappedStatusColumn != null ?
+                                            <ColumnInstanceComponent column={this.state.unMappedStatusColumn}/> :
+                                            <span></span>
+                                    }
                                 </div>
                             </div>
+
                         </div>
                     </div>
 

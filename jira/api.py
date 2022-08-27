@@ -3,6 +3,7 @@ import json
 import threading
 from datetime import datetime
 from http import HTTPStatus
+import string
 
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -16,6 +17,12 @@ from django.views.decorators.csrf import csrf_exempt
 from accounts.models import Team, Component, TeamChatMessage
 from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment, TicketAttachment, ColumnStatus
 from taskmaster.operations import databaseOperations
+
+
+def compare(s1, s2):
+    remove = string.punctuation + string.whitespace
+    mapping = {ord(c): None for c in remove}
+    return s1.translate(mapping) == s2.translate(mapping)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -1322,10 +1329,33 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
             }
             columnGroups.append(columnData)
 
+        # Get all unmapped status for this Board
+        unMappedColumnStatus = [
+            {
+                "id": i.id,
+                "internalKey": i.internalKey,
+                "setResolution": i.setResolution,
+                "colour": i.colour,
+                "category": i.category
+            }
+
+            for i in ColumnStatus.objects.filter(board_id=boardId, column=None)
+        ]
+
+        unMappedStatusColumn = {
+            "id": 0,
+            "internalKey": "Unmapped Statuses",
+            "colour": "#0052cc",
+            "category": None,
+            "columnStatusGroups": unMappedColumnStatus
+
+        }
+
         response = {
             "success": True,
             "data": {
-                "columnGroups": columnGroups
+                "columnGroups": columnGroups,
+                "unMappedStatusColumn": unMappedStatusColumn,
             }
         }
         return JsonResponse(response, status=HTTPStatus.OK)
@@ -1339,7 +1369,7 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
         boardId = self.kwargs.get("boardId", None)
 
         try:
-            board = Board.objects.prefetch_related('boardColumns').get(id=boardId)
+            board = Board.objects.prefetch_related('boardColumns', 'boardColumnStatus').get(id=boardId)
         except Board.DoesNotExist:
             response = {
                 "success": False,
@@ -1347,36 +1377,55 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
-        def getCategory(value):
+        def getCategory(obj, value):
             if value == "TODO":
-                return Column.Category.TODO
+                return obj.TODO
             if value == "IN_PROGRESS":
-                return Column.Category.IN_PROGRESS
+                return obj.IN_PROGRESS
             if value == "DONE":
-                return Column.Category.DONE
+                return obj.DONE
             raise NotImplemented
 
-        def getColour(value):
+        def getColour(obj, value):
             if value == "TODO":
-                return Column.Colour.TODO
+                return obj.TODO
             if value == "IN_PROGRESS":
-                return Column.Colour.IN_PROGRESS
+                return obj.IN_PROGRESS
             if value == "DONE":
-                return Column.Colour.DONE
+                return obj.DONE
             raise NotImplemented
 
         if function == "CREATE_BOARD_COLUMN" and name != "":
             boardColumns = board.boardColumns.all()
-            existingColumn = [i for i in boardColumns if i.internalKey.lower() == name.lower()]
+            existingColumn = [i for i in boardColumns if compare(i.internalKey.lower(), name.lower())]
 
             if len(existingColumn) == 0:
                 Column.objects.create(
                     board_id=boardId,
                     internalKey=name,
-                    category=getCategory(category),
-                    colour=getColour(category),
+                    category=getCategory(Column.Category, category),
+                    colour=getColour(Column.Colour, category),
                     orderNo=board.boardColumns.count() + 1
                 )
+        elif function == "CREATE_COLUMN_STATUS" and name != "":
+            boardColumnStatus = board.boardColumnStatus.all()
+            existingColumnStatus = [i for i in boardColumnStatus if compare(i.internalKey.lower(), name.lower())]
+
+            if len(existingColumnStatus) == 0:
+                newColumnStatus = ColumnStatus(
+                    internalKey=name,
+                    board_id=boardId,
+                    category=getCategory(ColumnStatus.Category, category),
+                    colour=getColour(ColumnStatus.Colour, category),
+                )
+
+                # if the status name matches with any of the column name, then add it to that column.
+                boardColumns = board.boardColumns.all()
+                existingColumn = [i for i in boardColumns if compare(i.internalKey.lower(), name.lower())]
+
+                if len(existingColumn) != 0:
+                    newColumnStatus.column = existingColumn[0]
+                newColumnStatus.save()
 
         response = {
             "success": True,
@@ -1404,7 +1453,7 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
             i.save(update_fields=['orderNo'])
 
         for i in columnAndStatus:
-            ColumnStatus.objects.filter(id__in=i['statusIds']).update(column_id=i['columnId'])
+            ColumnStatus.objects.filter(id__in=i['statusIds'], board_id=board.id).update(column_id=i['columnId'])
 
         response = {
             "success": True,

@@ -130,7 +130,13 @@ class ColumnStatus(BaseModel):
         IN_PROGRESS = 'IN_PROGRESS', _('In Progress')
         DONE = 'DONE', _('Done')
 
+    class Colour(models.TextChoices):
+        TODO = '#42526e', _('#dfe1e5')
+        IN_PROGRESS = '#0052cc', _('#deebff')
+        DONE = '#00875a', _('#e3fcef')
+
     internalKey = models.CharField(max_length=2048)
+    board = models.ForeignKey(Board, blank=True, null=True, on_delete=models.CASCADE, related_name="boardColumnStatus")
     column = models.ForeignKey(Column, blank=True, null=True, on_delete=models.CASCADE, related_name="columnStatus")
     setResolution = models.BooleanField(default=False)
     category = models.CharField(max_length=16, choices=Category.choices, default=Category.IN_PROGRESS)
