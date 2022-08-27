@@ -1,0 +1,967 @@
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {
+}
+
+@supports (display:flex) {
+}
+
+html, body {
+    height: 100%
+}
+
+.aui-page-sidebar #content .aui-sidebar + main#main {
+    padding-left: 0
+}
+
+body.ghx-rapid-views {
+    overflow-y: hidden
+}
+
+body.ghx-rapid-views #page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto
+}
+
+body.ghx-rapid-views #content {
+    flex-grow: 1;
+    display: flex;
+    height: 100%;
+    overflow: hidden
+}
+
+body.ghx-rapid-views .aui-sidebar:not(.sidebar-placeholder) {
+    position: relative;
+    flex-basis: var(--aui-sidebar-width);
+    flex-shrink: 0;
+    flex-grow: 0
+}
+
+body.ghx-rapid-views #gh {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    padding-left: 0
+}
+
+body.ghx-rapid-views #ghx-header {
+    flex-shrink: 0
+}
+
+body.ghx-rapid-views #ghx-content-main {
+    flex-grow: 1;
+    height: 100%;
+    overflow: hidden
+}
+
+body.ghx-rapid-views #ghx-rabid {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden
+}
+
+body.ghx-rapid-views #ghx-operations {
+    flex-shrink: 0
+}
+
+body.ghx-rapid-views #ghx-plan {
+    flex-grow: 1;
+    height: 100%;
+    overflow: auto
+}
+
+body.ghx-rapid-views #ghx-detail-view, body.ghx-rapid-views #ghx-pool-column {
+    height: 100%
+}
+
+body.ghx-rapid-views #content, body.ghx-rapid-views #gh, body.ghx-rapid-views #ghx-content-main, body.ghx-rapid-views #ghx-plan, body.ghx-rapid-views #ghx-detail-view {
+    height: 100%;
+    overflow: auto
+}
+
+body.ghx-rapid-views #ghx-detail-view {
+    width: 400px;
+    flex-shrink: 0;
+    flex-grow: 0
+}
+
+body.ghx-rapid-views #ghx-detail-view[style] {
+    left: 0 !important
+}
+
+body.ghx-rapid-views #ghx-work {
+    display: flex;
+    flex-grow: 1;
+    height: 100%;
+    overflow: hidden
+}
+
+body.ghx-rapid-views #ghx-work #ghx-pool-column {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    width: calc(100% - 400px);
+    overflow-x: hidden
+}
+
+body.ghx-rapid-views #ghx-report {
+    height: 100%
+}
+
+@media print {
+    body.ghx-rapid-views {
+        overflow: visible;
+        height: auto
+    }
+}
+
+/* module-key = 'com.pyxis.greenhopper.jira:gh-rapid-common-css', location = 'includes/css/gh-rapid.less' */
+
+.ghx-gh {
+    font-size: 14px;
+    line-height: 1.42857143
+}
+
+main.ghx-gh {
+    height: 100%;
+    overflow: auto
+}
+
+.ghx-agile #content {
+    padding: 0
+}
+
+a {
+    cursor: pointer
+}
+
+.ghx-throbber {
+    position: fixed;
+    left: 50%;
+    top: 50%
+}
+
+.ghx-cursor-help {
+    cursor: help
+}
+
+#ghx-work {
+    display: none
+}
+
+#ghx-plan {
+    display: none;
+    position: relative
+}
+
+#ghx-plan ::-webkit-scrollbar {
+    width: 6px
+}
+
+#ghx-plan ::-webkit-scrollbar-track {
+    background: rgba(9, 30, 66, 0.08);
+    border-radius: 4px
+}
+
+#ghx-plan ::-webkit-scrollbar-thumb {
+    background: #97a0af;
+    border-radius: 4px
+}
+
+#ghx-work {
+    display: table;
+    table-layout: fixed;
+    width: 100%
+}
+
+#ghx-detail-view {
+    width: 400px
+}
+
+@media print {
+    #ghx-plan, #ghx-report, #ghx-work {
+        height: auto !important
+    }
+}
+
+#ghx-header {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 20px 20px 10px 20px;
+    position: relative
+}
+
+#ghx-header h1 {
+    color: #172b4d;
+    font-size: 24px;
+    font-weight: normal;
+    line-height: 1.25
+}
+
+#ghx-operations {
+    padding: 0 20px;
+    border-bottom: 2px solid #ebecf0
+}
+
+#ghx-modes-tools {
+    float: right;
+    padding-bottom: 0.5em
+}
+
+#ghx-view-modes, #ghx-view-tools, #ghx-view-presentation, .ghx-view-section {
+    display: inline-block;
+    padding-left: 10px;
+    vertical-align: top
+}
+
+.ghx-controls-list dl, .ghx-controls-list dt, .ghx-controls-list dd {
+    display: inline-block;
+    margin-top: 0
+}
+
+.ghx-controls-list > div > dl {
+    margin-right: 38px;
+    vertical-align: top
+}
+
+.ghx-controls-list > div > dl:last-child {
+    margin-right: 0
+}
+
+.ghx-controls-list dt {
+    color: #5e6c84;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.66666667;
+    letter-spacing: 0;
+    text-transform: uppercase
+}
+
+.ghx-controls-plan, .ghx-controls-work {
+    min-height: 40px;
+    position: relative
+}
+
+.ghx-controls-plan, .ghx-controls-work {
+    margin-bottom: -3px
+}
+
+.ghx-controls-filters #js-work-quickfilters {
+    padding: 3px
+}
+
+.ghx-controls-filters #js-work-quickfilters #js-quickfilters-label {
+    margin-left: -3px
+}
+
+.ghx-controls-filters dt, .ghx-controls-filters dd {
+    margin: 0 0 10px 0
+}
+
+.ghx-controls-filters dt {
+    padding-right: 10px
+}
+
+.ghx-controls-filters dd .aui-button, .ghx-controls-filters dd.ghx-quickfilter-trigger > a {
+    border: 1px solid transparent;
+    -webkit-border-radius: 3px 3px 3px 3px;
+    border-radius: 3px 3px 3px 3px;
+    display: inline-block;
+    line-height: 1;
+    margin: 0 5px 0 0;
+    padding: 7px 10px
+}
+
+.ghx-controls-filters dd a, .ghx-controls-filters dd a:hover {
+    text-decoration: none
+}
+
+.ghx-controls-filters dd a:hover {
+    border-color: #c1c7d0
+}
+
+.ghx-controls-filters dd a:focus {
+    text-decoration: none
+}
+
+.ghx-quick-content.aui-expander-content {
+    margin-bottom: 10px;
+    min-height: 30px;
+    position: relative
+}
+
+.ghx-quick-content .ghx-quickfilter-trigger {
+    position: absolute;
+    top: 2px;
+    right: 0
+}
+
+#ghx-rabid {
+    position: relative
+}
+
+#ghx-report {
+    display: none
+}
+
+#ghx-mapping {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    background-color: #f4f5f7;
+    clear: both;
+    overflow-y: hidden;
+    padding-top: 10px;
+    width: 100%
+}
+
+.ghx-config-status {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    -moz-transition: background 250ms ease-in-out;
+    -ms-transition: background 250ms ease-in-out;
+    -webkit-transition: background 250ms ease-in-out;
+    transition: background 250ms ease-in-out;
+    vertical-align: top;
+    width: 100%
+}
+
+.ghx-config-status li {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    list-style: none;
+    margin: 0 5px;
+    padding: 0 10px
+}
+
+.ghx-config-status .ghx-header {
+    margin: 0;
+    padding: 10px
+}
+
+.ghx-config-status .ghx-header .ghx-config-operator {
+    height: 16px;
+    overflow: hidden
+}
+
+.ghx-config-status .ghx-header .ghx-config-operator .ghx-action {
+    margin-top: 0
+}
+
+.ghx-config-status .ghx-header .ghx-config-move {
+    background: url(/jira/s/i1x70t/822006/2xtvkw/8.22.6/_/download/resources/com.pyxis.greenhopper.jira:gh-rapid-common-css/images/kanplan/move-handle.png) no-repeat center;
+    float: left;
+    height: 10px;
+    width: 18px
+}
+
+.ghx-config-status .ghx-header .ghx-config-delete {
+    float: right
+}
+
+.ghx-config-status .ghx-header .ghx-config-delete .js-column-delete {
+    cursor: pointer;
+    float: right;
+    height: 16px;
+    width: 16px
+}
+
+.ghx-config-status .ghx-header .ghx-border-bottom {
+    background-color: #0052cc;
+    background-position: center left;
+    background-repeat: no-repeat;
+    border: none;
+    height: 12px;
+    margin: 0 5px
+}
+
+.ghx-config-status .ghx-header .ghx-header-name {
+    margin: 10px 0
+}
+
+.ghx-config-status .ghx-header .ghx-action {
+    margin-left: 5px;
+    margin-right: 5px
+}
+
+.ghx-config-status .ghx-header-name {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ghx-config-status .ghx-header .ghx-action {
+    color: #6b778c;
+    font-size: 12px;
+    margin-top: 5px
+}
+
+.ghx-config-status .ghx-status {
+    background: #fff;
+    -webkit-border-radius: 3px 3px 3px 3px;
+    border-radius: 3px 3px 3px 3px;
+    border: 1px solid rgba(9, 30, 66, 0.25);
+    cursor: move;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-box-shadow: 0 2px 3px rgba(9, 30, 66, 0.13);
+    box-shadow: 0 2px 3px rgba(9, 30, 66, 0.13);
+    display: inline-block;
+    margin: 8px 0 0 0;
+    overflow: hidden;
+    padding: 8px 8px 8px 14px;
+    position: relative;
+    vertical-align: middle;
+    width: 100%
+}
+
+.ghx-config-status .ghx-status .ghx-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px
+}
+
+.ghx-config-status .ghx-status .ghx-name {
+    box-sizing: border-box;
+    max-width: 100%;
+    word-wrap: break-word
+}
+
+.ghx-config-status .ghx-status .ghx-name {
+    display: inline-block
+}
+
+.ghx-config-status .ghx-status .ghx-done, .ghx-config-status .ghx-status .ghx-qty {
+    display: inline-block;
+    font-size: 12px
+}
+
+.ghx-config-status .ghx-status .ghx-qty {
+    min-width: 35%
+}
+
+.ghx-config-status .ghx-status .ghx-done label span {
+    margin-left: 3px
+}
+
+.ghx-config-status .ghx-status .ghx-done label span.ghx-resolution-update-disabled {
+    color: #6b778c
+}
+
+#ghx-errors {
+    left: 10%;
+    position: absolute;
+    top: 0;
+    width: 80%;
+    z-index: 10000
+}
+
+#ghx-notify {
+    background: #fff;
+    padding: 20px
+}
+
+@media print {
+    #ghx-modes-tools, .ghx-compact-toggle {
+        display: none
+    }
+}
+
+#ghx-team {
+    display: none;
+    height: 100%;
+    flex-flow: column nowrap
+}
+
+#ghx-controls .ghx-compact-toggle {
+    bottom: 10px;
+    display: none;
+    position: absolute;
+    right: 0
+}
+
+.aui-expander-content {
+    height: 0;
+    overflow: hidden;
+    position: relative
+}
+
+.aui-expander-trigger {
+    cursor: pointer
+}
+
+
+/* module-key = 'com.atlassian.auiplugin:split_aui.component.sidebar', location = 'aui.component.sidebar.css' */
+.aui-page-sidebar {
+    --aui-sidebar-width: 280px
+}
+
+.aui-page-sidebar.aui-sidebar-collapsed {
+    --aui-sidebar-width: 56px
+}
+
+.aui-sidebar {
+    box-sizing: border-box;
+    min-width: 56px;
+    position: absolute;
+    z-index: 3
+}
+
+.aui-sidebar .aui-sidebar-wrapper {
+    box-sizing: border-box;
+    border-right: 0;
+    border-color: var(--aui-sidebar-bg-color);
+    background-color: var(--aui-sidebar-bg-color);
+    display: flex;
+    flex-direction: column;
+    width: var(--aui-sidebar-width);
+    position: absolute;
+    top: 0;
+    bottom: auto
+}
+
+.aui-page-sidebar #content .aui-sidebar + main {
+    padding-left: var(--aui-sidebar-width)
+}
+
+.aui-sidebar + .aui-page-panel {
+    border-top-width: 0;
+    margin-top: 0
+}
+
+@media print {
+    .aui-sidebar {
+        display: none
+    }
+}
+
+form.aui.aui-legacy-forms [data-aui-notification-error] .radio.radio input:checked:focus ~ label:not(:active):after {
+    content: " ";
+    border: 2px solid var(--aui-form-notification-error-color)
+}
+
+form.aui.aui-legacy-forms [data-aui-notification-error] .radio.radio input:checked:not(focus) ~ label:not(:active):after {
+    content: " ";
+    border: 2px solid var(--aui-form-notification-error-color);
+    border-radius: 8px;
+    position: absolute;
+    top: 2px;
+    left: 0;
+    display: inline-block;
+    width: 10px;
+    height: 10px
+}
+
+form.aui.aui-legacy-forms [data-aui-notification-error] .radio.radio input:not(:checked) ~ label:not(:active):before {
+    border: 2px solid var(--aui-form-notification-error-color)
+}
+
+
+@page {
+    margin: 30px 0 0 30px
+}
+
+
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {
+}
+
+#ghx-mapping {
+    display: flex
+}
+
+#ghx-mapping #ghx-mapping-columns-wrapper {
+    overflow: auto;
+    flex-grow: 1;
+    height: 500px
+}
+
+#ghx-mapping #ghx-mapping-columns-wrapper #ghx-mapping-columns {
+    display: flex;
+    min-height: 500px
+}
+
+#ghx-mapping #ghx-mapping-columns-wrapper #ghx-mapping-columns .ghx-column-wrapper {
+    flex-basis: 200px;
+    min-width: 200px;
+    min-height: 100%;
+    margin-right: 5px;
+    flex-grow: 1
+}
+
+#ghx-mapping .ghx-config-status {
+    padding-bottom: 100px
+}
+
+
+/*--- START - CSS for Execution status display-----*/
+dd {
+    display: block;
+    -webkit-margin-start: 0px; /*Needed for JIRA 6.x*/
+}
+
+dt {
+    display: block;
+}
+
+
+div dl dd {
+    margin-left: 0px
+}
+
+/*--- START - CSS for Execution status display-----*/
+dd {
+    display: block;
+    -webkit-margin-start: 0px; /*Needed for JIRA 6.x*/
+}
+
+dt {
+    display: block;
+}
+
+
+div dl dd {
+    margin-left: 0px
+}
+
+
+/*--- START - CSS for Execution status display-----*/
+dd {
+    display: block;
+    -webkit-margin-start: 0px; /*Needed for JIRA 6.x*/
+}
+
+dt {
+    display: block;
+}
+
+
+div dl dd {
+    margin-left: 0px
+}
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    /* Safari only override */
+    ::i-block-chrome {
+        max-height: 80% !important;
+    }
+}
+
+
+.float-left {
+    float: left;
+}
+
+.float-right {
+    float: right;
+}
+
+button {
+    outline: none !important;
+}
+
+* {
+    outline: none !important;
+}
+
+input:focus:-ms-input-placeholder {
+    color: transparent;
+}
+
+input:focus::-webkit-input-placeholder {
+    color: transparent;
+}
+
+input:focus:-moz-placeholder {
+    color: transparent;
+}
+
+input:focus::-moz-placeholder {
+    color: transparent;
+}
+
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+    -webkit-appearance: textfield;
+}
+
+.aui-select2-drop .select2-search input:focus-visible {
+    box-shadow: unset
+}
+
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {
+}
+
+.fa, .fab, .far, .fas {
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    line-height: 1
+}
+
+.fa-chalkboard:before {
+    content: "\f51b"
+}
+
+
+.fa-confluence:before {
+    content: "\f78d"
+}
+
+.fa-project-diagram:before {
+    content: "\f542"
+}
+
+.fa-sign-out-alt:before {
+    content: "\f2f5"
+}
+
+.fa-tasks:before {
+    content: "\f0ae"
+}
+
+.fa-users:before {
+    content: "\f0c0"
+}
+
+.sr-only {
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px
+}
+
+.far {
+    font-family: "Font Awesome 5 Pro";
+    font-weight: 400
+}
+
+.fab {
+    font-family: "Font Awesome 5 Brands";
+    font-weight: 400
+}
+
+/* module-key = 'com.atlassian.jira.project-templates-plugin:project-templates-plugin-resources', location = '/css/project-templates-plugin.less' */
+
+/* module-key = 'com.atlassian.jira-core-project-templates:jira-core-project-templates-resources', location = '/css/core-project-templates.css' */
+
+/* module-key = 'com.atlassian.auiplugin:split_aui.component.form.single-select', location = 'aui.component.form.single-select.css' */
+
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {
+}
+
+.aui-popover ul:not(:hover) [role=option].aui-select-active {
+    background-color: var(--aui-item-focus-bg);
+    color: var(--aui-item-focus-text, inherit)
+}
+
+form.aui.aui-legacy-forms aui-select button.aui-button:not(:hover) {
+    border-top-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: transparent
+}
+
+div.nowrap-group:last {
+    margin-bottom: 0px;
+}
+
+
+/**
+Feature "Bulk Changes"
+**/
+
+
+a {
+    cursor: pointer;
+}
+
+
+div.nowrap-group:last {
+    margin-bottom: 0px;
+}
+
+
+/**
+Feature "Bulk Changes"
+**/
+
+/* Dropdown Button angleichen AUI */
+
+
+a {
+    cursor: pointer;
+}
+
+/* module-key = 'com.decadis.xtools-for-jira:fontawesome', location = '/css/fontawesome-all.css' */
+/*!
+ * Font Awesome Pro 5.6.1 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license (Commercial License)
+ */
+.fa,
+.fas,
+.far,
+.fab {
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    font-style: normal;
+    font-variant: normal;
+    line-height: 1;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: auto;
+}
+
+/* Font Awesome uses the Unicode Private Use Area (PUA) to ensure screen
+readers do not read off random characters that represent icons */
+
+.fa-chalkboard:before {
+    content: "\f51b";
+}
+
+.fa-confluence:before {
+    content: "\f78d";
+}
+
+
+.fa-project-diagram:before {
+    content: "\f542";
+}
+
+.fa-sign-out-alt:before {
+    content: "\f2f5";
+}
+
+.fa-tasks:before {
+    content: "\f0ae";
+}
+
+.fa-users:before {
+    content: "\f0c0";
+}
+
+.sr-only {
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+.fa,
+.fas {
+    font-family: 'Font Awesome 5 Pro';
+    font-weight: 900;
+}
+
+div.nowrap-group:last {
+    margin-bottom: 0px;
+}
+
+
+/**
+Feature "Bulk Changes"
+**/
+
+
+a {
+    cursor: pointer;
+}
+
+
+div.nowrap-group:last {
+    margin-bottom: 0px;
+}
+
+
+/**
+Feature "Bulk Changes"
+**/
+
+/* Dropdown Button angleichen AUI */
+
+
+a {
+    cursor: pointer;
+}
+
+h1, h3, h4 {
+    color: #091e42
+}
+
+body {
+    color: #172b4d
+}
+
+a {
+    color: #0052cc
+}
+
+a:hover, a:focus, a:active {
+    color: #0065ff
+}
+
+body {
+    min-width: 990px;
+    overflow-y: scroll
+}
+
+
+#announcement-banner {
+    border-bottom: 1px solid #c1c7d0;
+    padding: 8px;
+    clear: both
+}
+
+@media print {
+    body {
+        background-color: #fff !important;
+        color: #000 !important;
+        font-size: 11pt !important
+    }
+
+    .aui-page-panel {
+        border: none !important;
+        clear: both !important;
+        display: block !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: 100% !important
+    }
+
+    a {
+        text-decoration: none !important
+    }
+}
+
+
+.adaptavist-sr div :focus-visible:focus:not(.aui-dropdown2) {
+    box-shadow: none !important
+}

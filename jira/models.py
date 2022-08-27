@@ -91,8 +91,19 @@ class Label(BaseModel):
 
 
 class Column(BaseModel):
+    class Category(models.TextChoices):
+        TODO = 'TODO', _('To Do')
+        IN_PROGRESS = 'IN_PROGRESS', _('In Progress')
+        DONE = 'DONE', _('Done')
+
+    class Colour(models.TextChoices):
+        TODO = '#42526e', _('#42526e')
+        IN_PROGRESS = '#0052cc', _('#0052cc')
+        DONE = '#00875a', _('#00875a')
+
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='boardColumns')
     internalKey = models.CharField(max_length=2048)
+    category = models.CharField(max_length=16, choices=Category.choices, default=Category.IN_PROGRESS)
     colour = ColorField(default='#FF0000')
 
     class Meta:
@@ -111,6 +122,23 @@ class Column(BaseModel):
                 message='Column name for this board already exists.',
                 code='unique_together',
             )
+
+
+class ColumnStatus(BaseModel):
+    class Category(models.TextChoices):
+        TODO = 'TODO', _('To Do')
+        IN_PROGRESS = 'IN_PROGRESS', _('In Progress')
+        DONE = 'DONE', _('Done')
+
+    internalKey = models.CharField(max_length=2048)
+    column = models.ForeignKey(Column, blank=True, null=True, on_delete=models.CASCADE, related_name="columnStatus")
+    setResolution = models.BooleanField(default=False)
+    category = models.CharField(max_length=16, choices=Category.choices, default=Category.IN_PROGRESS)
+    colour = ColorField(default='#FF0000')
+
+    class Meta:
+        verbose_name = "ColumnStatus"
+        verbose_name_plural = "ColumnStatus"
 
 
 class Ticket(BaseModel):

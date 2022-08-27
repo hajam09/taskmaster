@@ -14,7 +14,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from accounts.models import Team, Component, TeamChatMessage
-from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment, TicketAttachment
+from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment, TicketAttachment, ColumnStatus
 from taskmaster.operations import databaseOperations
 
 
@@ -1281,6 +1281,134 @@ class TeamChatMessagesApiEventVersion1Component(View):
             "data": teamChatMessages
         }
 
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AgileBoardColumnOperationApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('boardSprints').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        columnGroups = []
+        for column in Column.objects.filter(Q(board_id=board.id), ~Q(internalKey="BACKLOG")):
+
+            columnStatusGroups = []
+            for columnStatus in column.columnStatus.all():
+                columnStatusData = {
+                    "id": columnStatus.id,
+                    "internalKey": columnStatus.internalKey,
+                    "setResolution": columnStatus.setResolution,
+                    "colour": columnStatus.colour,
+                    "category": columnStatus.category,
+                }
+                columnStatusGroups.append(columnStatusData)
+
+            columnData = {
+                "id": column.id,
+                "internalKey": column.internalKey,
+                "colour": column.colour,
+                "category": column.category,
+                "columnStatusGroups": columnStatusGroups
+            }
+            columnGroups.append(columnData)
+
+        response = {
+            "success": True,
+            "data": {
+                "columnGroups": columnGroups
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def post(self, *args, **kwargs):
+
+        body = json.loads(self.request.body.decode())
+        function = body.get("function")
+        name = body.get("name")
+        category = body.get("category")
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('boardColumns').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        def getCategory(value):
+            if value == "TODO":
+                return Column.Category.TODO
+            if value == "IN_PROGRESS":
+                return Column.Category.IN_PROGRESS
+            if value == "DONE":
+                return Column.Category.DONE
+            raise NotImplemented
+
+        def getColour(value):
+            if value == "TODO":
+                return Column.Colour.TODO
+            if value == "IN_PROGRESS":
+                return Column.Colour.IN_PROGRESS
+            if value == "DONE":
+                return Column.Colour.DONE
+            raise NotImplemented
+
+        if function == "CREATE_BOARD_COLUMN" and name != "":
+            boardColumns = board.boardColumns.all()
+            existingColumn = [i for i in boardColumns if i.internalKey.lower() == name.lower()]
+
+            if len(existingColumn) == 0:
+                Column.objects.create(
+                    board_id=boardId,
+                    internalKey=name,
+                    category=getCategory(category),
+                    colour=getColour(category),
+                    orderNo=board.boardColumns.count() + 1
+                )
+
+        response = {
+            "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def put(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+        try:
+            board = Board.objects.get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        put = QueryDict(self.request.body)
+        columnAndStatus = json.loads(put.get('columnAndStatus'))
+        columnsInOrder = [int(i['columnId']) for i in columnAndStatus]
+
+        columns = Column.objects.filter(Q(board_id=board.id), ~Q(internalKey="BACKLOG"))
+        for i in columns:
+            i.orderNo = columnsInOrder.index(i.pk)
+            i.save(update_fields=['orderNo'])
+
+        for i in columnAndStatus:
+            ColumnStatus.objects.filter(id__in=i['statusIds']).update(column_id=i['columnId'])
+
+        response = {
+            "success": True,
+        }
         return JsonResponse(response, status=HTTPStatus.OK)
 
 

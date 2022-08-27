@@ -15,6 +15,7 @@ urlpatterns = [
     path('boards/', views.boards, name='boards-page'),
     path('boards/<slug:url>/', views.board, name='board-page'),
     path('boards/<slug:url>/settings/', views.boardSettings, name='board-settings'),
+    path('boards/<slug:url>/settings2/', views.boardSettings2, name='board-settings2'),
     path('boards/<slug:url>/backlog/', views.backlog, name='board-backlog'),
     path('teams/', views.teams, name='teams-page'),
     path('teams/<slug:url>/', views.team, name='team-page'),
@@ -97,6 +98,11 @@ urlpatterns += [
         'api/v1/sprintObjectApiEventVersion1Component/<int:boardId>',
         SprintObjectApiEventVersion1Component.as_view(),
         name='sprintObjectApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/agileBoardColumnOperationApiEventVersion1Component/<int:boardId>',
+        AgileBoardColumnOperationApiEventVersion1Component.as_view(),
+        name='agileBoardColumnOperationApiEventVersion1Component'
     ),
     path(
         'api/v1/agileBoardDetailsApiEventVersion1Component/<int:boardId>',

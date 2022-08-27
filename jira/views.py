@@ -11,7 +11,7 @@ from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team
 from jira.forms import ProjectSettingsForm, TeamForm
-from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label
+from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label, ColumnStatus
 from taskmaster.operations import emailOperations
 
 cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'), None)
@@ -317,13 +317,22 @@ def boards(request):
                 isPrivate=request.POST['boardVisibility'] == 'visibility-members'
             )
 
-            # mandatory columns for a board
-            Column.objects.bulk_create(
+            c1 = Column(board=newBoard, internalKey='BACKLOG', category=Column.Category.TODO, colour='#42526e', orderNo=1)
+            c2 = Column(board=newBoard, internalKey='TO DO', category=Column.Category.TODO, colour='#42526e', orderNo=2)
+            c3 = Column(board=newBoard, internalKey='IN PROGRESS', category=Column.Category.IN_PROGRESS, colour='#0052cc', orderNo=3)
+            c4 = Column(board=newBoard, internalKey='DONE', category=Column.Category.DONE, colour='#00875a', orderNo=4)
+
+            c1.save()
+            c2.save()
+            c3.save()
+            c4.save()
+
+            # mandatory ColumnStatus for a board
+            ColumnStatus.objects.bulk_create(
                 [
-                    Column(board=newBoard, internalKey='BACKLOG', colour='#42526e', orderNo=1),
-                    Column(board=newBoard, internalKey='TO DO', colour='#42526e', orderNo=2),
-                    Column(board=newBoard, internalKey='IN PROGRESS', colour='#0052cc', orderNo=3),
-                    Column(board=newBoard, internalKey='DONE', colour='#00875a', orderNo=4)
+                    ColumnStatus(internalKey="TO DO", column=c2, category=Column.Category.TODO, colour="#dfe1e5"),
+                    ColumnStatus(internalKey="IN PROGRESS", column=c3, category=Column.Category.IN_PROGRESS, colour="#deebff"),
+                    ColumnStatus(internalKey="DONE", column=c4, setResolution=True, category=Column.Category.DONE, colour="#e3fcef")
                 ]
             )
 
@@ -362,10 +371,23 @@ def boardSettings(request, url):
 
 
 @login_required
+def boardSettings2(request, url):
+    try:
+        thisBoard = Board.objects.prefetch_related('boardColumns__columnStatus').get(url=url)
+    except Board.DoesNotExist:
+        raise Http404
+
+    allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)).distinct()
+
+    context = {
+        'board': thisBoard,
+        'projects': allProjects,
+    }
+    return render(request, 'jira/boardSettings2.html', context)
+
+
+@login_required
 def board(request, url):
-    """
-        TODO: Remove unused css files from kanbanBoardCSS1-5
-    """
     try:
         thisBoard = Board.objects.get(url=url)
     except Board.DoesNotExist:
@@ -374,7 +396,10 @@ def board(request, url):
     if not thisBoard.hasAccessPermission(request.user):
         raise PermissionDenied()
 
-    boardsInProject = Board.objects.filter(projects__in=thisBoard.projects.all().values_list('id', flat=True))
+    boardsInProject = Board.objects.filter(
+        projects__in=thisBoard.projects.all().values_list('id', flat=True)
+    ).distinct()
+
     context = {
         "board": thisBoard,
         "boardsInProject": boardsInProject,
@@ -391,7 +416,9 @@ def backlog(request, url):
     if not thisBoard.hasAccessPermission(request.user):
         raise PermissionDenied()
 
-    boardsInProject = Board.objects.filter(projects__in=thisBoard.projects.all().values_list('id', flat=True))
+    boardsInProject = Board.objects.filter(
+        projects__in=thisBoard.projects.all().values_list('id', flat=True)
+    ).distinct()
 
     context = {
         "board": thisBoard,
