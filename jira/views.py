@@ -382,6 +382,7 @@ def boardSettings2(request, url):
     context = {
         'board': thisBoard,
         'projects': allProjects,
+        'isAdmin': request.user in thisBoard.admins.all()
     }
     return render(request, 'jira/boardSettings2.html', context)
 

@@ -1377,6 +1377,13 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
+        if not self.request.user in board.admins.all():
+            response = {
+                "success": False,
+                "message": "Only admins can make changes to this board."
+            }
+            return JsonResponse(response, status=HTTPStatus.UNAUTHORIZED)
+
         def getCategory(obj, value):
             if value == "TODO":
                 return obj.TODO
@@ -1442,6 +1449,13 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
                 "message": "Could not find a board for id: " + str(boardId)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        if not self.request.user in board.admins.all():
+            response = {
+                "success": False,
+                "message": "Only admins can make changes to this board."
+            }
+            return JsonResponse(response, status=HTTPStatus.UNAUTHORIZED)
 
         put = QueryDict(self.request.body)
         columnAndStatus = json.loads(put.get('columnAndStatus'))

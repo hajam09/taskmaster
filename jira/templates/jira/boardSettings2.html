@@ -293,6 +293,7 @@
                 this.state = {
                     columnGroups: [],
                     unMappedStatusColumn: null,
+                    canEdit: "{{ isAdmin }}" === "True" ? "" : "none"
                 }
             }
 
@@ -434,8 +435,12 @@
                 const style4 = {
                     maxWidth: "300px",
                 }
+
+                const style5 = {
+                    pointerEvents: this.state.canEdit
+                }
                 return (
-                    <div>
+                    <div style={style5}>
                         <div className="modal fade" id="addColumnModal" tabIndex="-1" role="dialog"
                              aria-labelledby="addColumnModalLabel" aria-hidden="true">
                             <div className="modal-dialog" role="document">
@@ -515,7 +520,7 @@
                         </div>
 
                         <button type="button" className="btn aui-button float-right" hidden></button>
-                        <button type="button" className="btn aui-button float-right" style={style3}
+                        <button type="button" className="btn aui-button float-right" style={style3} disabled={this.state.canEdit}
                                 onClick={this.saveBoard}>Save Board
                         </button>
                         <button type="button" className="btn aui-button float-right" data-toggle="modal"
