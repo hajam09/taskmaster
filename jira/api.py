@@ -1446,14 +1446,22 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
         put = QueryDict(self.request.body)
         columnAndStatus = json.loads(put.get('columnAndStatus'))
         columnsInOrder = [int(i['columnId']) for i in columnAndStatus]
+        setResolutionCheckedStatus = put.getlist('checkedBoxes[]')
 
         columns = Column.objects.filter(Q(board_id=board.id), ~Q(internalKey="BACKLOG"))
         for i in columns:
             i.orderNo = columnsInOrder.index(i.pk)
-            i.save(update_fields=['orderNo'])
+
+        Column.objects.bulk_update(columns, ['orderNo'])
 
         for i in columnAndStatus:
             ColumnStatus.objects.filter(id__in=i['statusIds'], board_id=board.id).update(column_id=i['columnId'])
+
+        thisBoardsColumnStatus = ColumnStatus.objects.filter(board_id=board.id)
+        for columnStatus in thisBoardsColumnStatus:
+            columnStatus.setResolution = str(columnStatus.id) in setResolutionCheckedStatus
+
+        ColumnStatus.objects.bulk_update(thisBoardsColumnStatus, ['setResolution'])
 
         response = {
             "success": True,

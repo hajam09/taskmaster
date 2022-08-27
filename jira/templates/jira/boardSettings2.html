@@ -211,19 +211,19 @@
                             <div className="ghx-name">
                                 {#<div className="ghx-lozenge-wrap">#}
                                 <div>
-                                            <span
-                                                className={this.state.lozenge}
-                                                aria-describedby="aui-tooltip">{this.props.status.internalKey}</span>
+                                    <span className={this.state.lozenge}
+                                        aria-describedby="aui-tooltip">{this.props.status.internalKey}
+                                    </span>
                                 </div>
                             </div>
                             <br></br>
                             <div className="row">
                                 <div className="ghx-qty col">150 issues</div>
                                 <div className="ghx-done col-auto">
-                                    <input id="resolution-update-11609"
+                                    <input id={"resolution-update-"+this.props.status.id}
                                            className="js-resolution-update"
                                            title="Tick to set the resolution to 'Done' when an issue is transitioned to this status"
-                                           type="checkbox" disabled={true}>
+                                           type="checkbox" defaultChecked={this.props.status.setResolution}>
                                     </input>
                                     <label>
                                         <span className="ghx-resolution-update-disabled">Set resolution</span>
@@ -374,10 +374,21 @@
                 // get all the columns and status for each column.
                 let boardUpdate = [];
                 const boardColumnsInOrder = $.map($('#ghx-mapping-columns > ul'), ul => ul.id);
+                let checkedBoxes = [];
 
                 for (const item of boardColumnsInOrder) {
 
+                    // list of column status that belong to this column.
                     let statusIds = $.map($(`#listOfColumnStatusInstanceComponent-${item} > li`), li => li.id);
+
+
+                    for(let i = 0; i<statusIds.length; i++)
+                    {
+                        // all the column status which are true to set resolution
+                        let checkBoxId = `#resolution-update-${statusIds[i]}`;
+                        if($(checkBoxId).is(":checked"))
+                            checkedBoxes.push(statusIds[i]);
+                    }
 
                     boardUpdate.push(
                         {
@@ -387,8 +398,7 @@
                     );
                 }
 
-
-                console.log(boardUpdate)
+                boardUpdate.pop();
 
                 $.ajax(
                     {
@@ -396,6 +406,7 @@
                         data:
                             {
                                 columnAndStatus: JSON.stringify(boardUpdate),
+                                checkedBoxes: checkedBoxes,
                             },
                         type: 'PUT',
                         dataType: 'json',
