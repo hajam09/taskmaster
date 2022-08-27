@@ -1,28 +1,31 @@
 {% extends "accounts/base.html" %}
 {% load static %}
 {% block content %}
-    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS1.css' %}" media="all">
-    <link type="text/css" rel="stylesheet"
-          href="{% static 'css/kanbanBoardBacklogCSS5.css' %}?agile_global_admin_condition=true&amp;flexboards=true&amp;jag=true&amp;jaguser=true&amp;slack-enabled=true&amp;user-logged-in=true"
-          data-wrm-key="gh-rapid-plan,atl.general,greenhopper-rapid-non-gadget,jira.project.sidebar,atl.global,jira.global,jira.general,com.atlassian.jira.projects.sidebar.init,-_super"
-          data-wrm-batch-type="context" media="all">
-    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS2.css' %}"
-          data-wrm-key="gh-rapid-charts,-_super" data-wrm-batch-type="context" media="all">
-    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS3.css' %}"
-          data-wrm-key="com.atlassian.jira.jira-tzdetect-plugin:tzdetect-banner-component"
-          data-wrm-batch-type="resource" media="all">
-    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS4.css' %}"
-          data-wrm-key="jira.global.look-and-feel,-_super" data-wrm-batch-type="context" media="all">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS1.css' %}">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS5.css' %}">
+
+    {#    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS1.css' %}" media="all">#}
+    {#    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS2.css' %}"#}
+    {#          data-wrm-key="gh-rapid-charts,-_super" data-wrm-batch-type="context" media="all">#}
+    {#    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS3.css' %}"#}
+    {#          data-wrm-key="com.atlassian.jira.jira-tzdetect-plugin:tzdetect-banner-component"#}
+    {#          data-wrm-batch-type="resource" media="all">#}
+    {#    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardBacklogCSS4.css' %}"#}
+    {#          data-wrm-key="jira.global.look-and-feel,-_super" data-wrm-batch-type="context" media="all">#}
+    {#   <link type="text/css" rel="stylesheet"#}
+    {#          href="{% static 'css/kanbanBoardBacklogCSS5.css' %}?agile_global_admin_condition=true&amp;flexboards=true&amp;jag=true&amp;jaguser=true&amp;slack-enabled=true&amp;user-logged-in=true"#}
+    {#          data-wrm-key="gh-rapid-plan,atl.general,greenhopper-rapid-non-gadget,jira.project.sidebar,atl.global,jira.global,jira.general,com.atlassian.jira.projects.sidebar.init,-_super"#}
+    {#          data-wrm-batch-type="context" media="all">#}
 
     <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
-    <style>.dropdown-toggle::after {
-    display:none;
-}
-</style>
-
+    <style>
+        .dropdown-toggle::after {
+            display: none;
+        }
+    </style>
 
     <body id="jira"
           class="aui-layout aui-theme-default ghx-agile ghx-rapid-views aui-page-sidebar aui-sidebar-collapsed ghx-scroll-columns ghx-sprint-support ghx-days-in-column-enabled ghx-mode-planning">
@@ -86,10 +89,9 @@
 
     <script type="text/javascript">
 
-    // connectedSortable, draggable, sortable, listOfActiveTicketsContainer
+        // connectedSortable, draggable, sortable, listOfActiveTicketsContainer
 
         window.onload = function () {
-
 
 
             /*$("#draggable").draggable(
@@ -472,24 +474,23 @@
                         const columnId = $(event.target).attr('columnid');
 
                         let ticketIds = $.map($(`#planGroupId-${columnId} > div`), div => div.id);
-                        for(let i = 0; i< ticketIds.length; i++)
-                        {
-                            if(ticketIds[i] === '')
+                        for (let i = 0; i < ticketIds.length; i++) {
+                            if (ticketIds[i] === '')
                                 ticketIds[i] = String(ticketId);
                         }
 
                         $.ajax(
-                        {
-                            url: "{% url 'jira:backlogDetailsApiEventVersion1Component' boardId=board.id%}",
-                            data:
-                                {
-                                    'columnId': columnId,
-                                    'ticketIds': ticketIds,
-                                },
-                            type: 'PUT',
-                            dataType: 'json',
-                        }
-                    );
+                            {
+                                url: "{% url 'jira:backlogDetailsApiEventVersion1Component' boardId=board.id%}",
+                                data:
+                                    {
+                                        'columnId': columnId,
+                                        'ticketIds': ticketIds,
+                                    },
+                                type: 'PUT',
+                                dataType: 'json',
+                            }
+                        );
                     }
                 });
             }
@@ -497,104 +498,100 @@
             completeSprint = (sprintId) => {
 
                 Swal.fire({
-                      title: 'Are you sure?',
-                      text: "You won't be able to revert this! Any un-done tickets will be moved to next sprint.",
-                      icon: 'warning',
-                      showCancelButton: true,
-                      confirmButtonColor: '#3085d6',
-                      cancelButtonColor: '#d33',
-                      confirmButtonText: 'Yes!'
-                    }).then((result) => {
-                      if (result.isConfirmed) {
-                          $.ajax(
-                        {
-                            url: "{% url 'jira:sprintObjectApiEventVersion1Component' boardId=board.id%}",
-                            data:
-                                {
-                                    'sprintId': sprintId,
-                                    'function': "COMPLETE_SPRINT",
-                                },
-                            type: 'PUT',
-                            dataType: 'json',
-                            success: function (response)
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this! Any un-done tickets will be moved to next sprint.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax(
                             {
-                                if (response.success)
-                                {
-                                    window.location.reload();
+                                url: "{% url 'jira:sprintObjectApiEventVersion1Component' boardId=board.id%}",
+                                data:
+                                    {
+                                        'sprintId': sprintId,
+                                        'function': "COMPLETE_SPRINT",
+                                    },
+                                type: 'PUT',
+                                dataType: 'json',
+                                success: function (response) {
+                                    if (response.success) {
+                                        window.location.reload();
+                                    }
                                 }
-                            }
-                        });
+                            });
 
-                      }
-                    })
+                    }
+                })
             }
 
             startSprint = (sprintId) => {
 
                 Swal.fire({
-                      title: 'Are you sure you want to start this sprint?',
-                      text: "You won't be able to revert this!",
-                      icon: 'warning',
-                      showCancelButton: true,
-                      confirmButtonColor: '#3085d6',
-                      cancelButtonColor: '#d33',
-                      confirmButtonText: 'Yes!'
-                    }).then((result) => {
-                      if (result.isConfirmed) {
+                    title: 'Are you sure you want to start this sprint?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
                         Swal.fire(
-                          'Deleted!',
-                          'Your file has been deleted.',
-                          'success'
+                            'Deleted!',
+                            'Your file has been deleted.',
+                            'success'
                         )
-                      }
-                    })
+                    }
+                })
             }
 
             deleteSprint = (sprintId) => {
 
                 Swal.fire({
-                      title: 'Are you sure?',
-                      text: "You won't be able to revert this! All the tickets will be moved to backlog",
-                      icon: 'warning',
-                      showCancelButton: true,
-                      confirmButtonColor: '#3085d6',
-                      cancelButtonColor: '#d33',
-                      confirmButtonText: 'Yes!'
-                    }).then((result) => {
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this! All the tickets will be moved to backlog",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes!'
+                }).then((result) => {
 
-                        if (result.isConfirmed) {
-                          $.ajax(
-                        {
-                            url: "{% url 'jira:sprintObjectApiEventVersion1Component' boardId=board.id%}",
-                            data:
-                                {
-                                    'sprintId': sprintId,
-                                    'function': "DELETE_SPRINT",
-                                },
-                            type: 'PUT',
-                            dataType: 'json',
-                            success: function (response)
+                    if (result.isConfirmed) {
+                        $.ajax(
                             {
-                                if (response.success)
-                                {
-                                    window.location.reload();
+                                url: "{% url 'jira:sprintObjectApiEventVersion1Component' boardId=board.id%}",
+                                data:
+                                    {
+                                        'sprintId': sprintId,
+                                        'function': "DELETE_SPRINT",
+                                    },
+                                type: 'PUT',
+                                dataType: 'json',
+                                success: function (response) {
+                                    if (response.success) {
+                                        window.location.reload();
+                                    }
                                 }
-                            }
-                        });
+                            });
 
-                      }
+                    }
 
-                    })
+                })
             }
 
 
             render() {
                 const style1 = {
                     minHeight: "50px",
-            }
-            const style2 = {
+                }
+                const style2 = {
                     marginRight: "-15px",
-            }
+                }
                 return (
                     <div className="ghx-sprint-group">
                         <div data-sprint-id="9951"
@@ -640,20 +637,27 @@
                                 <div className="ghx-sprint-info">
                                     <div className=" col ghx-assigned-work-stats">
                                         {this.state.assignedWorkers.map((worker) => <UserComponent2
-                                                        key={worker.id} user={worker}/>)}
+                                            key={worker.id} user={worker}/>)}
                                     </div>
-                                    { this.state.sprintOptionAllowed ? <div className="col-auto" style={style2}>
-                                        <button type="button" className="btn aui-button dropdown-toggle" data-toggle="dropdown"
+                                    {this.state.sprintOptionAllowed ? <div className="col-auto" style={style2}>
+                                        <button type="button" className="btn aui-button dropdown-toggle"
+                                                data-toggle="dropdown"
                                                 aria-haspopup="true" aria-expanded="false">
-                                                <i className='fas fa-ellipsis-h'></i>
+                                            <i className='fas fa-ellipsis-h'></i>
                                         </button>
                                         <div className="dropdown-menu">
-                                        {
-                                            this.props.group.isActive ? <a className="dropdown-item" onClick={() => { this.completeSprint(this.props.group.id) }}>Complete Sprint</a>
-                                            : <span><a className="dropdown-item" onClick={() => { this.startSprint(this.props.group.id) }}>Start Sprint</a>
-                                        <a className="dropdown-item" onClick={() => { this.deleteSprint(this.props.group.id) }}>Delete Sprint</a></span>
-                                        }
-
+                                            {
+                                                this.props.group.isActive ?
+                                                    <a className="dropdown-item" onClick={() => {
+                                                        this.completeSprint(this.props.group.id)
+                                                    }}>Complete Sprint</a>
+                                                    : <span><a className="dropdown-item" onClick={() => {
+                                                        this.startSprint(this.props.group.id)
+                                                    }}>Start Sprint</a>
+                                        <a className="dropdown-item" onClick={() => {
+                                            this.deleteSprint(this.props.group.id)
+                                        }}>Delete Sprint</a></span>
+                                            }
 
 
                                         </div>
@@ -664,8 +668,10 @@
                             </div>
                             <div className="ghx-meta ghx-disabled">
                                 <div
-                                    className="ghx-issues js-issue-list ghx-has-issues tickets connectedSortable ui-sortable droppable ui-droppable" style={style1}
-                                    data-skate-ignore="" columnid={this.props.group.id} id={"planGroupId-"+this.props.group.id}>
+                                    className="ghx-issues js-issue-list ghx-has-issues tickets connectedSortable ui-sortable droppable ui-droppable"
+                                    style={style1}
+                                    data-skate-ignore="" columnid={this.props.group.id}
+                                    id={"planGroupId-" + this.props.group.id}>
                                     {this.props.group.tickets.map((ticket) => <TicketBar key={ticket.id}
                                                                                          ticket={ticket}/>)}
                                 </div>
@@ -706,8 +712,8 @@
             constructor(props) {
                 super(props);
 
-                const totalPoints = this.props.ticket.statistics.todo + this.props.ticket.statistics.inProgress + this.props.ticket.statistics.done;
-                const prog = totalPoints === 0 ? 0 : this.props.ticket.statistics.done / totalPoints;
+                const prog = this.props.ticket.statistics.completed === 0 ?
+                0 : this.props.ticket.statistics.completed / this.props.ticket.statistics.issues;
 
                 this.state = {
                     panelDetailVisibility: "none",
@@ -781,21 +787,39 @@
 
                                 </div>
                                 <div className="aui-group js-epic-issues-count ghx-issue-count">
-                                    <div className="aui-item">Not started</div>
+                                    <div className="aui-item">Issues</div>
                                     <div className="aui-item">
-                                        <aui-badge className="">{this.props.ticket.statistics.todo}</aui-badge>
+                                        <aui-badge className="">{this.props.ticket.statistics.issues}</aui-badge>
                                     </div>
                                 </div>
                                 <div className="aui-group ghx-issue-count">
+                                    <div className="aui-item">Not started</div>
+                                    <div className="aui-item">
+                                        <aui-badge className="">{this.props.ticket.statistics.notStarted}</aui-badge>
+                                    </div>
+                                </div>
+                                <div className="aui-group js-epic-issues-count ghx-issue-count">
                                     <div className="aui-item">In progress</div>
                                     <div className="aui-item">
                                         <aui-badge className="">{this.props.ticket.statistics.inProgress}</aui-badge>
                                     </div>
                                 </div>
-                                <div className="aui-group ghx-estimates">
+                                <div className="aui-group ghx-issue-count">
                                     <div className="aui-item">Completed</div>
                                     <div className="aui-item">
-                                        <aui-badge className="">{this.props.ticket.statistics.done}</aui-badge>
+                                        <aui-badge className="">{this.props.ticket.statistics.completed}</aui-badge>
+                                    </div>
+                                </div>
+                                <div className="aui-group ghx-estimates">
+                                    <div className="aui-item">Unestimated</div>
+                                    <div className="aui-item">
+                                        <aui-badge className="">{this.props.ticket.statistics.unEstimated}</aui-badge>
+                                    </div>
+                                </div>
+                                <div className="aui-group ghx-estimates">
+                                    <div className="aui-item">Estimated</div>
+                                    <div className="aui-item">
+                                        <aui-badge className="">{this.props.ticket.statistics.estimated}</aui-badge>
                                     </div>
                                 </div>
                                 <div className="aui-group">
@@ -844,6 +868,17 @@
                     })
             }
 
+            showBoardProjectsEpicsDetails = () => {
+                fetch('{% url 'jira:epicDetailsForBoardApiEventVersion1Component' boardId=board.id%}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((json) => {
+                        this.setState({
+                            epicTickets: json.data.epicTickets
+                        })
+                    })
+            }
+
             showAllBacklogGroupsEpicLessTicketsComponent = () => {
                 fetch('{% url 'jira:backlogDetailsEpicLessTicketsApiEventVersion1Component' boardId=board.id%}', {
                     method: 'GET',
@@ -857,6 +892,7 @@
 
             componentDidMount = () => {
                 this.showAllBacklogGroupsAllTicketsComponent();
+                this.showBoardProjectsEpicsDetails();
             }
 
             hideEpicPanel = () => {

@@ -1,20 +1,21 @@
 {% extends "accounts/base.html" %}
 {% load static %}
 {% block content %}
-    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS1.css' %}" data-wrm-key="_super,-_sync"
-          data-wrm-batch-type="context" media="all">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS1.css' %}">
     <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS2.css' %}">
-    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS1.css' %}" data-wrm-key="_super,-_sync"
-          data-wrm-batch-type="context" media="all">
-    <link type="text/css" rel="stylesheet"
-          href="{% static 'css/kanbanBoardCSS2.css' %}?agile_global_admin_condition=true&amp;flexboards=true&amp;jag=true&amp;jaguser=true&amp;slack-enabled=true&amp;user-logged-in=true"
-          data-wrm-key="gh-rapid-work,atl.general,greenhopper-rapid-non-gadget,jira.project.sidebar,atl.global,jira.global,jira.general,com.atlassian.jira.projects.sidebar.init,-_super"
-          data-wrm-batch-type="context" media="all">
-    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS3.css' %}"
-          data-wrm-key="gh-rapid-charts,-_super" data-wrm-batch-type="context" media="all">
-    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS4.css' %}"
-          data-wrm-key="com.atlassian.jira.jira-tzdetect-plugin:tzdetect-banner-component"
-          data-wrm-batch-type="resource" media="all">
+
+    {#    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS1.css' %}" data-wrm-key="_super,-_sync" #}
+    {#          data-wrm-batch-type="context" media="all">#}
+    {#    <link type="text/css" rel="stylesheet"#}
+    {#          href="{% static 'css/kanbanBoardCSS2.css' %}?agile_global_admin_condition=true&amp;flexboards=true&amp;jag=true&amp;jaguser=true&amp;slack-enabled=true&amp;user-logged-in=true"#}
+    {#          data-wrm-key="gh-rapid-work,atl.general,greenhopper-rapid-non-gadget,jira.project.sidebar,atl.global,jira.global,jira.general,com.atlassian.jira.projects.sidebar.init,-_super"#}
+    {#          data-wrm-batch-type="context" media="all">#}
+    {#    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS3.css' %}"#}
+    {#          data-wrm-key="gh-rapid-charts,-_super" data-wrm-batch-type="context" media="all">#}
+    {#    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS4.css' %}"#}
+    {#          data-wrm-key="com.atlassian.jira.jira-tzdetect-plugin:tzdetect-banner-component"#}
+    {#          data-wrm-batch-type="resource" media="all">#}
+
 
     <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
@@ -353,24 +354,25 @@
                         const columnId = $(event.target).attr('columnid');
 
                         $.ajax(
-                        {
-                            url: "{% url 'jira:agileBoardTicketColumnUpdateApiEventVersion1Component' %}",
-                            data:
-                                {
-                                    'columnId': columnId,
-                                    'ticketId': ticketId,
-                                },
-                            type: 'PUT',
-                            dataType: 'json',
-                        }
-                    );
+                            {
+                                url: "{% url 'jira:agileBoardTicketColumnUpdateApiEventVersion1Component' %}",
+                                data:
+                                    {
+                                        'columnId': columnId,
+                                        'ticketId': ticketId,
+                                    },
+                                type: 'PUT',
+                                dataType: 'json',
+                            }
+                        );
                     }
                 });
             }
 
             render() {
                 return (
-                    <li className="ghx-column ui-sortable connectedSortable droppable" columnid={this.props.column.id} id={"columnGroupId-"+this.props.column.id}>
+                    <li className="ghx-column ui-sortable connectedSortable droppable" columnid={this.props.column.id}
+                        id={"columnGroupId-" + this.props.column.id}>
                         {this.state.tickets.map((ticket) => <TicketComponent key={ticket.id} ticket={ticket}/>)}
                     </li>
                 )

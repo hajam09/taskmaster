@@ -1113,11 +1113,17 @@ class BacklogDetailsApiEventVersion1Component(View):
                 # Remove tickets from every other sprints.
                 # Add Tickets to this sprint.
                 # If tickets already in this sprint, then don't change its column.
-                draggedSprint = databaseOperations.getObjectByIdOrNone(openSprints, columnId)
+                draggedToSprint = databaseOperations.getObjectByIdOrNone(openSprints, columnId)
                 ticketList.filter(column__internalKey='BACKLOG').update(column_id=toDoColumn.id, board_id=board.id)
 
+                draggedTicket = list(set(ticketList)-set(draggedToSprint.tickets.all()))
+                if len(draggedTicket) > 0:
+                    draggedTicket[0].board_id = board.id
+                    draggedTicket[0].column_id = toDoColumn.id
+                    draggedTicket[0].save()
+
                 for sprint in openSprints:
-                    if sprint == draggedSprint:
+                    if sprint == draggedToSprint:
                         sprint.addTicketsToSprint(ticketIds)
                     else:
                         sprint.removeTicketsFromSprint(ticketIds)
@@ -1149,20 +1155,39 @@ class EpicDetailsForBoardApiEventVersion1Component(View):
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
-        def epicTicketsStats(childTicket):
-            todo = inProgress = done = 0
+        def epicTicketStats(childTickets):
+            notStarted = 0  # number of pending tickets in this epic
+            inProgress = 0  # number of in progress tickets in this epic
+            issues = 0  # number of tickets in this epic
+            completed = 0  # number of completed tickets in this epic
+            unEstimated = 0  # number of tickets with no story points
+            estimated = 0  # total number of estimated story points
 
-            for ct in childTicket:
-                if ct.column.internalKey == "TO DO":
-                    todo += ct.storyPoints
-                elif ct.column.internalKey == "IN PROGRESS":
-                    inProgress += ct.storyPoints
-                elif ct.column.internalKey == "DONE":
-                    done += ct.storyPoints
+            for childTicket in childTickets:
+                issues += 1
+
+                if childTicket.column.internalKey == "BACKLOG" or childTicket.column.internalKey == "TO DO":
+                    notStarted += 1
+
+                if childTicket.column.internalKey == "IN PROGRESS":
+                    inProgress += 1
+
+                # TODO: What if ticket status can be used to determined the finish line.
+                if childTicket.column.internalKey == "DONE":
+                    completed += 1
+
+                if childTicket.storyPoints is None:
+                    unEstimated += 1
+                else:
+                    estimated += childTicket.storyPoints
+
             data = {
-                'todo': todo,
-                'inProgress': inProgress,
-                'done': done,
+                "notStarted": notStarted,
+                "inProgress": inProgress,
+                "issues": issues,
+                "completed": completed,
+                "unEstimated": unEstimated,
+                "estimated": estimated,
             }
             return data
 
@@ -1176,12 +1201,20 @@ class EpicDetailsForBoardApiEventVersion1Component(View):
             }
             return data
 
-        projectTickets = Ticket.objects.filter(project__in=board.projects.all()).select_related('column', 'epic',
-                                                                                                'issueType')
+        projectTickets = Ticket.objects.filter(
+            project__in=board.projects.all()
+        ).select_related("column", "epic", "issueType")
+
         epicTickets = [pt for pt in projectTickets if pt.issueType.code == "EPIC"]
+
         epicTicketsList = [
-            epicDetails(et, epicTicketsStats(
-                [pt for pt in projectTickets if pt.epic is not None and pt.epic.id == et.id]))
+            epicDetails(et, epicTicketStats(
+                [
+                    pt for pt in projectTickets
+                    if pt.issueType.code != "EPIC" and pt.epic is not None and pt.epic.id == et.id
+                ]
+            )
+                        )
             for et in epicTickets
         ]
         response = {
