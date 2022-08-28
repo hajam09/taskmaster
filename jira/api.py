@@ -1294,6 +1294,9 @@ class TeamChatMessagesApiEventVersion1Component(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class AgileBoardColumnOperationApiEventVersion1Component(View):
 
+    def canDeleteOrEdit(self, columnName):
+        return columnName not in ["BACKLOG", "TO DO", "IN PROGRESS", "DONE"]
+
     def get(self, *args, **kwargs):
         boardId = self.kwargs.get("boardId", None)
 
@@ -1325,7 +1328,8 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
                 "internalKey": column.internalKey,
                 "colour": column.colour,
                 "category": column.category,
-                "columnStatusGroups": columnStatusGroups
+                "columnStatusGroups": columnStatusGroups,
+                "canDelete": self.canDeleteOrEdit(column.internalKey),
             }
             columnGroups.append(columnData)
 
@@ -1459,7 +1463,7 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
 
         put = QueryDict(self.request.body)
         columnAndStatus = json.loads(put.get('columnAndStatus'))
-        columnsInOrder = [int(i['columnId']) for i in columnAndStatus]
+        columnsInOrder = [int(i['columnId']) for i in columnAndStatus if i['columnId'] != "0"]
         setResolutionCheckedStatus = put.getlist('checkedBoxes[]')
 
         columns = Column.objects.filter(Q(board_id=board.id), ~Q(internalKey="BACKLOG"))
@@ -1481,6 +1485,39 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
             "success": True,
         }
         return JsonResponse(response, status=HTTPStatus.OK)
+
+    def delete(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+        try:
+            board = Board.objects.get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        if not self.request.user in board.admins.all():
+            response = {
+                "success": False,
+                "message": "Only admins can make changes to this board."
+            }
+            return JsonResponse(response, status=HTTPStatus.UNAUTHORIZED)
+
+        put = json.loads(self.request.body)
+        function = put.get("function")
+        columnId = put.get("columnId")
+
+        if function == "DELETE_COLUMN":
+            columns = Column.objects.get(Q(id=columnId, board_id=board.id), ~Q(internalKey="BACKLOG"))
+            ColumnStatus.objects.filter(board_id=board.id, column_id=columns.id).update(column=None)
+            columns.delete()
+
+        response = {
+            "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
 
 
 @method_decorator(csrf_exempt, name='dispatch')

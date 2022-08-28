@@ -356,12 +356,12 @@ a {
     margin-top: 0
 }
 
-.ghx-config-status .ghx-header .ghx-config-move {
-    background: url(/jira/s/i1x70t/822006/2xtvkw/8.22.6/_/download/resources/com.pyxis.greenhopper.jira:gh-rapid-common-css/images/kanplan/move-handle.png) no-repeat center;
-    float: left;
-    height: 10px;
-    width: 18px
-}
+/*.ghx-config-status .ghx-header .ghx-config-move {*/
+/*    background: url(/jira/s/i1x70t/822006/2xtvkw/8.22.6/_/download/resources/com.pyxis.greenhopper.jira:gh-rapid-common-css/images/kanplan/move-handle.png) no-repeat center;*/
+/*    float: left;*/
+/*    height: 10px;*/
+/*    width: 18px*/
+/*}*/
 
 .ghx-config-status .ghx-header .ghx-config-delete {
     float: right
