@@ -151,24 +151,29 @@ class Ticket(BaseModel):
     internalKey = models.CharField(max_length=2048, unique=True, db_index=True)  # PROJECT_CODE + PK
     summary = models.CharField(max_length=2048)
     description = models.TextField(blank=True, null=True)
-    fixVersion = models.CharField(max_length=2048, blank=True, null=True)
-    component = models.ManyToManyField(Component, blank=True, related_name="ticketComponents" , limit_choices_to={'componentGroup__code': 'PROJECT_COMPONENTS'})
-    resolution = models.ForeignKey(Component, on_delete=models.SET_NULL, null=True, related_name="ticketResolutions" , limit_choices_to={'componentGroup__code': 'TICKET_RESOLUTIONS'})
+    storyPoints = models.PositiveSmallIntegerField(blank=True, null=True)
     project = models.ForeignKey(Project, on_delete=models.PROTECT, null=True, related_name="projectTickets")
     assignee = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="ticketAssignee")
     reporter = models.ForeignKey(User, on_delete=models.PROTECT, related_name="ticketReporter")
-    colour = ColorField(default='#FF0000')  # EPIC colour
-    storyPoints = models.PositiveSmallIntegerField(blank=True, null=True)
-    manDays = models.PositiveSmallIntegerField(blank=True, null=True)
+    subTask = models.ManyToManyField('Ticket', blank=True, related_name='ticketSubTask')
+    component = models.ManyToManyField(Component, blank=True, related_name="ticketComponents", limit_choices_to={'componentGroup__code': 'PROJECT_COMPONENTS'})
+    resolution = models.ForeignKey(Component, on_delete=models.SET_NULL, null=True, related_name="ticketResolutions" , limit_choices_to={'componentGroup__code': 'TICKET_RESOLUTIONS'})
     issueType = models.ForeignKey(Component, on_delete=models.PROTECT, related_name='ticketIssueType', limit_choices_to={'componentGroup__code': 'TICKET_ISSUE_TYPE'})
     priority = models.ForeignKey(Component, on_delete=models.PROTECT, related_name='ticketPriority', limit_choices_to={'componentGroup__code': 'TICKET_PRIORITY'})
-    board = models.ForeignKey(Board, blank=True, null=True, on_delete=models.SET_NULL)
-    column = models.ForeignKey(Column, null=True, on_delete=models.SET_NULL, related_name='columnTickets')
-    watchers = models.ManyToManyField(User, blank=True, related_name='ticketWatchers')
-    subTask = models.ManyToManyField('Ticket', blank=True, related_name='ticketSubTask')
-    label = models.ManyToManyField(Label, blank=True, related_name='ticketLabels')
+    columnStatus = models.ForeignKey(ColumnStatus, blank=True, null=True, on_delete=models.SET_NULL, related_name='columnStatusTickets')
     epic = models.ForeignKey('Ticket', null=True, blank=True, on_delete=models.SET_NULL, related_name='epicTickets', limit_choices_to={'issueType__code': 'EPIC'})
-    # Is the board attribute still needed. It can be obtained from column.board
+
+    # advanced columns
+    label = models.ManyToManyField(Label, blank=True, related_name='ticketLabels')
+    colour = ColorField(default='#FF0000')  # EPIC colour
+    watchers = models.ManyToManyField(User, blank=True, related_name='ticketWatchers')
+    fixVersion = models.CharField(max_length=2048, blank=True, null=True)
+    manDays = models.PositiveSmallIntegerField(blank=True, null=True)
+
+    # board and column attributes should be deprecated
+    column = models.ForeignKey(Column, null=True, on_delete=models.SET_NULL, related_name='columnTickets')
+    board = models.ForeignKey(Board, blank=True, null=True, on_delete=models.SET_NULL)
+
     class Meta:
         verbose_name = "Ticket"
         verbose_name_plural = "Tickets"

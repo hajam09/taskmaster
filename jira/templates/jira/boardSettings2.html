@@ -67,105 +67,19 @@
             <main role="main" id="main" class="ghx-gh  aui-page-panel">
                 <div id="gh" class="ghx-no-touch">
                     <div id="ghx-header">
-                        <div id="ghx-modes-tools">
-                            <div id="ghx-view-modes" style=""></div>
-                            <span id="ghx-view-pluggable" style="visibility: visible;">
-                                        <div class="btn-group ghx-view-section">
-                                            <button id="board-tools-section-button" type="button"
-                                                    class="btn aui-button dropdown-toggle" data-toggle="dropdown"
-                                                    aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                Board
-                                            </button>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item"
-                                                   href="{% url 'jira:board-settings' url=board.url %}">Settings</a>
-                                            </div>
-                                        </div>
-                                    </span>
-                            <div id="ghx-view-tools"></div>
-                            <div id="ghx-view-presentation">
-                                <button class="aui-button ghx-compact-toggle js-compact-toggle"
-                                        title="Hide the header ( Z )" aria-label="Hide the header" resolved=""><span
-                                        class="aui-icon aui-icon aui-icon-small aui-iconfont-vid-full-screen-on"></span>
-                                </button>
-                            </div>
-                        </div>
                         <div id="ghx-view-selector">
-                            <nav aria-label="breadcrumb">
-                                <ol class="breadcrumb" style="background-color: transparent;">
-                                    <li class="breadcrumb-item"><a href="{% url 'jira:boards-page' %}">Boards</a></li>
-                                    <li class="breadcrumb-item" active><a
-                                            href="{{ board.getUrl }}">{{ board.internalKey }} Board</a></li>
-                                </ol>
-                            </nav>
                             <h1>
-                                <!-- <span id="ghx-board-name" class="subnav-page-header">WA PET Board</span> -->
                                 <span class="subnav-container">
                                         <span id="subnav-title">
                                           <span class="subnavigator-title"
-                                                title="Kanban board">{{ board.internalKey }} board</span>
+                                                title="Kanban board">{{ board.internalKey }} board columns</span>
                                         </span>
-                                        <span id="subnav-trigger"></span>
-                                        <span id="subnav-opts"></span>
                                       </span>
                             </h1>
                         </div>
                     </div>
                     <div id="ghx-content-main" class="ghx-content-main">
-                        <div id="ghx-errors"></div>
-                        <div id="ghx-notify" style="display: none;"></div>
                         <div id="ghx-rabid" style="">
-                            <div id="ghx-operations">
-                                <div id="ghx-controls">
-                                    <div id="ghx-controls-plan" class="ghx-controls-plan ghx-controls-list"
-                                         style="display: none;"></div>
-                                    <div id="ghx-controls-work" class="ghx-controls-work ghx-controls-list">
-                                        <div class="ghx-controls-filters js-quickfilter-selector">
-                                            <dl id="js-work-quickfilters"
-                                                class="aui-expander-content ghx-quick-content">
-                                                <dt id="js-quickfilters-label" class="ghx-cursor-help"
-                                                    title="Use Quick Filters to view a subset of issues. Board owners can add more.">
-                                                    Quick Filters:
-                                                </dt>
-                                                <dd><a role="button" href="#"
-                                                       class="js-quickfilter-button aui-button aui-button-link first  "
-                                                       title="Displays only WA_PET Tickets for specific duration (PET_LIVE_SUPPORT + PET_TECH_IMPROVMENT"
-                                                       data-filter-id="13911" resolved="">Reports - Created in Last
-                                                    week</a></dd>
-                                                <dd><a role="button" href="#"
-                                                       class="js-quickfilter-button aui-button aui-button-link   "
-                                                       title="assignee = Name.Name " data-filter-id="13090" resolved="">Name</a>
-                                                </dd>
-                                                <dd><a role="button" href="#"
-                                                       class="js-quickfilter-button aui-button aui-button-link   "
-                                                       title="assignee = Name.Name " data-filter-id="13009" resolved="">Name</a>
-                                                </dd>
-                                                <dd><a role="button" href="#"
-                                                       class="js-quickfilter-button aui-button aui-button-link   "
-                                                       title="Displays issues which are currently assigned to the current user"
-                                                       data-filter-id="12956" resolved="">Only My Issues</a></dd>
-                                                <dd><a role="button" href="#"
-                                                       class="js-quickfilter-button aui-button aui-button-link  last "
-                                                       title="Displays issues which have been updated in the last day"
-                                                       data-filter-id="12957" resolved="">Recently Updated</a></dd>
-                                                <dd class="ghx-quickfilter-trigger" style="display: none;"><a
-                                                        id="js-work-quickfilters-trigger"
-                                                        data-replace-text="Ã¢â‚¬Â¦ Show fewer"
-                                                        class="aui-expander-trigger"
-                                                        aria-controls="js-work-quickfilters">Ã¢â‚¬Â¦ Show more</a></dd>
-                                            </dl>
-                                        </div>
-                                        <button class="aui-button ghx-compact-toggle js-compact-toggle"
-                                                title="Show the header ( Z )" aria-label="Show the header" resolved="">
-                                            <span class="aui-icon aui-icon aui-icon-small aui-iconfont-vid-full-screen-off"></span>
-                                        </button>
-                                    </div>
-                                    <div id="ghx-controls-report" class="ghx-controls-report"
-                                         style="display: none;"></div>
-                                </div>
-                            </div>
-                            <div id="ghx-plan" style="display: none;"></div>
                             <div id="ghx-report" class="ghx-chart" style="display: none;"></div>
                             <div id="ghx-work" class="ghx-work">
                                 <div id="ghx-pool-column">
@@ -176,7 +90,6 @@
                             <div id="ghx-team"></div>
                         </div>
                     </div>
-                    <div class="ghx-throbber"></div>
                 </div>
             </main>
         </div>
@@ -218,7 +131,7 @@
                             </div>
                             <br></br>
                             <div className="row">
-                                <div className="ghx-qty col">150 issues</div>
+                                <div className="ghx-qty col">{this.props.status.issues} issues</div>
                                 <div className="ghx-done col-auto">
                                     <input id={"resolution-update-" + this.props.status.id}
                                            className="js-resolution-update"
@@ -506,7 +419,7 @@
                                             <select className="form-control" id="columnCategory"
                                                     defaultValue="IN_PROGRESS" ref="columnCategoryInput">
                                                 <option value="TODO">To Do</option>
-                                                <option value="IN_PROGRESS" selected>In progress</option>
+                                                <option value="IN_PROGRESS">In progress</option>
                                                 <option value="DONE">Done</option>
                                             </select>
                                         </div>
@@ -546,7 +459,7 @@
                                             <select className="form-control" id="statusCategory"
                                                     defaultValue="IN_PROGRESS" ref="statusCategoryInput">
                                                 <option value="TODO">To Do</option>
-                                                <option value="IN_PROGRESS" selected>In progress</option>
+                                                <option value="IN_PROGRESS">In progress</option>
                                                 <option value="DONE">Done</option>
                                             </select>
                                         </div>

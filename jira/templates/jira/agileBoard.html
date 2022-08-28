@@ -355,7 +355,7 @@
 
                         $.ajax(
                             {
-                                url: "{% url 'jira:agileBoardTicketColumnUpdateApiEventVersion1Component' %}",
+                                url: "{% url 'jira:agileBoardTicketColumnUpdateApiEventVersion2Component' %}",
                                 data:
                                     {
                                         'columnId': columnId,
@@ -411,7 +411,7 @@
             }
 
             componentDidMount = () => {
-                fetch('{% url 'jira:agileBoardDetailsApiEventVersion1Component' boardId=board.id%}', {
+                fetch('{% url 'jira:agileBoardDetailsApiEventVersion2Component' boardId=board.id%}', {
                     method: 'GET',
                 }).then((response) => response.json())
                     .then((json) => {

@@ -11,7 +11,7 @@ from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team
 from jira.forms import ProjectSettingsForm, TeamForm
-from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label, ColumnStatus
+from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label, ColumnStatus, Sprint
 from taskmaster.operations import emailOperations
 
 cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'), None)
@@ -330,11 +330,19 @@ def boards(request):
             # mandatory ColumnStatus for a board
             ColumnStatus.objects.bulk_create(
                 [
+                    ColumnStatus(internalKey="OPEN", board=newBoard, column=c1, category=Column.Category.TODO, colour="#dfe1e5"),
                     ColumnStatus(internalKey="TO DO", board=newBoard, column=c2, category=Column.Category.TODO, colour="#dfe1e5"),
                     ColumnStatus(internalKey="IN PROGRESS", board=newBoard, column=c3, category=Column.Category.IN_PROGRESS, colour="#deebff"),
                     ColumnStatus(internalKey="DONE", board=newBoard, column=c4, setResolution=True, category=Column.Category.DONE, colour="#e3fcef")
                 ]
             )
+
+            if request.POST['boardType'] == Board.Types.SCRUM:
+                Sprint.objects.create(
+                    board=newBoard,
+                    internalKey=f'{newBoard.internalKey} Sprint {1}',
+                    orderNo=1,
+                )
 
             newBoard.projects.add(*request.POST.getlist('boardProjects'))
             newBoard.members.add(*request.POST.getlist('boardMembers'))
@@ -557,6 +565,12 @@ def newTicketObject(request):
     thisProject = Project.objects.filter(id=request.POST['project']).first()
     newTicketNumber = thisProject.projectTickets.count() + 1
     boardId = request.POST['board'] or None
+    boardObject = Board.objects.get(id=boardId)
+    columnName = "TO DO" if boardObject.type == Board.Types.KANBAN else "OPEN"
+
+    columnStatus = ColumnStatus.objects.get(
+        internalKey__icontains=columnName, board_id=boardId, category=Column.Category.TODO
+    )
 
     newTicket = Ticket()
     newTicket.internalKey = thisProject.code + "-" + str(newTicketNumber)
@@ -569,8 +583,9 @@ def newTicketObject(request):
     newTicket.storyPoints = request.POST["storyPoints"] or None
     newTicket.issueType_id = request.POST["ticketIssueType"] or None
     newTicket.priority_id = request.POST["ticketPriority"] or None
-    newTicket.board_id = boardId
-    newTicket.column = Column.objects.get(board_id=boardId, internalKey='TO DO')
+    # newTicket.board_id = boardId
+    # newTicket.column = Column.objects.get(board_id=boardId, internalKey='TO DO')
+    newTicket.columnStatus = columnStatus
     newTicket.orderNo = newTicketNumber
     newTicket.save()
 

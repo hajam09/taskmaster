@@ -481,7 +481,7 @@
 
                         $.ajax(
                             {
-                                url: "{% url 'jira:backlogDetailsApiEventVersion1Component' boardId=board.id%}",
+                                url: "{% url 'jira:backlogDetailsApiEventVersion2Component' boardId=board.id%}",
                                 data:
                                     {
                                         'columnId': columnId,
@@ -858,7 +858,7 @@
 
 
             showAllBacklogGroupsAllTicketsComponent = () => {
-                fetch('{% url 'jira:backlogDetailsApiEventVersion1Component' boardId=board.id%}', {
+                fetch('{% url 'jira:backlogDetailsApiEventVersion2Component' boardId=board.id%}', {
                     method: 'GET',
                 }).then((response) => response.json())
                     .then((json) => {

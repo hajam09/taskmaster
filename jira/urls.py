@@ -110,9 +110,19 @@ urlpatterns += [
         name='agileBoardDetailsApiEventVersion1Component'
     ),
     path(
+        'api/v2/agileBoardDetailsApiEventVersion2Component/<int:boardId>',
+        AgileBoardDetailsApiEventVersion2Component.as_view(),
+        name='agileBoardDetailsApiEventVersion2Component'
+    ),
+    path(
         'api/v1/agileBoardTicketColumnUpdateApiEventVersion1Component',
         AgileBoardTicketColumnUpdateApiEventVersion1Component.as_view(),
         name='agileBoardTicketColumnUpdateApiEventVersion1Component'
+    ),
+    path(
+        'api/v2/agileBoardTicketColumnUpdateApiEventVersion2Component',
+        AgileBoardTicketColumnUpdateApiEventVersion2Component.as_view(),
+        name='agileBoardTicketColumnUpdateApiEventVersion2Component'
     ),
     path(
         'api/v1/backlogDetailsEpicLessTicketsApiEventVersion1Component/<int:boardId>',
@@ -123,6 +133,11 @@ urlpatterns += [
         'api/v1/backlogDetailsApiEventVersion1Component/<int:boardId>',
         BacklogDetailsApiEventVersion1Component.as_view(),
         name='backlogDetailsApiEventVersion1Component'
+    ),
+    path(
+        'api/v2/backlogDetailsApiEventVersion2Component/<int:boardId>',
+        BacklogDetailsApiEventVersion2Component.as_view(),
+        name='backlogDetailsApiEventVersion2Component'
     ),
     path(
         'api/v1/epicDetailsForBoardApiEventVersion1Component/<int:boardId>',

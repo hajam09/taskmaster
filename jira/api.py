@@ -819,6 +819,34 @@ class AgileBoardTicketColumnUpdateApiEventVersion1Component(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class AgileBoardTicketColumnUpdateApiEventVersion2Component(View):
+
+    def put(self, *args, **kwargs):
+        put = QueryDict(self.request.body)
+
+        columnId = put.get("columnId")
+        ticketId = put.get("ticketId")
+
+        ticket = Ticket.objects.select_related("resolution__componentGroup").get(id=ticketId)
+        column = Column.objects.get(id=columnId)
+        columnStatus = ColumnStatus.objects.filter(column_id=column).first()
+
+        resolvedComponent = Component.objects.get(componentGroup__code="TICKET_RESOLUTIONS", code="RESOLVED")
+        if columnStatus.setResolution:
+            ticket.resolution = resolvedComponent
+        elif ticket.resolution == resolvedComponent:
+            ticket.resolution = Component.objects.get(componentGroup__code="TICKET_RESOLUTIONS", code="REOPENED")
+
+        ticket.columnStatus = columnStatus
+        ticket.save()
+
+        response = {
+            "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class AgileBoardDetailsApiEventVersion1Component(View):
 
     def get(self, *args, **kwargs):
@@ -884,6 +912,79 @@ class AgileBoardDetailsApiEventVersion1Component(View):
         }
         # TODO: Add board details, members of the board, and sprint details...
         return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AgileBoardDetailsApiEventVersion2Component(View):
+
+    def get(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        columnsList = []
+
+        if board.type == Board.Types.SCRUM:
+            currentSprint = Sprint.objects.filter(board__id=boardId, isComplete=False).order_by('orderNo').first()
+            boardColumns = Column.objects.filter(Q(board_id=boardId), ~Q(internalKey="BACKLOG"))
+            columnStatusList = ColumnStatus.objects.filter(
+                Q(board_id=boardId), ~Q(column=None)
+            ).select_related('column')
+
+            if currentSprint is not None:
+                sprintTickets = currentSprint.tickets.filter(
+                    ~Q(issueType__code="EPIC")
+                ).select_related("issueType", "columnStatus", "assignee__profile", "epic", "priority", "resolution")
+
+                for column in boardColumns:
+                    tickets = []
+                    columnStatuses = [i for i in columnStatusList if i.column == column]
+                    columnTickets = [t for t in sprintTickets if t.columnStatus in columnStatuses]
+                    serializeTickets(columnTickets, tickets, False)
+
+                    data = {
+                        "id": column.id,
+                        "internalKey": column.internalKey,
+                        "tickets": tickets
+                    }
+                    columnsList.append(data)
+
+        else:
+            boardColumns = Column.objects.filter(Q(board_id=boardId), ~Q(internalKey="BACKLOG"))
+            columnStatusList = ColumnStatus.objects.filter(Q(board_id=boardId), ~Q(column=None)).select_related('column')
+            allTickets = Ticket.objects.filter(
+                Q(columnStatus__in=columnStatusList), ~Q(issueType__code="EPIC")
+            ).select_related("issueType", "columnStatus", "assignee__profile", "epic", "priority", "resolution")
+
+            for column in boardColumns:
+                tickets = []
+                columnStatuses = [i for i in columnStatusList if i.column == column]
+                columnTickets = [t for t in allTickets if t.columnStatus in columnStatuses]
+                serializeTickets(columnTickets, tickets, False)
+
+                data = {
+                    "id": column.id,
+                    "internalKey": column.internalKey,
+                    "tickets": tickets
+                }
+                columnsList.append(data)
+
+        response = {
+            "success": True,
+            "data": {
+                "columns": columnsList
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -1149,6 +1250,173 @@ class BacklogDetailsApiEventVersion1Component(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class BacklogDetailsApiEventVersion2Component(View):
+
+    def get(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('boardSprints').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        backlogGroups = []
+        if board.type == Board.Types.SCRUM:
+            openSprints = Sprint.objects.filter(board__id=boardId, isComplete=False).order_by('orderNo')
+            for sprint in openSprints:
+                serializedTickets = []
+                sprintTickets = sprint.tickets.filter(~Q(issueType__code="EPIC")).select_related('assignee__profile',
+                                                                                                 'column',
+                                                                                                 'epic', 'issueType',
+                                                                                                 'priority',
+                                                                                                 'resolution')
+                serializeTickets(sprintTickets, serializedTickets, False)
+                sprintData = {
+                    'id': sprint.id,
+                    'internalKey': sprint.internalKey,
+                    'isActive': openSprints[0].id == sprint.id,
+                    'tickets': serializedTickets,
+                }
+                backlogGroups.append(sprintData)
+
+            # Get backlog group and its tickets.
+            backlogTickets = Ticket.objects.filter(
+                ~Q(issueType__code="EPIC"), columnStatus__board__id=boardId, columnStatus__internalKey="OPEN"
+            ).select_related(
+                'assignee__profile',
+                'column',
+                'epic', 'issueType',
+                'priority',
+                'resolution')
+
+            serializedTickets = []
+            serializeTickets(backlogTickets, serializedTickets, False)
+            backlogGroups.append(
+                {
+                    'id': 0,
+                    'internalKey': 'Backlog',
+                    'isActive': False,
+                    'tickets': serializedTickets,
+                }
+            )
+        else:
+            boardTickets = Ticket.objects.filter(~Q(issueType__code="EPIC"), columnStatus__board__id=boardId).select_related(
+                'assignee__profile',
+                'column',
+                'epic', 'issueType',
+                'priority',
+                'resolution')
+
+            # This may show done tickets which are more that two weeks old
+            # boardTickets = [
+            #     ticket for ticket in boardTickets
+            #     if ticket.columnStatus.category != Column.Category.DONE and ticket.modifiedDttm < TWO_WEEKS
+            # ]
+
+            developmentTickets = [i for i in boardTickets if i.columnStatus.internalKey != "OPEN"]
+            backlogTickets = [i for i in boardTickets if i.columnStatus.internalKey == "OPEN"]
+
+            emptyDevelopmentTickets = []
+            emptyBacklogTickets = []
+
+            serializeTickets(developmentTickets, emptyDevelopmentTickets, False)
+            serializeTickets(backlogTickets, emptyBacklogTickets, False)
+
+            backlogGroups.append(
+                {
+                    "id": 1,
+                    "internalKey": "In development",
+                    "isActive": True,
+                    "tickets": emptyDevelopmentTickets
+                }
+            )
+            backlogGroups.append(
+                {
+                    "id": 0,
+                    "internalKey": "Backlog",
+                    "isActive": False,
+                    "tickets": emptyBacklogTickets
+                }
+            )
+
+        response = {
+            "success": True,
+            "data": {
+                "backlogGroups": backlogGroups,
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def put(self, *args, **kwargs):
+        boardId = self.kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('boardColumns').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        put = QueryDict(self.request.body)
+        columnId = put.get('columnId')
+        ticketIds = put.getlist('ticketIds[]')
+        ticketList = Ticket.objects.filter(id__in=ticketIds)
+        toDoColumn = ColumnStatus.objects.get(internalKey="TO DO", board_id=board.id, column__internalKey="TO DO")
+        backLogColumn = ColumnStatus.objects.get(internalKey="OPEN", board_id=board.id, column__internalKey="BACKLOG")
+
+        if board.type == Board.Types.SCRUM:
+            openSprints = Sprint.objects.filter(board__id=boardId, isComplete=False)
+
+            if columnId == '0':
+                # Tickets are sent to backlog.
+                # Remove from all the sprints.
+                # Set the column to backlog
+                ticketList.update(columnStatus=backLogColumn)
+                for sprint in openSprints:
+                    sprint.removeTicketsFromSprint(ticketIds)
+
+            else:
+                # Tickets are moved to sprint planning from other sprints or backlog.
+                # Add all the tickets to this sprint, but remove from other sprints.
+                # Set the new ticket column to TO DO column.
+                draggedToSprint = databaseOperations.getObjectByIdOrNone(openSprints, columnId)
+                draggedTickets = list(set(ticketList)-set(draggedToSprint.tickets.all()))
+
+                for i in draggedTickets:
+                    i.columnStatus = toDoColumn
+
+                Ticket.objects.bulk_update(draggedTickets, ['columnStatus'])
+
+                for sprint in openSprints:
+                    if sprint == draggedToSprint:
+                        sprint.addTicketsToSprint(ticketIds)
+                    else:
+                        sprint.removeTicketsFromSprint(ticketIds)
+
+        else:
+            if columnId == '0':
+                # Ticket is sent to Backlog
+                ticketList.update(columnStatus=backLogColumn)
+            else:
+                # Ticket is sent to In development
+                ticketList.filter(
+                    columnStatus__internalKey='OPEN', columnStatus__board_id=boardId
+                ).update(columnStatus=toDoColumn)
+
+        response = {
+            "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class EpicDetailsForBoardApiEventVersion1Component(View):
     def get(self, *args, **kwargs):
         boardId = self.kwargs.get("boardId", None)
@@ -1310,7 +1578,7 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
         columnGroups = []
-        for column in Column.objects.filter(Q(board_id=board.id), ~Q(internalKey="BACKLOG")):
+        for column in Column.objects.filter(Q(board_id=board.id), ~Q(internalKey="BACKLOG")).prefetch_related("columnStatus__columnStatusTickets"):
 
             columnStatusGroups = []
             for columnStatus in column.columnStatus.all():
@@ -1318,6 +1586,7 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
                     "id": columnStatus.id,
                     "internalKey": columnStatus.internalKey,
                     "setResolution": columnStatus.setResolution,
+                    "issues": columnStatus.columnStatusTickets.count(),
                     "colour": columnStatus.colour,
                     "category": columnStatus.category,
                 }
@@ -1339,11 +1608,12 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
                 "id": i.id,
                 "internalKey": i.internalKey,
                 "setResolution": i.setResolution,
+                "issues": i.columnStatusTickets.count(),
                 "colour": i.colour,
                 "category": i.category
             }
 
-            for i in ColumnStatus.objects.filter(board_id=boardId, column=None)
+            for i in ColumnStatus.objects.filter(board_id=boardId, column=None).prefetch_related("columnStatusTickets")
         ]
 
         unMappedStatusColumn = {
@@ -1473,7 +1743,11 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
         Column.objects.bulk_update(columns, ['orderNo'])
 
         for i in columnAndStatus:
-            ColumnStatus.objects.filter(id__in=i['statusIds'], board_id=board.id).update(column_id=i['columnId'])
+            thisColumnsColumnStatus = ColumnStatus.objects.filter(id__in=i['statusIds'], board_id=board.id)
+            if i['columnId'] == "0":
+                thisColumnsColumnStatus.update(column=None)
+            else:
+                thisColumnsColumnStatus.update(column_id=i['columnId'])
 
         thisBoardsColumnStatus = ColumnStatus.objects.filter(board_id=board.id)
         for columnStatus in thisBoardsColumnStatus:
