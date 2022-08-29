@@ -455,7 +455,7 @@
                         completedPoints: _completedPoints,
                         totalPoints: _notStartedPoints + _inProgressPoints + _completedPoints,
                     },
-                    sprintOptionAllowed: !(this.props.group.id === 0 && this.props.group.internalKey === 'Backlog'),
+                    sprintOptionAllowed: !((this.props.group.id === 0 && this.props.group.internalKey === 'Backlog') || (this.props.group.id === 1 && this.props.group.internalKey === 'In development')),
                 }
 
             }
@@ -473,6 +473,7 @@
                         const ticketId = ui.draggable.attr('data-issue-id');
                         const columnId = $(event.target).attr('columnid');
 
+                        // BUG
                         let ticketIds = $.map($(`#planGroupId-${columnId} > div`), div => div.id);
                         for (let i = 0; i < ticketIds.length; i++) {
                             if (ticketIds[i] === '')

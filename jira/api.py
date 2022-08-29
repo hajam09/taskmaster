@@ -1852,6 +1852,13 @@ class SprintObjectApiEventVersion1Component(View):
         sprintId = put.get("sprintId")
         function = put.get("function")
 
+        if board.type != Board.Types.SCRUM:
+            response = {
+                "success": False,
+                "message": "Cannot perform sprint actions for non SCRUM boards."
+            }
+            return JsonResponse(response, status=HTTPStatus.OK)
+
         if function == 'COMPLETE_SPRINT':
             # TODO: OPTIMISE THIS!!!
             """
