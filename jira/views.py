@@ -381,7 +381,7 @@ def boardSettings(request, url):
 @login_required
 def boardSettings2(request, url):
     try:
-        thisBoard = Board.objects.prefetch_related('boardColumns__columnStatus').get(url=url)
+        thisBoard = Board.objects.prefetch_related('boardColumns').get(url=url)
     except Board.DoesNotExist:
         raise Http404
 

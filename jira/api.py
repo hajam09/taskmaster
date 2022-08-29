@@ -963,10 +963,20 @@ class AgileBoardDetailsApiEventVersion2Component(View):
                 Q(columnStatus__in=columnStatusList), ~Q(issueType__code="EPIC")
             ).select_related("issueType", "columnStatus", "assignee__profile", "epic", "priority", "resolution")
 
+            today = datetime.now().date()
+
             for column in boardColumns:
                 tickets = []
                 columnStatuses = [i for i in columnStatusList if i.column == column]
                 columnTickets = [t for t in allTickets if t.columnStatus in columnStatuses]
+
+                # For KANBAN BOARD remove two weeks old Done Tickets.
+                if column.category == Column.Category.DONE:
+                    columnTickets = [
+                        ticket for ticket in columnTickets
+                        if (today - datetime.strptime(str(ticket.modifiedDttm.date()), '%Y-%m-%d').date()).days <= 14
+                    ]
+
                 serializeTickets(columnTickets, tickets, False)
 
                 data = {
@@ -1311,11 +1321,16 @@ class BacklogDetailsApiEventVersion2Component(View):
                 'priority',
                 'resolution')
 
-            # This may show done tickets which are more that two weeks old
-            # boardTickets = [
-            #     ticket for ticket in boardTickets
-            #     if ticket.columnStatus.category != Column.Category.DONE and ticket.modifiedDttm < TWO_WEEKS
-            # ]
+            """
+            Remove old tickets from DONE column
+            show: Not done tickets
+            show: Done tickets and modifiedDttm <= 14
+            """
+            today = datetime.now().date()
+            boardTickets = [
+                i for i in boardTickets
+                if i.columnStatus.category != ColumnStatus.Category.DONE or (i.columnStatus.category == ColumnStatus.Category.DONE and (today - datetime.strptime(str(i.modifiedDttm.date()), '%Y-%m-%d').date()).days <= 14)
+            ]
 
             developmentTickets = [i for i in boardTickets if i.columnStatus.internalKey != "OPEN"]
             backlogTickets = [i for i in boardTickets if i.columnStatus.internalKey == "OPEN"]
@@ -1413,7 +1428,6 @@ class BacklogDetailsApiEventVersion2Component(View):
             "success": True,
         }
         return JsonResponse(response, status=HTTPStatus.OK)
-
 
 
 @method_decorator(csrf_exempt, name='dispatch')
