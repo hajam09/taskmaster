@@ -492,31 +492,39 @@ def projectSettings(request, url):
 
 
 def issuesListView(request):
+    """
+    TODO: Use serializeTickets() to follow DRY.
+    TODO: Display status values with CSS.
+    TODO: Allow users to add dropdown manually.
+    TODO: User pagination to improve query performance.
+    """
     filterDict = {}
     for key, value in request.GET.items():
         filterDict[f'{key}__code__in'] = value.split(',')
 
     allTickets = Ticket.objects.filter(**filterDict).select_related(
-        'resolution', 'issueType', 'assignee__profile', 'reporter__profile', 'priority', 'column'
+        'resolution', 'issueType', 'assignee__profile', 'reporter__profile', 'priority', 'columnStatus'
     )
 
-    # TODO: serializeTickets
     tickets = [
         {
             'id': t.id,
             'internalKey': t.internalKey,
             'summary': t.summary,
-            'resolution': t.resolution.internalKey,
             'created': t.createdDttm.date(),
             'modified': t.modifiedDttm.date(),
             'link': t.getTicketUrl(),
+            'resolution': {
+                "internalKey": t.resolution.internalKey,
+                "code": t.resolution.code,
+            },
             'issueType': {
                 'internalKey': t.issueType.internalKey,
                 'icon': t.issueType.icon,
             },
-            'column': {
-                'internalKey': t.column.internalKey,
-                'colour': t.column.colour,
+            'status': {
+                'internalKey': t.columnStatus.internalKey,
+                'colour': t.columnStatus.colour,
             },
             'priority': {
                 'internalKey': t.priority.internalKey,

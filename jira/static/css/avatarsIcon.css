@@ -4,11 +4,11 @@
     margin: 0;
 }
 
-.avatars>li {
+.avatars > li {
     display: inline-block;
 }
 
-.avatars>li+li {
+.avatars > li + li {
     margin-left: -0.75rem;
 }
 

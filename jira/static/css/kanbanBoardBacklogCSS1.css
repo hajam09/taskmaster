@@ -302,7 +302,7 @@ input[type=submit] {
     font-family: inherit
 }
 
-@media (min--moz-device-pixel-ratio:0) {
+@media (min--moz-device-pixel-ratio: 0) {
     img {
         font-size: 0
     }
@@ -454,23 +454,23 @@ a.aui-skip-link:focus {
     color: var(--aui-lesser-body-text)
 }
 
-#footer .footer-body>p,
-#footer .footer-body>ul {
+#footer .footer-body > p,
+#footer .footer-body > ul {
     margin: 10px 0 0
 }
 
-#footer .footer-body>ul:first-child {
+#footer .footer-body > ul:first-child {
     margin: 0
 }
 
-#footer .footer-body>ul {
+#footer .footer-body > ul {
     display: block;
     font-size: 0;
     list-style: none;
     padding: 0
 }
 
-#footer .footer-body>ul>li {
+#footer .footer-body > ul > li {
     display: inline-block;
     font-size: 12px;
     line-height: 1.66666667;
@@ -478,17 +478,17 @@ a.aui-skip-link:focus {
     white-space: nowrap
 }
 
-#footer .footer-body>ul>li+li {
+#footer .footer-body > ul > li + li {
     margin-left: 10px
 }
 
-#footer .footer-body>ul>li:after {
+#footer .footer-body > ul > li:after {
     content: "\b7";
     margin-left: 10px;
     speak: none
 }
 
-#footer .footer-body>ul>li:last-child:after {
+#footer .footer-body > ul > li:last-child:after {
     display: none
 }
 
@@ -521,7 +521,7 @@ body {
     width: 100%
 }
 
-*~.aui-page-panel {
+* ~ .aui-page-panel {
     border-top-width: 1px;
     margin-top: 20px
 }
@@ -756,7 +756,7 @@ form.aui:not(.aui-legacy-forms) .text::-ms-input-placeholder {
     opacity: 1
 }
 
-form.aui:not(.aui-legacy-forms) .radio input:checked:active:not(:disabled)+.aui-form-glyph:before {
+form.aui:not(.aui-legacy-forms) .radio input:checked:active:not(:disabled) + .aui-form-glyph:before {
     height: 14px;
     width: 14px;
     background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbC1ydWxlPSJldmVub2RkIj48Y2lyY2xlIGZpbGw9IiNERUVCRkYiIGN4PSIxMiIgY3k9IjEyIiByPSI3Ii8+PGNpcmNsZSBmaWxsPSIjMDA1MkNDIiBjeD0iMTIiIGN5PSIxMiIgcj0iMi4zMzUiLz48L2c+PC9zdmc+") no-repeat -5px -5px;
@@ -767,7 +767,7 @@ form.aui:not(.aui-legacy-forms) .radio input:checked:active:not(:disabled)+.aui-
     content: " "
 }
 
-form.aui:not(.aui-legacy-forms) .radio input:not(:checked)+.aui-form-glyph:before {
+form.aui:not(.aui-legacy-forms) .radio input:not(:checked) + .aui-form-glyph:before {
     display: inline-block;
     width: 10px;
     height: 10px;
@@ -780,7 +780,7 @@ form.aui:not(.aui-legacy-forms) .radio input:not(:checked)+.aui-form-glyph:befor
     border-radius: 10px
 }
 
-form.aui:not(.aui-legacy-forms) .radio input:not(:checked):active:not(:disabled)+.aui-form-glyph:before {
+form.aui:not(.aui-legacy-forms) .radio input:not(:checked):active:not(:disabled) + .aui-form-glyph:before {
     height: 14px;
     width: 14px;
     background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBmaWxsPSIjREVFQkZGIiBjeD0iMTIiIGN5PSIxMiIgcj0iNyIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+") no-repeat -5px -5px;
@@ -792,17 +792,17 @@ form.aui:not(.aui-legacy-forms) .radio input:not(:checked):active:not(:disabled)
     border: none
 }
 
-form.aui:not(.aui-legacy-forms) .radio input:not(:checked):disabled~label {
+form.aui:not(.aui-legacy-forms) .radio input:not(:checked):disabled ~ label {
     color: var(--aui-form-disabled-field-label-color)
 }
 
-form.aui:not(.aui-legacy-forms) .radio input:not(:checked):disabled+.aui-form-glyph:before {
+form.aui:not(.aui-legacy-forms) .radio input:not(:checked):disabled + .aui-form-glyph:before {
     color: var(--aui-form-glyph-disabled-icon-color);
     border-color: var(--aui-form-glyph-disabled-fill-color);
     background: var(--aui-form-glyph-disabled-fill-color)
 }
 
-form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked)+.aui-form-glyph:before {
+form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked) + .aui-form-glyph:before {
     display: inline-block;
     width: 10px;
     height: 10px;
@@ -815,16 +815,16 @@ form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked)+.aui-form-glyph:be
     border-radius: 4px
 }
 
-form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked):active+.aui-form-glyph:before {
+form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked):active + .aui-form-glyph:before {
     background-color: var(--aui-form-checkbox-active-bg-color);
     border-color: var(--aui-form-checkbox-active-bg-color)
 }
 
-form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked):disabled~label {
+form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked):disabled ~ label {
     color: var(--aui-form-disabled-field-label-color)
 }
 
-form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked):disabled+.aui-form-glyph:before {
+form.aui:not(.aui-legacy-forms) .checkbox input:not(:checked):disabled + .aui-form-glyph:before {
     color: var(--aui-form-glyph-disabled-icon-color);
     border-color: var(--aui-form-glyph-disabled-fill-color);
     background: var(--aui-form-glyph-disabled-fill-color)
@@ -990,7 +990,7 @@ a.aui-button {
     line-height: 1.66666667
 }
 
-.aui-button~.aui-button {
+.aui-button ~ .aui-button {
     margin-left: 10px
 }
 
@@ -1076,11 +1076,11 @@ a.aui-button {
     flex-grow: 1
 }
 
-.aui-page-header-image+.aui-page-header-main {
+.aui-page-header-image + .aui-page-header-main {
     padding-left: 10px
 }
 
-.aui-page-header-main>h1 {
+.aui-page-header-main > h1 {
     margin: 0
 }
 
@@ -1093,22 +1093,22 @@ a.aui-button {
     width: 100%
 }
 
-.aui-group>.aui-item {
+.aui-group > .aui-item {
     box-sizing: border-box;
     display: table-cell;
     margin: 0;
     vertical-align: top
 }
 
-.aui-group>.aui-item+.aui-item {
+.aui-group > .aui-item + .aui-item {
     padding-left: 20px
 }
 
-.aui-group.aui-group-split>.aui-item {
+.aui-group.aui-group-split > .aui-item {
     text-align: right
 }
 
-.aui-group.aui-group-split>.aui-item:first-child {
+.aui-group.aui-group-split > .aui-item:first-child {
     text-align: left
 }
 
@@ -1145,7 +1145,7 @@ html:not(.aui-no-focusvisible) .aui-layer:focus-visible {
 /* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.b652d2668a', location = 'aui.splitchunk.b652d2668a.css' */
 /*! AUI Navigation */
 .aui-nav,
-.aui-nav>li {
+.aui-nav > li {
     list-style: none;
     margin: 0;
     padding: 0
@@ -1162,14 +1162,14 @@ html:not(.aui-no-focusvisible) .aui-layer:focus-visible {
     padding: 0 10px
 }
 
-.aui-navgroup-vertical .aui-nav>li {
+.aui-navgroup-vertical .aui-nav > li {
     overflow-wrap: break-word;
     color: var(--aui-item-text, var(--aui-body-text));
     text-decoration: none
 }
 
-.aui-navgroup-vertical .aui-nav>li,
-.aui-navgroup-vertical .aui-nav>li>a {
+.aui-navgroup-vertical .aui-nav > li,
+.aui-navgroup-vertical .aui-nav > li > a {
     border-radius: var(--aui-item-border-radius, 3px);
     box-sizing: initial;
     display: block;
@@ -1178,7 +1178,7 @@ html:not(.aui-no-focusvisible) .aui-layer:focus-visible {
     background-color: var(--aui-item-bg, transparent)
 }
 
-.aui-navgroup-vertical .aui-nav>li>a {
+.aui-navgroup-vertical .aui-nav > li > a {
     color: inherit;
     text-decoration: inherit;
     margin: -7px -10px;
@@ -1187,17 +1187,17 @@ html:not(.aui-no-focusvisible) .aui-layer:focus-visible {
     cursor: pointer
 }
 
-.aui-navgroup-vertical .aui-nav>li>a:hover {
+.aui-navgroup-vertical .aui-nav > li > a:hover {
     background-color: var(--aui-item-focus-bg);
     color: var(--aui-item-focus-text, inherit)
 }
 
-.aui-navgroup-vertical .aui-nav>li>a:active {
+.aui-navgroup-vertical .aui-nav > li > a:active {
     background-color: var(--aui-item-active-bg);
     color: var(--aui-item-active-text)
 }
 
-.aui-navgroup-vertical .aui-nav>li>a:focus {
+.aui-navgroup-vertical .aui-nav > li > a:focus {
     outline-style: none;
     box-shadow: 0 0 0 2px var(--aui-focus);
     text-decoration: none
@@ -1284,13 +1284,13 @@ html:not(.aui-no-focusvisible) .aui-layer:focus-visible {
     margin-top: 0
 }
 
-.aui-dropdown2 .aui-dropdown2-section+.aui-dropdown2-section {
+.aui-dropdown2 .aui-dropdown2-section + .aui-dropdown2-section {
     border-top: 1px solid var(--aui-dropdown-border-color);
     padding-top: 3px
 }
 
 .aui-dropdown2 .aui-dropdown2-heading,
-.aui-dropdown2 .aui-dropdown2-section>strong {
+.aui-dropdown2 .aui-dropdown2-section > strong {
     color: var(--aui-itemheading-text);
     font-size: 11px;
     font-weight: 600;
@@ -1301,13 +1301,13 @@ html:not(.aui-no-focusvisible) .aui-layer:focus-visible {
     padding: 7px 10px
 }
 
-.aui-dropdown2 .aui-dropdown2-heading>strong {
+.aui-dropdown2 .aui-dropdown2-heading > strong {
     font-size: inherit;
     font-weight: inherit;
     line-height: inherit
 }
 
-.aui-dropdown2 strong+ul {
+.aui-dropdown2 strong + ul {
     margin-top: 0
 }
 
@@ -1471,33 +1471,33 @@ aui-dropdown-menu {
     vertical-align: text-bottom
 }
 
-.aui-header .aui-header-primary>.aui-nav,
-.aui-header .aui-header-secondary>.aui-nav {
+.aui-header .aui-header-primary > .aui-nav,
+.aui-header .aui-header-secondary > .aui-nav {
     align-items: center;
     display: flex;
     justify-content: space-around
 }
 
-.aui-header .aui-header-primary>.aui-nav>li>a,
-.aui-header .aui-header-secondary>.aui-nav>li>a {
+.aui-header .aui-header-primary > .aui-nav > li > a,
+.aui-header .aui-header-secondary > .aui-nav > li > a {
     white-space: nowrap;
     display: inline-block
 }
 
-.aui-header .aui-header-secondary>.aui-nav>li>a>.aui-avatar img {
+.aui-header .aui-header-secondary > .aui-nav > li > a > .aui-avatar img {
     max-height: calc(var(--aui-appheader-logo-height, var(--aui-appheader-item-height, 100%)) - 10px);
     display: inline-block;
     vertical-align: text-bottom
 }
 
-.aui-header .aui-header-before>:not(.aui-layer),
+.aui-header .aui-header-before > :not(.aui-layer),
 .aui-header .aui-header-logo {
     color: var(--aui-appheader-text-color, var(--aui-body-text))
 }
 
-.aui-header .aui-header-logo>a,
-.aui-header .aui-header-primary>.aui-nav>li>a:not(.aui-button),
-.aui-header .aui-header-secondary>.aui-nav>li>a:not(.aui-button) {
+.aui-header .aui-header-logo > a,
+.aui-header .aui-header-primary > .aui-nav > li > a:not(.aui-button),
+.aui-header .aui-header-secondary > .aui-nav > li > a:not(.aui-button) {
     display: flex;
     align-items: center;
     border-radius: var(--aui-appheader-item-border-radius);
@@ -1509,39 +1509,39 @@ aui-dropdown-menu {
     text-decoration: none
 }
 
-.aui-header .aui-header-logo>a:focus,
-.aui-header .aui-header-logo>a:hover,
-.aui-header .aui-header-primary>.aui-nav>li>a:not(.aui-button):focus,
-.aui-header .aui-header-primary>.aui-nav>li>a:not(.aui-button):hover,
-.aui-header .aui-header-secondary>.aui-nav>li>a:not(.aui-button):focus,
-.aui-header .aui-header-secondary>.aui-nav>li>a:not(.aui-button):hover {
+.aui-header .aui-header-logo > a:focus,
+.aui-header .aui-header-logo > a:hover,
+.aui-header .aui-header-primary > .aui-nav > li > a:not(.aui-button):focus,
+.aui-header .aui-header-primary > .aui-nav > li > a:not(.aui-button):hover,
+.aui-header .aui-header-secondary > .aui-nav > li > a:not(.aui-button):focus,
+.aui-header .aui-header-secondary > .aui-nav > li > a:not(.aui-button):hover {
     background-color: var(--aui-appheader-item-focus-bg-color);
     color: var(--aui-appheader-item-focus-text-color, inherit)
 }
 
-.aui-header .aui-header-logo>a:focus,
-.aui-header .aui-header-primary>.aui-nav>li>a:not(.aui-button):focus,
-.aui-header .aui-header-secondary>.aui-nav>li>a:not(.aui-button):focus {
+.aui-header .aui-header-logo > a:focus,
+.aui-header .aui-header-primary > .aui-nav > li > a:not(.aui-button):focus,
+.aui-header .aui-header-secondary > .aui-nav > li > a:not(.aui-button):focus {
     outline-style: none;
     box-shadow: inset 0 0 0 2px var(--aui-focus)
 }
 
-.aui-header .aui-header-logo>a:active,
-.aui-header .aui-header-primary>.aui-nav>li>a:not(.aui-button):active,
-.aui-header .aui-header-secondary>.aui-nav>li>a:not(.aui-button):active {
+.aui-header .aui-header-logo > a:active,
+.aui-header .aui-header-primary > .aui-nav > li > a:not(.aui-button):active,
+.aui-header .aui-header-secondary > .aui-nav > li > a:not(.aui-button):active {
     background-color: var(--aui-appheader-item-active-bg-color);
     color: var(--aui-appheader-item-active-text-color)
 }
 
-.aui-header .aui-header-primary>.aui-nav>li>.aui-button {
+.aui-header .aui-header-primary > .aui-nav > li > .aui-button {
     margin-left: 10px
 }
 
-.aui-header .aui-header-secondary>.aui-nav>li>.aui-quicksearch {
+.aui-header .aui-header-secondary > .aui-nav > li > .aui-quicksearch {
     margin-right: 10px
 }
 
-.aui-header .aui-header-secondary>.aui-nav>li>a>.aui-icon {
+.aui-header .aui-header-secondary > .aui-nav > li > a > .aui-icon {
     --aui-icon-size: 24px
 }
 
@@ -1702,13 +1702,16 @@ aui-inline-dialog:before {
     border-bottom-color: var(--aui-inline-dialog-border-color)
 }
 
-@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {}
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {
+}
 
 /* module-key = 'com.atlassian.auiplugin:split_aui.deprecated.component.dropdown1', location = 'aui.deprecated.component.dropdown1.css' */
-@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {}
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {
+}
 
 /* module-key = 'com.atlassian.auiplugin:split_aui.deprecated.component.dialog1', location = 'aui.deprecated.component.dialog1.css' */
-@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {}
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {
+}
 
 /* module-key = 'com.atlassian.auiplugin:split_aui.component.tabs', location = 'aui.component.tabs.css' */
 /* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.a2b2c71491', location = 'aui.splitchunk.a2b2c71491.css' */
@@ -1762,7 +1765,7 @@ aui-spinner .aui-spinner {
     height: 100%
 }
 
-aui-spinner .aui-spinner>svg {
+aui-spinner .aui-spinner > svg {
     position: absolute;
     top: 0;
     right: 0;
@@ -1771,10 +1774,10 @@ aui-spinner .aui-spinner>svg {
     animation: spinnerRotateAnimation .86s cubic-bezier(.4, .15, .6, .85) infinite;
     fill: none;
     stroke: currentColor;
-    stroke-dasharray: calc(var(--aui-spinner-size)*2.8);
-    stroke-dashoffset: calc(var(--aui-spinner-size)*2.25);
+    stroke-dasharray: calc(var(--aui-spinner-size) * 2.8);
+    stroke-dashoffset: calc(var(--aui-spinner-size) * 2.25);
     stroke-linecap: round;
-    stroke-width: calc(var(--aui-spinner-size)/10);
+    stroke-width: calc(var(--aui-spinner-size) / 10);
     transform-origin: center
 }
 
@@ -1803,13 +1806,9 @@ aui-spinner .aui-spinner>svg {
 
 /* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.3d2cb1af14', location = 'aui.splitchunk.3d2cb1af14.css' */
 /* module-key = 'com.atlassian.auiplugin:split_aui.component.flag', location = 'aui.component.flag.css' */
-@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {}
+@supports (-ms-accelerator:true) or (-ms-ime-align:auto) {
+}
 
-/* module-key = 'jira.webresources:icons', location = '/ui/aui-layout/icons.less' */
-/* module-key = 'jira.webresources:list-styles', location = '/includes/ajs/list/list.less' */
-/* module-key = 'jira.webresources:inline-layer', location = '/includes/ajs/layer/layer.less' */
-/* module-key = 'jira.webresources:dropdown', location = '/includes/ajs/dropdown/Dropdown.less' */
-/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.23f50a6f00', location = 'aui.splitchunk.23f50a6f00.css' */
 .aui-tooltip {
     background-color: var(--aui-tooltip-bg-color);
     padding: 2px 6px;
@@ -1845,36 +1844,12 @@ aui-spinner .aui-spinner>svg {
     --jira-issue-status-hover-success-bgcolor: #064
 }
 
-/* module-key = 'com.atlassian.plugins.issue-status-plugin:issue-status-resources', location = '/css/a11y-patterns.less' */
-
-/* module-key = 'jira.webresources:issue-table', location = '/ui/aui-layout/issue-table.less' */
-/* module-key = 'jira.webresources:issue-table', location = '/includes/jquery/plugins/dragtable/dragtable.css' */
-/*! THIS FILE HAS BEEN MODIFIED BY ATLASSIAN. Modified lines are marked below, search "Atlassian" */
-/*
- * dragtable
- *
- * @Version 2.0.0
- *
- * default css
- *
- */
-/*##### the dragtable stuff #####*/
-
-/*! BEGIN Modified by Atlassian */
-/*! END Modified by Atlassian */
-
-/* module-key = 'jira.webresources:js-soy-templates', location = '/includes/templates/jira/links.less' */
-/* module-key = 'jira.webresources:js-soy-templates', location = '/includes/templates/jira/header/pageHeader.less' */
-/* module-key = 'jira.webresources:page-loading-indicator', location = '/includes/jira/loading/Loading.less' */
-/* module-key = 'jira.webresources:frother-queryable-dropdown-select', location = '/includes/ajs/select/QueryableDropdownSelect.less' */
-/* module-key = 'jira.webresources:frother-singleselect', location = '/includes/ajs/select/SingleSelect.less' */
-/* module-key = 'jira.webresources:frother-multiselect', location = '/includes/ajs/select/MultiSelect.less' */
-.jira-multi-select>textarea.text:not(:focus) {
+.jira-multi-select > textarea.text:not(:focus) {
     background: #ebecf0;
     border-color: transparent
 }
 
-.jira-multi-select>textarea.text:not(:focus):hover {
+.jira-multi-select > textarea.text:not(:focus):hover {
     background-color: #dfe1e5
 }
 
@@ -1882,22 +1857,6 @@ aui-spinner .aui-spinner>svg {
     background-color: #dfe1e5
 }
 
-.jira-multi-select:hover textarea:not(:focus)~.representation button {
+.jira-multi-select:hover textarea:not(:focus) ~ .representation button {
     background-color: #fff
 }
-
-/* module-key = 'jira.webresources:frother-checkbox-multiselect', location = '/includes/ajs/select/CheckboxMultiSelect.less' */
-/* module-key = 'jira.webresources:select-pickers', location = '/includes/jira/field/IssuePicker.less' */
-/* module-key = 'jira.webresources:shifter', location = '/includes/jira/shifter/shifter.less' */
-/* module-key = 'jira.webresources:dialogs', location = '/includes/jira/dialog/dialog.less' */
-/* module-key = 'jira.webresources:mentions-feature', location = '/includes/jira/mention/Mention.less' */
-/* module-key = 'com.atlassian.auiplugin:split_aui.component.banner', location = 'aui.component.banner.css' */
-/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.vendors--fc45e4dda1', location = 'aui.splitchunk.vendors--fc45e4dda1.css' */
-/*!
- * jQuery UI Sortable 1.12.1
- * http://jqueryui.com
- *
- * Copyright jQuery Foundation and other contributors
- * Released under the MIT license.
- * http://jquery.org/license
- */
