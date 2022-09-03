@@ -12,7 +12,7 @@ from django.shortcuts import render, redirect
 from accounts.models import Profile, Component, Team
 from jira.forms import ProjectSettingsForm, TeamForm
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label, ColumnStatus, Sprint
-from taskmaster.operations import emailOperations
+from taskmaster.operations import emailOperations, generalOperations
 
 cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'), None)
 cache.set('PROJECT_STATUS', Component.objects.filter(componentGroup__code='PROJECT_STATUS'), None)
@@ -508,42 +508,20 @@ def issuesListView(request):
 
     tickets = [
         {
-            'id': t.id,
-            'internalKey': t.internalKey,
-            'summary': t.summary,
-            'created': t.createdDttm.date(),
-            'modified': t.modifiedDttm.date(),
-            'link': t.getTicketUrl(),
-            'resolution': {
-                "internalKey": t.resolution.internalKey,
-                "code": t.resolution.code,
-            },
-            'issueType': {
-                'internalKey': t.issueType.internalKey,
-                'icon': t.issueType.icon,
-            },
-            'status': {
-                'internalKey': t.columnStatus.internalKey,
-                'colour': t.columnStatus.colour,
-            },
-            'priority': {
-                'internalKey': t.priority.internalKey,
-                'icon': t.priority.icon
-            },
-            'assignee': {
-                'id': t.assignee.pk,
-                'firstName': t.assignee.first_name,
-                'lastName': t.assignee.last_name,
-                'icon': t.assignee.profile.profilePicture.url
-            } if t.assignee is not None else None,
-            'reporter': {
-                'id': t.reporter.pk,
-                'firstName': t.reporter.first_name,
-                'lastName': t.reporter.last_name,
-                'icon': t.reporter.profile.profilePicture.url
-            } if t.reporter is not None else None,
+            'id': ticket.id,
+            'internalKey': ticket.internalKey,
+            'summary': ticket.summary,
+            'created': ticket.createdDttm.date(),
+            'modified': ticket.modifiedDttm.date(),
+            'link': ticket.getTicketUrl(),
+            'resolution': ticket.resolution.serializeComponentVersion1(),
+            'issueType': ticket.issueType.serializeComponentVersion1(),
+            'priority': ticket.priority.serializeComponentVersion1(),
+            'status': ticket.columnStatus.serializeColumnStatusVersion1(),
+            'assignee': generalOperations.serializeUserVersion1(t.assignee),
+            'reporter': generalOperations.serializeUserVersion1(t.reporter),
         }
-        for t in allTickets
+        for ticket in allTickets
     ]
 
     context = {

@@ -1,3 +1,6 @@
+from django.contrib.auth.models import User
+
+
 def isPasswordStrong(password):
     if len(password) < 8:
         return False
@@ -12,3 +15,15 @@ def isPasswordStrong(password):
         return False
 
     return True
+
+
+def serializeUserVersion1(user: User):
+    if user is None:
+        return None
+
+    return {
+        "id": user.pk or None,
+        "firstName": user.first_name,
+        "lastName": user.last_name,
+        "icon": user.profile.profilePicture.url,
+    }

@@ -71,6 +71,15 @@ class Component(BaseModel):
     def __str__(self):
         return self.internalKey
 
+    def serializeComponentVersion1(self):
+        return {
+            "id": self.id or None,
+            "internalKey": self.internalKey,
+            "code": self.code,
+            "icon": self.icon,
+            "colour": self.colour,
+        }
+
 
 class Team(BaseModel):
     internalKey = models.CharField(max_length=2048, blank=True, null=True, unique=True)

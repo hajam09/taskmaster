@@ -146,6 +146,15 @@ class ColumnStatus(BaseModel):
         verbose_name = "ColumnStatus"
         verbose_name_plural = "ColumnStatus"
 
+    def serializeColumnStatusVersion1(self):
+        return {
+            "id": self.id or None,
+            "internalKey": self.internalKey,
+            "setResolution": self.setResolution,
+            "category": self.category,
+            "colour": self.colour,
+        }
+
 
 class Ticket(BaseModel):
     internalKey = models.CharField(max_length=2048, unique=True, db_index=True)  # PROJECT_CODE + PK
