@@ -27,3 +27,14 @@ def serializeUserVersion1(user: User):
         "lastName": user.last_name,
         "icon": user.profile.profilePicture.url,
     }
+
+
+def serializeUserVersion2(user: User):
+    if user is None:
+        return None
+
+    return {
+        "id": user.pk or None,
+        "fullName": user.get_full_name(),
+        "icon": user.profile.profilePicture.url,
+    }

@@ -16,7 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from accounts.models import Team, Component, TeamChatMessage
 from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment, TicketAttachment, ColumnStatus
-from taskmaster.operations import databaseOperations
+from taskmaster.operations import databaseOperations, generalOperations
 
 
 def compare(s1, s2):
@@ -996,7 +996,6 @@ class AgileBoardDetailsApiEventVersion2Component(View):
 
 
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class BacklogDetailsEpicLessTicketsApiEventVersion1Component(View):
 
@@ -1953,18 +1952,10 @@ def serializeTickets(tickets, data, skipOldCompletedTickets=True):
             "storyPoints": ticket.storyPoints if ticket.storyPoints is not None else "-",
             "column": ticket.column.internalKey if ticket.column is not None else None,
             "modifiedDttm": str(ticket.modifiedDttm.date()),
-            "issueType": {
-                "internalKey": ticket.issueType.internalKey,
-                "icon": ticket.issueType.icon,
-            },
-            "priority": {
-                "internalKey": ticket.priority.internalKey,
-                "icon": ticket.priority.icon
-            },
-            "resolution": {
-                "internalKey": ticket.resolution.internalKey,
-                "code": ticket.resolution.code,
-            },
+            "issueType": ticket.issueType.serializeComponentVersion1(),
+            "priority": ticket.priority.serializeComponentVersion1(),
+            "resolution": ticket.resolution.serializeComponentVersion1(),
+            "assignee": generalOperations.serializeUserVersion1(ticket.assignee),
             "epic": {
                 "id": ticket.epic.id,
                 "internalKey": ticket.epic.internalKey,
@@ -1972,16 +1963,11 @@ def serializeTickets(tickets, data, skipOldCompletedTickets=True):
                 "colour": ticket.epic.colour,
                 "link": f"/jira/ticket/{ticket.epic.internalKey}",
             } if ticket.epic is not None else None,
-            "assignee": {
-                "id": ticket.assignee.pk,
-                "firstName": ticket.assignee.first_name,
-                "lastName": ticket.assignee.last_name,
-                "icon": ticket.assignee.profile.profilePicture.url
-            } if ticket.assignee is not None else None,
         }
         for ticket in tickets
     ]
 
+    # TODO: Check if this is useful.
     today = datetime.now().date()
     for i in newData:
         if skipOldCompletedTickets:

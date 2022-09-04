@@ -240,13 +240,10 @@ def ticketDetailView(request, internalKey):
         'link': ticket.getTicketUrl(),
         'storyPoints': ticket.storyPoints if ticket.storyPoints is not None else '',
         'fixVersion': ticket.fixVersion or '',
-        'project': {
-            'id': ticket.project.id,
-            'internalKey': ticket.project.internalKey,
-            'code': ticket.project.code,
-            'icon': ticket.project.icon.url,
-            'link': ticket.project.getUrl()
-        },
+        'project': ticket.project.serializeProjectVersion1(),
+        'issueType': ticket.issueType.serializeComponentVersion1(),
+        'priority': ticket.priority.serializeComponentVersion1(),
+        'status': ticket.columnStatus.serializeColumnStatusVersion1(),
         'labels': [
             {
                 'id': label.id,
@@ -264,11 +261,6 @@ def ticketDetailView(request, internalKey):
             }
             for component in ticket.component.all()
         ],
-        'issueType': {
-            'internalKey': ticket.issueType.internalKey,
-            'code': ticket.issueType.code,
-            'icon': ticket.issueType.icon,
-        },
         'resolution': {
             'internalKey': ticket.resolution.internalKey,
         },
@@ -276,21 +268,8 @@ def ticketDetailView(request, internalKey):
             'internalKey': ticket.column.internalKey,
             'colour': ticket.column.colour,
         },
-        'priority': {
-            'internalKey': ticket.priority.internalKey,
-            'code': ticket.priority.code,
-            'icon': ticket.priority.icon
-        },
-        'assignee': {
-            'id': ticket.assignee.pk,
-            'fullName': ticket.assignee.get_full_name(),
-            'icon': ticket.assignee.profile.profilePicture.url
-        } if ticket.assignee is not None else {},
-        'reporter': {
-            'id': ticket.reporter.pk,
-            'fullName': ticket.reporter.get_full_name(),
-            'icon': ticket.reporter.profile.profilePicture.url
-        } if ticket.reporter is not None else {},
+        'assignee': generalOperations.serializeUserVersion2(ticket.assignee),
+        'reporter': generalOperations.serializeUserVersion2(ticket.reporter),
         'watchers': {
             'counter': ticket.watchers.count(),
             'isWatching': "true" if request.user in ticket.watchers.all() else "false",
@@ -518,8 +497,8 @@ def issuesListView(request):
             'issueType': ticket.issueType.serializeComponentVersion1(),
             'priority': ticket.priority.serializeComponentVersion1(),
             'status': ticket.columnStatus.serializeColumnStatusVersion1(),
-            'assignee': generalOperations.serializeUserVersion1(t.assignee),
-            'reporter': generalOperations.serializeUserVersion1(t.reporter),
+            'assignee': generalOperations.serializeUserVersion1(ticket.assignee),
+            'reporter': generalOperations.serializeUserVersion1(ticket.reporter),
         }
         for ticket in allTickets
     ]
