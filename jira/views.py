@@ -170,13 +170,8 @@ def ticketDetailView(request, internalKey):
 
     try:
         ticket = Ticket.objects.select_related(
-            'project',
-            'issueType',
-            'resolution',
-            'column',
-            'priority',
-            'assignee__profile', 'reporter__profile'
-        ).prefetch_related('label', 'component', 'watchers').get(internalKey__iexact=internalKey)
+            'project', 'issueType', 'priority', 'assignee__profile'
+        ).prefetch_related('label', 'component').get(internalKey__iexact=internalKey)
     except Ticket.DoesNotExist:
         raise Http404
 
@@ -223,58 +218,18 @@ def ticketDetailView(request, internalKey):
         ticket.save()
         return redirect('jira:ticket-detail-view', internalKey=internalKey)
 
-    def getWatchersMessage():
-        if not request.user.is_authenticated:
-            return "You have to be logged in to watch an issue."
-        if request.user in ticket.watchers.all():
-            return "You are watching this issue. Click to stop watching this issue."
-        return "You are not watching this issue. Click to watch this issue."
-
     ticketDetails = {
-        'id': ticket.id,
-        'internalKey': ticket.internalKey,
-        'summary': ticket.summary,
-        'description': ticket.description if ticket.description is not None else '',
-        'createdDate': datetime.strftime(ticket.createdDttm, '%d %B %Y, %I:%M %p'),
-        'modifiedDate': datetime.strftime(ticket.modifiedDttm, '%d %B %Y, %I:%M %p'),
-        'link': ticket.getTicketUrl(),
-        'storyPoints': ticket.storyPoints if ticket.storyPoints is not None else '',
-        'fixVersion': ticket.fixVersion or '',
-        'project': ticket.project.serializeProjectVersion1(),
-        'issueType': ticket.issueType.serializeComponentVersion1(),
-        'priority': ticket.priority.serializeComponentVersion1(),
-        'status': ticket.columnStatus.serializeColumnStatusVersion1(),
-        'labels': [
-            {
-                'id': label.id,
-                'internalKey': label.internalKey,
-                'code': label.code,
-                'colour': label.colour,
-            }
-            for label in ticket.label.all()
-        ],
-        'components': [
-            {
-                'id': component.id,
-                'internalKey': component.internalKey,
-                'code': component.code,
-            }
-            for component in ticket.component.all()
-        ],
-        'resolution': {
-            'internalKey': ticket.resolution.internalKey,
-        },
-        'column': {
-            'internalKey': ticket.column.internalKey,
-            'colour': ticket.column.colour,
-        },
-        'assignee': generalOperations.serializeUserVersion2(ticket.assignee),
-        'reporter': generalOperations.serializeUserVersion2(ticket.reporter),
-        'watchers': {
-            'counter': ticket.watchers.count(),
-            'isWatching': "true" if request.user in ticket.watchers.all() else "false",
-            'message': getWatchersMessage(),
-        }
+        "id": ticket.id,
+        "internalKey": ticket.internalKey,
+        "summary": ticket.summary,
+        "storyPoints": ticket.storyPoints if ticket.storyPoints is not None else '',
+        "fixVersion": ticket.fixVersion or '',
+        "description": ticket.description if ticket.description is not None else '',
+        "issueType": ticket.issueType.serializeComponentVersion1(),
+        "priority": ticket.priority.serializeComponentVersion1(),
+        "assignee": generalOperations.serializeUserVersion2(ticket.assignee),
+        "components": [component.serializeComponentVersion1() for component in ticket.component.all()],
+        "labels": [label.serializeLabelVersion1() for label in ticket.label.all()],
     }
     projectComponents = Component.objects.filter(
         componentGroup__code='PROJECT_COMPONENTS', reference__exact=ticket.project.code
@@ -296,10 +251,10 @@ def boards(request):
                 isPrivate=request.POST['boardVisibility'] == 'visibility-members'
             )
 
-            c1 = Column(board=newBoard, internalKey='BACKLOG', category=Column.Category.TODO, colour='#42526e', orderNo=1)
-            c2 = Column(board=newBoard, internalKey='TO DO', category=Column.Category.TODO, colour='#42526e', orderNo=2)
-            c3 = Column(board=newBoard, internalKey='IN PROGRESS', category=Column.Category.IN_PROGRESS, colour='#0052cc', orderNo=3)
-            c4 = Column(board=newBoard, internalKey='DONE', category=Column.Category.DONE, colour='#00875a', orderNo=4)
+            c1 = Column(board=newBoard, internalKey='BACKLOG', category=Column.Category.TODO, colour='#42526E', orderNo=1)
+            c2 = Column(board=newBoard, internalKey='TO DO', category=Column.Category.TODO, colour='#42526E', orderNo=2)
+            c3 = Column(board=newBoard, internalKey='IN PROGRESS', category=Column.Category.IN_PROGRESS, colour='#0052CC', orderNo=3)
+            c4 = Column(board=newBoard, internalKey='DONE', category=Column.Category.DONE, colour='#00875A', orderNo=4)
 
             c1.save()
             c2.save()
@@ -309,10 +264,10 @@ def boards(request):
             # mandatory ColumnStatus for a board
             ColumnStatus.objects.bulk_create(
                 [
-                    ColumnStatus(internalKey="OPEN", board=newBoard, column=c1, category=Column.Category.TODO, colour="#dfe1e5"),
-                    ColumnStatus(internalKey="TO DO", board=newBoard, column=c2, category=Column.Category.TODO, colour="#dfe1e5"),
-                    ColumnStatus(internalKey="IN PROGRESS", board=newBoard, column=c3, category=Column.Category.IN_PROGRESS, colour="#deebff"),
-                    ColumnStatus(internalKey="DONE", board=newBoard, column=c4, setResolution=True, category=Column.Category.DONE, colour="#e3fcef")
+                    ColumnStatus(internalKey="OPEN", board=newBoard, column=c1, category=Column.Category.TODO, colour="#42526E"),
+                    ColumnStatus(internalKey="TO DO", board=newBoard, column=c2, category=Column.Category.TODO, colour="#42526E"),
+                    ColumnStatus(internalKey="IN PROGRESS", board=newBoard, column=c3, category=Column.Category.IN_PROGRESS, colour="#0052CC"),
+                    ColumnStatus(internalKey="DONE", board=newBoard, column=c4, setResolution=True, category=Column.Category.DONE, colour="#00875A")
                 ]
             )
 
@@ -358,20 +313,17 @@ def boardSettings(request, url):
 
 
 @login_required
-def boardSettings2(request, url):
+def boardSettingsColumns(request, url):
     try:
         thisBoard = Board.objects.prefetch_related('boardColumns').get(url=url)
     except Board.DoesNotExist:
         raise Http404
 
-    allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)).distinct()
-
     context = {
         'board': thisBoard,
-        'projects': allProjects,
         'isAdmin': request.user in thisBoard.admins.all()
     }
-    return render(request, 'jira/boardSettings2.html', context)
+    return render(request, 'jira/boardSettingsColumns.html', context)
 
 
 @login_required

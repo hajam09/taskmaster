@@ -15,7 +15,7 @@ urlpatterns = [
     path('boards/', views.boards, name='boards-page'),
     path('boards/<slug:url>/', views.board, name='board-page'),
     path('boards/<slug:url>/settings/', views.boardSettings, name='board-settings'),
-    path('boards/<slug:url>/settings2/', views.boardSettings2, name='board-settings2'),
+    path('boards/<slug:url>/settings/columns', views.boardSettingsColumns, name='board-settings-columns'),
     path('boards/<slug:url>/backlog/', views.backlog, name='board-backlog'),
     path('teams/', views.teams, name='teams-page'),
     path('teams/<slug:url>/', views.team, name='team-page'),
@@ -93,6 +93,11 @@ urlpatterns += [
         'api/v1/subTaskTicketsForTicketApiEventVersion1Component/<int:ticketId>',
         SubTaskTicketsForTicketApiEventVersion1Component.as_view(),
         name='subTaskTicketsForTicketApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/ticketObjectDetailApiEventVersion1Component/<int:ticketId>',
+        TicketObjectDetailApiEventVersion1Component.as_view(),
+        name='ticketObjectDetailApiEventVersion1Component'
     ),
     path(
         'api/v1/sprintObjectApiEventVersion1Component/<int:boardId>',

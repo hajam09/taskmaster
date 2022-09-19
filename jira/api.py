@@ -399,6 +399,8 @@ class TeamsViewApiEventVersion1Component(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TeamsObjectApiEventVersion1Component(View):
+    # TeamsObjectApiEventVersion1ComponentTest
+    
     def delete(self, *args, **kwargs):
         # MANUAL_TESTED
         teamId = self.kwargs.get("teamId", None)
@@ -1906,6 +1908,62 @@ class SprintObjectApiEventVersion1Component(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class TicketObjectDetailApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        ticketId = self.kwargs.get("ticketId")
+
+        try:
+            ticket = Ticket.objects.select_related(
+                'project',
+                'issueType',
+                'resolution',
+                'column',
+                'priority',
+                'assignee__profile', 'reporter__profile'
+            ).prefetch_related('label', 'component', 'watchers').get(id=ticketId)
+        except Ticket.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a ticket with id: {}".format(ticketId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        ticketDetails = {
+            "id": ticket.id,
+            "internalKey": ticket.internalKey,
+            "summary": ticket.summary,
+            "description": ticket.description,
+            "createdDate": datetime.strftime(ticket.createdDttm, '%d %B %Y, %I:%M %p'),
+            "modifiedDate": datetime.strftime(ticket.modifiedDttm, '%d %B %Y, %I:%M %p'),
+            "link": ticket.getTicketUrl(),
+            "storyPoints": ticket.storyPoints,
+            "fixVersion": ticket.fixVersion,
+            "project": ticket.project.serializeProjectVersion1(),
+            "issueType": ticket.issueType.serializeComponentVersion1(),
+            "priority": ticket.priority.serializeComponentVersion1(),
+            "resolution": ticket.resolution.serializeComponentVersion1(),
+            "status": ticket.columnStatus.serializeColumnStatusVersion1(),
+            "assignee": generalOperations.serializeUserVersion2(ticket.assignee),
+            "reporter": generalOperations.serializeUserVersion2(ticket.reporter),
+            "components": [component.serializeComponentVersion1() for component in ticket.component.all()],
+            "labels": [label.serializeLabelVersion1() for label in ticket.label.all()],
+            'watchers': {
+                'counter': ticket.watchers.count(),
+                'isWatching': self.request.user in ticket.watchers.all(),
+                'message': getWatchersMessage(self.request.user, ticket.watchers.all()),
+            }
+        }
+
+        response = {
+            "success": True,
+            "data": ticketDetails,
+        }
+
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class TicketObjectBulkCreateApiEventVersion1Component(View):
 
     def post(self, *args, **kwargs):
@@ -1978,6 +2036,14 @@ def serializeTickets(tickets, data, skipOldCompletedTickets=True):
         data.append(i)
 
     return
+
+
+def getWatchersMessage(user, watchers):
+    if not user.is_authenticated:
+        return "You have to be logged in to watch an issue."
+    if user in watchers:
+        return "You are watching this issue. Click to stop watching this issue."
+    return "You are not watching this issue. Click to watch this issue."
 
 
 def serializeTicketsIntoChunks(tickets):

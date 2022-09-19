@@ -299,7 +299,7 @@
             render() {
 
                 const style1 = {
-                    backgroundColor: this.props.ticket.column.colour,
+                    backgroundColor: this.props.ticket.status.colour,
                     color: 'white',
                 }
                 const style2 = {
@@ -342,7 +342,7 @@
                                                 <span
                                                     className=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-yellow jira-issue-status-lozenge-indeterminate jira-issue-status-lozenge-max-width-medium"
                                                     style={style1}>
-                                                    {this.props.ticket.column.internalKey}
+                                                    {this.props.ticket.status.internalKey}
                                                 </span>
                                             </span>
                                     </div>
@@ -445,8 +445,8 @@
                     icon: icon
                 }
 
-                let assignee = Object.keys(this.props.assignee).length === 0 ? unassignedProfile : this.props.assignee;
-                let reporter = Object.keys(this.props.reporter).length === 0 ? unassignedProfile : this.props.reporter;
+                let assignee = this.props.assignee === null ? unassignedProfile : this.props.assignee;
+                let reporter = this.props.reporter === null ? unassignedProfile : this.props.reporter;
                 let watchers = this.props.watchers;
                 watchers.isWatching = eval(watchers.isWatching);
 
@@ -1204,13 +1204,22 @@
                 super(props);
 
                 this.state = {
-                    ticket: {{ ticket|safe }}
+                    ticket: null
                 }
-
-                console.log(this.state.ticket)
             }
 
-            render() {
+            componentDidMount = () => {
+                fetch('{% url 'jira:ticketObjectDetailApiEventVersion1Component' ticketId=ticket.id%}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((json) => {
+                        this.setState({
+                            ticket: json.data
+                        })
+                    })
+            }
+
+            renderNormalMode = () => {
                 return (
                     <div>
                         <TicketHeaderComponent ticket={this.state.ticket}/>
@@ -1234,6 +1243,19 @@
 
                             </div>
                         </div>
+                    </div>
+                )
+            }
+
+            renderEmptyMode = () => {
+                return <div></div>
+            }
+
+
+            render() {
+                return (
+                    <div>
+                        {this.state.ticket === null ? this.renderEmptyMode() : this.renderNormalMode()}
                     </div>
                 )
             }

@@ -98,6 +98,14 @@ class Label(BaseModel):
     def __str__(self):
         return self.internalKey
 
+    def serializeLabelVersion1(self):
+        return {
+            "id": self.id or None,
+            "internalKey": self.internalKey,
+            "code": self.code,
+            "colour": self.colour,
+        }
+
 
 class Column(BaseModel):
     class Category(models.TextChoices):

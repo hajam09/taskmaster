@@ -3,10 +3,12 @@ import string
 
 from django.apps import apps
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.db import connection
 from faker import Faker
 
 from accounts.models import Profile, Team
+from jira.models import Board, Column, ColumnStatus, Ticket, Project
 from taskmaster import settings
 from taskmaster.operations import seedDataOperations
 
@@ -120,3 +122,94 @@ def createTeamObjects(users=None):
 
         teams.append(team)
     return teams
+
+
+def createBoard(boardType=Board.Types.SCRUM):
+    board = Board.objects.create(
+        internalKey="Test board",
+        type=boardType,
+    )
+    # board.refresh_from_db()
+    return board
+
+
+def createColumns(board=None):
+    if board is None:
+        board = createBoard()
+
+    c1 = Column(board=board, internalKey='BACKLOG', category=Column.Category.TODO, orderNo=1)
+    c2 = Column(board=board, internalKey='TO DO', category=Column.Category.TODO, orderNo=2)
+    c3 = Column(board=board, internalKey='IN PROGRESS', category=Column.Category.IN_PROGRESS, orderNo=3)
+    c4 = Column(board=board, internalKey='DONE', category=Column.Category.DONE, orderNo=4)
+
+    Column.objects.bulk_create(
+        [c1, c2, c3, c4]
+    )
+    return Column.objects.filter(board=board)
+
+
+def createColumnStatus(board=None, columns=None):
+    if board is None:
+        board = createBoard()
+
+    if columns is None or columns == []:
+        columns = createColumns(board)
+
+    columnStatusIndex = [
+        ("OPEN", False, Column.Category.TODO),
+        ("TO DO", False, Column.Category.TODO),
+        ("IN PROGRESS", False, Column.Category.IN_PROGRESS),
+        ("DONE", True, Column.Category.DONE),
+    ]
+
+    columnStatusList = [
+        ColumnStatus(
+            internalKey=columnStatusIndex[0],
+            board=board,
+            column=column,
+            setResolution=columnStatusIndex[1],
+            category=columnStatusIndex[2]
+        )
+        for columnStatusIndex, column in zip(columnStatusIndex, columns)
+    ]
+
+    ColumnStatus.objects.bulk_create(
+        columnStatusList
+    )
+
+    return ColumnStatus.objects.filter(board=board)
+
+
+def createUser():
+    return createUserObjects(1, 2).first()
+
+
+def createProject():
+    newProject = Project()
+    newProject.internalKey = "Test project"
+    newProject.code = "TESTPROJECT"
+    newProject.description = "Test Description"
+    newProject.lead = createUser()
+    newProject.status = None
+    newProject.save()
+    return newProject
+
+
+def createTicket(columnStatus, project=None):
+    if project is None:
+        project = createProject()
+
+    ticket = Ticket()
+    ticket.internalKey = project.code + "-" + "1"
+    ticket.summary = "Test summary"
+    ticket.description = "Test description"
+    ticket.resolution_id = next((i.id for i in cache.get('TICKET_RESOLUTIONS') if i.code == 'UNRESOLVED'))
+    ticket.project = project
+    ticket.assignee_id = project.lead.id
+    ticket.reporter_id = project.lead.id
+    ticket.issueType_id = next((i.id for i in cache.get('TICKET_ISSUE_TYPE') if i.code == 'BUG'))
+    ticket.priority_id = next((i.id for i in cache.get('TICKET_PRIORITY') if i.code == 'MEDIUM'))
+    ticket.columnStatus = columnStatus
+    ticket.orderNo = 1
+    ticket.save()
+    return ticket
