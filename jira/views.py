@@ -167,7 +167,7 @@ def ticketDetailView(request, internalKey):
 
     try:
         ticket = Ticket.objects.select_related(
-            'project', 'issueType', 'priority', 'assignee__profile'
+            'project', 'issueType', 'priority', 'assignee__profile', 'columnStatus__board'
         ).prefetch_related('label', 'component').get(internalKey__iexact=internalKey)
     except Ticket.DoesNotExist:
         raise Http404
@@ -181,6 +181,7 @@ def ticketDetailView(request, internalKey):
         ticket.assignee_id = request.POST['assignee']
         ticket.issueType_id = request.POST['ticketIssueType']
         ticket.priority_id = request.POST['priority']
+        ticket.columnStatus_id = request.POST['status']
 
         ticket.component.clear()
         ticket.component.add(*request.POST.getlist('components'))
@@ -227,7 +228,12 @@ def ticketDetailView(request, internalKey):
         "assignee": generalOperations.serializeUserVersion2(ticket.assignee),
         "components": [component.serializeComponentVersion1() for component in ticket.component.all()],
         "labels": [label.serializeLabelVersion1() for label in ticket.label.all()],
+        "status": [
+            status.serializeColumnStatusVersion1(selected=ticket.columnStatus_id == status.id)
+            for status in ticket.columnStatus.board.boardColumnStatus.all()
+        ],
     }
+
     projectComponents = Component.objects.filter(
         componentGroup__code='PROJECT_COMPONENTS', reference__exact=ticket.project.code
     )

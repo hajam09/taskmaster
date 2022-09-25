@@ -163,14 +163,19 @@ class ColumnStatus(BaseModel):
         verbose_name = "ColumnStatus"
         verbose_name_plural = "ColumnStatus"
 
-    def serializeColumnStatusVersion1(self):
-        return {
+    def serializeColumnStatusVersion1(self, **kwargs):
+        data = {
             "id": self.id or None,
             "internalKey": self.internalKey,
             "setResolution": self.setResolution,
             "category": self.category,
             "colour": self.colour,
         }
+        try:
+            mergedData = data | kwargs
+        except TypeError:
+            mergedData = {**data, **kwargs}
+        return mergedData
 
 
 class Ticket(BaseModel):

@@ -431,10 +431,7 @@ body{
 .aui-icon-small{
 	--aui-icon-size:16px
 }
-/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.fb15cffa72', location = 'aui.splitchunk.fb15cffa72.css' */
-/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.56dfb54d0c', location = 'aui.splitchunk.56dfb54d0c.css' */
 
-/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.908fe798b4', location = 'aui.splitchunk.908fe798b4.css' */
 .aui-iconfont-vid-full-screen-on{
 	--aui-ig:"\f166"
 }
@@ -444,8 +441,7 @@ body{
 .aui-iconfont-vid-full-screen-off{
 	--aui-ig:"\f1a8"
 }
-/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.462ee5f9ef', location = 'aui.splitchunk.462ee5f9ef.css' */
-/* module-key = 'com.atlassian.auiplugin:split_aui.splitchunk.50dca3e042', location = 'aui.splitchunk.50dca3e042.css' */
+
 form.aui.aui-legacy-forms .aui-select2-container.select2-container-active .select2-choices:focus-visible{
 	box-shadow:unset
 }

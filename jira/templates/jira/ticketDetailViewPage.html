@@ -85,6 +85,16 @@
                                         </select>
                                     </dd>
                                     <dd class="col-sm-12">
+                                        <label style="font-size: 85%; color: #6c757d;">Status</label>
+                                        <select id="ticketStatus" data-show-content="true"
+                                                class="form-control" name="status">
+                                            {% for status in ticket.status %}
+                                                <option {% if status.selected %} selected="selected" {% endif %}
+                                                        value="{{ status.id }}">{{ status.internalKey }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </dd>
+                                    <dd class="col-sm-12">
                                         <label style="font-size: 85%; color: #6c757d;">Components</label>
                                         <select class="form-control select2bs4" multiple="multiple" name="components" id="ticket-components"
                                                 style="width: 100%">
