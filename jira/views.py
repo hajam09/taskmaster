@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
@@ -155,7 +153,6 @@ def team(request, url):
 def ticketDetailView(request, internalKey):
     """
     TODO: remove unused css on the ticket css files
-    TODO: Try to move the components to external files and import it.
     TODO: Fix spacing on the texts.
     TODO: Implement the comment section.
     TODO: Fix linked issue component.
@@ -295,7 +292,6 @@ def boards(request):
 def boardSettings(request, url):
     """
     TODO: Only admins can edit.
-    TODO: Refactor usage and creation of Label object because of board column removal.
     // Contact a TaskMaster or the board administrator to configure this board
     """
     try:
@@ -424,7 +420,6 @@ def projectSettings(request, url):
 
 def issuesListView(request):
     """
-    TODO: Use serializeTickets() to follow DRY.
     TODO: Display status values with CSS.
     TODO: Allow users to add dropdown manually.
     TODO: User pagination to improve query performance.

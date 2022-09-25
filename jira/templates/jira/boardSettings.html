@@ -1,622 +1,299 @@
 {% extends "accounts/base.html" %}
+{% load jiraTags %}
 {% load static %}
 {% block content %}
+    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS1.css' %}">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS2.css' %}">
 
-<style type="text/css">
-.grabbable {
-    cursor: move; /* fallback if grab cursor is unsupported */
-    cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
-}
+    <link type="text/css" rel="stylesheet" href="{% static 'css/boardSettingsCSS1.css' %}">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/boardSettingsCSS2.css' %}">
 
- /* (Optional) Apply a "closed-hand" cursor during drag operation. */
-.grabbable:active {
-    cursor: grabbing;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
-}
-body {
-	color: black;
-}
-</style>
+    {% boardPanelItems board.url as boardPanelItems %}
 
-<div class="container-fluid" style="margin: auto;overflow-x: hipen; color: black; max-width: 1800px;">
-	<br>
-	<div class="col-lg-6 col-md-12">
-        <div>
-        	<h4><bold>General Details</bold></h4>
-            <dl class="row">
-
-                <dd class="col-sm-3">
-                    <label style="color: #6c757d;">Board Name</label>
-                </dd>
-                <dd class="col-sm-9">
-                    <input class="form-control col" type="text" placeholder="Board name" id="board-name" name="board-name" value="{{board.internalKey}}" placeholder="Board name" readonly>
-                </dd>
-
-                <dd class="col-sm-3">
-                    <label style="color: #6c757d;">Projects in board</label>
-                </dd>
-                <dd class="col-sm-9">
-                    <div class="form-group">
-                        <select class="form-control select2bs4" multiple="multiple" name="board-projects" id="board-projects" data-placeholder="Select project(s) this board will be used for." required>
-	                        {% for project in projects %}
-	                    		<option value="{{project.id}}">{{project.internalKey}}</option>
-	                    	{% endfor %}
-                        </select>
-                    </div>
-                </dd>
-
-                <dd class="col-sm-3">
-                    <label style="color: #6c757d;">Board admins</label>
-                </dd>
-                <dd class="col-sm-9">
-                    <div class="form-group">
-                        <select class="form-control select2bs4" multiple="multiple" name="board-admins" id="board-admins" required>
-	                        {% for m in profiles %}
-	                    		<option value="{{m.user.id}}">{{m.user.get_full_name}}</option>
+    <body class=" ghx-agile ghx-rapid-views aui-page-sidebar aui-sidebar-collapsed ghx-scroll-columns ">
+    <div id="page">
+        <div id="announcement-banner" class="alertHeader">
+        </div>
+        <div id="content">
+            <section class="aui-sidebar projects-sidebar fade-in" aria-expanded="false" id="sidebar"
+                     aria-label="Sidebar">
+                <div class="aui-sidebar-wrapper" style="height: 583px;">
+                    <div class="col" style="margin-top: 10px">
+                        <ul class="navbar-nav mr-auto">
+                            {% for panel in boardPanelItems %}
+                                {% if not panel.subLinks %}
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ panel.url }}"
+                                           data-toggle="tooltip"
+                                           data-placement="right" title="{{ panel.name }}">{{ panel.icon|safe }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown" href="#" id="navbarDropdown" role="button"
+                                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                           title="{{ panel.name }}">
+                                            {{ panel.icon|safe }}
+                                        </a>
+                                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                            {% for subLink in panel.subLinks %}
+                                                <a class="dropdown-item" href="{{ subLink.url }}">{{ subLink.name }}</a>
+                                            {% endfor %}
+                                        </div>
+                                    </li>
+                                {% endif %}
                             {% endfor %}
-                        </select>
+                        </ul>
                     </div>
-                </dd>
-
-                <dd class="col-sm-3">
-                    <label style="color: #6c757d;">Board members</label>
-                </dd>
-                <dd class="col-sm-9">
-                    <div class="form-group">
-                        <select class="form-control select2bs4" multiple="multiple" name="board-members" id="board-members" required>
-	                        {% for m in profiles %}
-	                    		<option value="{{m.user.id}}">{{m.user.get_full_name}}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </dd>
-
-                <dd class="col-sm-3">
-                    <label style="color: #6c757d;">Board visibility</label>
-                </dd>
-                <dd class="col-sm-9">
-                    <div class="row">
-                        <div class="col">
-                            <div class="custom-control custom-radio">
-                                <input type="radio" id="visibility-everyone" name="board-visibility" value="visibility-everyone" class="custom-control-input" {% if not board.isPrivate %} checked {% endif %}>
-                                <label class="custom-control-label" for="visibility-everyone">Everyone</label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="custom-control custom-radio">
-                                <input type="radio" id="visibility-members" name="board-visibility" value="visibility-members" class="custom-control-input" {% if board.isPrivate %} checked {% endif %}>
-                                <label class="custom-control-label" for="visibility-members">Members</label>
-                            </div>
+                </div>
+            </section>
+            <main role="main" id="main" class="ghx-gh  aui-page-panel">
+                <div id="gh" class="ghx-no-touch">
+                    <div id="ghx-header">
+                        <div id="ghx-view-selector">
+                            <h1>
+                                <span class="subnav-container">
+                                    <span id="subnav-title">
+                                      <span class="subnavigator-title">General details</span>
+                                    </span>
+                                  </span>
+                            </h1>
                         </div>
                     </div>
-                </dd>
-            </dl>
+                    <div id="ghx-content-main" class="ghx-content-main">
+                        <div id="ghx-rabid" style="">
+                            <div id="ghx-report" class="ghx-chart" style="display: none;"></div>
+                            <div id="ghx-work" class="ghx-work">
+                                <div id="ghx-pool-column">
+
+                                    <div class="col" style="max-width: 80%; padding-top: 10px">
+
+                                        <div class="form-group row">
+                                            <label class="col-sm-2 col-form-label"></label>
+                                            <div class="col-sm-10">
+                                                <button type="button" class="btn aui-button float-right"
+                                                        onclick="updateBoardGeneralDetails();">
+                                                    Save Board
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <label for="board-name" class="col-sm-2 col-form-label">Board Name</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" class="form-control" id="board-name"
+                                                       name="board-name" value="{{ board.internalKey }}">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <label for="board-projects" class="col-sm-2 col-form-label">
+                                                Projects in board
+                                            </label>
+                                            <div class="col-sm-10">
+                                                <select class="form-control select2bs4" multiple="multiple"
+                                                        name="board-projects"
+                                                        id="board-projects"
+                                                        data-placeholder="Select project(s) this board will be used for."
+                                                        required>
+                                                    {% for project in projects %}
+                                                        <option value="{{ project.id }}">{{ project.internalKey }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <label for="board-admins" class="col-sm-2 col-form-label">
+                                                Board admins
+                                            </label>
+                                            <div class="col-sm-10">
+                                                <select class="form-control select2bs4" multiple="multiple"
+                                                        name="board-admins"
+                                                        id="board-admins"
+                                                        required>
+                                                    {% for profile in profiles %}
+                                                        <option value="{{ profile.user.id }}">{{ profile.user.get_full_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <label for="board-members" class="col-sm-2 col-form-label">
+                                                Board members
+                                            </label>
+                                            <div class="col-sm-10">
+                                                <select class="form-control select2bs4" multiple="multiple"
+                                                        name="board-members"
+                                                        id="board-members"
+                                                        required>
+                                                    {% for profile in profiles %}
+                                                        <option value="{{ profile.user.id }}">{{ profile.user.get_full_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <label for="board-visibility" class="col-sm-2 col-form-label">Board
+                                                Name</label>
+                                            <div class="col-sm-10">
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <div class="custom-control custom-radio">
+                                                            <input type="radio" id="visibility-everyone"
+                                                                   name="board-visibility"
+                                                                   value="visibility-everyone"
+                                                                   class="custom-control-input"
+                                                                    {% if not board.isPrivate %} checked {% endif %}>
+                                                            <label class="custom-control-label"
+                                                                   for="visibility-everyone">Everyone</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col">
+                                                        <div class="custom-control custom-radio">
+                                                            <input type="radio" id="visibility-members"
+                                                                   name="board-visibility"
+                                                                   value="visibility-members"
+                                                                   class="custom-control-input"
+                                                                    {% if board.isPrivate %}
+                                                                   checked {% endif %}>
+                                                            <label class="custom-control-label"
+                                                                   for="visibility-members">Members</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
-    <hr>
-    <div class="col-lg-6 col-md-12">
-        <div>
-        	<div class="row">
-        		<div class="col">
-        			<div class="row">
-        				<div class="col-7">
-        					<h4><bold>Board Columns</bold></h4>
-        				</div>
-        				<div class="col">
-        					<input type="text" id="board-column-name" class="form-control form-control-sm" placeholder="Column name">
-        				</div>
-        				<div class="col">
-        					<button type="button" onclick="createBoardColumn();" class="btn btn-primary btn-sm">Add Column</button>
-        				</div>
-        			</div>
-        		</div>
-        	</div>
-        	<br>
-            <div class="row">
-        		<div class="col" id="board-columns-container">
-        			{% for column in board.boardColumns.all %}
-        			<div class="card grabbable" id="column-container-{{column.id}}">
-        				<div class="card-body" style="height: 10px;">
-		        			<div class="row">
-		        				<div class="col">
-		        					<input type="text" id="board-column-name-{{column.id}}" class="form-control form-control-sm" value="{{column.internalKey}}" placeholder="Column name" style="margin-top: -15px;" readonly>
-		        				</div>
-		        				<div class="col-auto">
-		        					<button type="button" class="btn btn-danger btn-sm" onclick="deleteColumn('{{column.id}}');" style="margin-top: -24px;">Delete Column</button>
-		        				</div>
-		        			</div>
-        				</div>
-        			</div>
-        			{% endfor %}
-        		</div>
-        	</div>
-        </div>
-    </div>
-    <br><hr>
-    <div class="col-lg-6 col-md-12">
-        <div>
-        	<div class="row">
-        		<div class="col">
-        			<div class="row">
-        				<div class="col-7">
-        					<h4><bold>Board Labels</bold></h4>
-        				</div>
-        				<div class="col">
-        					<input type="text" id="board-label-name" class="form-control form-control-sm" placeholder="Label name">
-        				</div>
-        				<div class="col">
-        					<button type="button" onclick="createBoardLabel();" class="btn btn-primary btn-sm">Add Label</button>
-        				</div>
-        			</div>
-        		</div>
-        	</div>
-        	<br>
-            <div class="row">
-        		<div class="col" id="board-labels-container">
-        			{% for label in board.boardLabels.all %}
-        			<div class="card" id="label-container-{{label.id}}">
-        				<div class="card-body" style="height: 10px;">
-		        			<div class="row">
-		        				<div class="col">
-		        					<input type="text" id="board-label-name-{{label.id}}" class="form-control form-control-sm" value="{{label.internalKey}}" placeholder="Label name" style="margin-top: -15px;" readonly>
-		        				</div>
-		        				<div class="col-auto" style="margin-top: -13px;">
-		        					<input type="color" id="board-label-colour-{{label.id}}" value="{{label.colour}}">
-		        				</div>
-		        				<div class="col-auto">
-		        					<button type="button" class="btn btn-danger btn-sm" onclick="deleteLabel('{{label.id}}');" style="margin-top: -24px;">Delete Label</button>
-		        				</div>
-		        			</div>
-        				</div>
-        			</div>
-        			{% endfor %}
-        		</div>
-        	</div>
-        </div>
-    </div>
-</div>
-
-<script type="text/javascript">
-
-	$('.select2bs4').select2({
-		theme: 'bootstrap4',
-	});
-
-	var BOARD_PROJECTS_ID = [];
-	var BOARD_ADMINS_ID = [];
-	var BOARD_MEMBERS_ID = [];
-
-	{% for project in board.projects.all %}
-		BOARD_PROJECTS_ID.push('{{project.id}}');
-	{% endfor %}
-
-	{% for admin in board.admins.all %}
-		BOARD_ADMINS_ID.push('{{admin.id}}');
-	{% endfor %}
-
-	{% for member in board.members.all %}
-		BOARD_MEMBERS_ID.push('{{member.id}}');
-	{% endfor %}
-
-	$('#board-projects').select2().val(BOARD_PROJECTS_ID).trigger("change");
-	$('#board-admins').select2().val(BOARD_ADMINS_ID).trigger("change");
-	$('#board-members').select2().val(BOARD_MEMBERS_ID).trigger("change");
-
-	{% for column in board.boardColumns.all %}
-		$( "#board-column-name-{{column.id}}" ).focusin(function() {
-			$(this).removeAttr("readonly");
-		});
-
-		$( "#board-column-name-{{column.id}}" ).focusout(function() {
-			$(this).attr('readonly','');
-
-			var columnName = $(this).val();
-
-			if (columnName && !columnName.trim() || columnName.length==0)
-				return;
-
-			$.ajax(
-				{
-					url: "{% url 'jira:boardSettingsViewBoardColumnsApiEventVersion1Component' url=board.url %}",
-					data:
-					{
-						'column-name': columnName,
-						'column-id': '{{column.id}}',
-					},
-					type: 'PUT',
-					dataType: 'json',
-					success: function(response)
-					{
-						if (!response.success)
-						{
-							Swal.fire(
-		                        {
-		                            icon: 'warning',
-		                            title: "Can't do that!",
-		                            text: response.message
-		                        }
-	                    	);
-	                    	$('#board-column-name-{{column.id}}').val('{{column.internalKey}}');
-						}
-					}
-				}
-			);
-		});
-	{% endfor %}
-
-	{% for label in board.boardLabels.all %}
-		$( "#board-label-name-{{label.id}}" ).focusin(function() {
-			$(this).removeAttr("readonly");
-		});
-
-		$( "#board-label-name-{{label.id}}" ).focusout(function() {
-			$(this).attr('readonly','');
-
-			var labelName = $(this).val();
-
-			if (labelName && !labelName.trim() || labelName.length==0)
-				return;
-
-			$.ajax(
-				{
-					url: "{% url 'jira:boardSettingsViewBoardLabelsApiEventVersion1Component' url=board.url %}",
-					data:
-					{
-						'label-name': labelName,
-						'label-id': '{{label.id}}',
-					},
-					type: "PUT",
-					dataType: 'json',
-				}
-			);
-		});
-
-		$( "#board-label-colour-{{label.id}}" ).focusout(function() {
-			$(this).attr('readonly','');
-
-			var labelColour = $(this).val();
-
-			$.ajax(
-				{
-					url: "{% url 'jira:boardSettingsViewBoardLabelsApiEventVersion1Component' url=board.url %}",
-					data:
-					{
-						'label-colour': labelColour,
-						'label-id': '{{label.id}}',
-					},
-					type: "PUT",
-					dataType: 'json',
-				}
-			);
-		});
-	{% endfor %}
-
-	function updateBoardGeneralDetails()
-	{
-		var boardName = $('#board-name').val();
-		var boardProjects = $('#board-projects').val();
-		var boardAdminIds = $('#board-admins').val();
-		var boardMemberIds = $('#board-members').val();
-		var boardVisibility = $('input[name="board-visibility"]:checked').val();
-
-		if (boardName && !boardName.trim() || boardName.length==0)
-		{
-			var boardName = localStorage.getItem('previousBoardName');
-			$('#board-name').val(boardName);
-		}
-
-		if (boardProjects == null)
-			boardProjects = [];
-
-		if (boardAdminIds == null)
-			boardAdminIds = [];
-
-		if (boardMemberIds == null)
-			boardMemberIds = [];
-
-
-		$.ajax(
-			{
-				url: "{% url 'jira:boardSettingsViewGeneralDetailsApiEventVersion1Component' url=board.url %}",
-				type: 'PUT',
-				data:
-				{
-					'board-name': boardName,
-					'board-projects': boardProjects,
-					'board-admins': boardAdminIds,
-					'board-members': boardMemberIds,
-					'board-visibility': boardVisibility,
-				},
-				dataType: 'json',
-			}
-		);
-	}
-
-	// Start of General Settings
-
-	$('input[type=radio][name=board-visibility]').change(function() {
-
-		updateBoardGeneralDetails();
-	});
-
-	$( "#board-name" ).focusin(function() {
-		$(this).removeAttr("readonly");
-		localStorage.setItem('previousBoardName', $(this).val());
-	});
-
-	$( "#board-name" ).focusout(function() {
-		$(this).attr('readonly','');
-
-		updateBoardGeneralDetails();
-	});
-
-	$('#board-projects').on('select2:select', function (e) {
-
-		updateBoardGeneralDetails();
-	});
-
-	$('#board-projects').on('select2:unselect', function (e) {
-		
-		updateBoardGeneralDetails();
-	});
-
-	$('#board-admins').on('select2:select', function (e) {
-		
-		updateBoardGeneralDetails();
-	});
-
-	$('#board-admins').on('select2:unselect', function (e) {
-		
-		updateBoardGeneralDetails();
-	});
-
-	$('#board-members').on('select2:select', function (e) {
-		
-		updateBoardGeneralDetails();
-	});
-
-	$('#board-members').on('select2:unselect', function (e) {
-		
-		updateBoardGeneralDetails();
-	});
-
-	// End of General Settings
-
-	function createBoardLabel()
-	{
-		var labelName = $('#board-label-name').val();
-		$('#board-label-name').val('');
-
-		if (labelName && !labelName.trim() || labelName.length==0)
-			return;
-
-		$.ajax(
-			{
-				url: "{% url 'jira:boardSettingsViewBoardLabelsApiEventVersion1Component' url=board.url %}",
-				data:
-				{
-					'label-name': labelName,
-				},
-				type: 'POST',
-				dataType: 'json',
-				success: function(response)
-				{
-					if (!response.success)
-						return;
-
-					$('#board-labels-container').append(`
-						<div class="card" id="label-container-${response.data.id}">
-	        				<div class="card-body" style="height: 10px;">
-			        			<div class="row">
-			        				<div class="col">
-			        					<input type="text" id="board-label-name-${response.data.id}" class="form-control form-control-sm" value="${response.data.internalKey}" placeholder="Label name" style="margin-top: -15px;" readonly>
-			        				</div>
-			        				<div class="col-auto" style="margin-top: -13px;">
-			        					<input type="color" id="board-label-colour-${response.data.id}" value="${response.data.colour}">
-			        				</div>
-			        				<div class="col-auto">
-			        					<button type="button" class="btn btn-danger btn-sm" onclick="deleteLabel('${response.data.id}');" style="margin-top: -24px;">Delete Label</button>
-			        				</div>
-			        			</div>
-	        				</div>
-	        			</div>`
-		        	);
-
-		        	$( "#board-label-name-" + response.data.id  ).focusin(function() {
-						$(this).removeAttr("readonly");
-					});
-
-					$( "#board-label-name-" + response.data.id  ).focusout(function() {
-						$(this).attr('readonly','');
-
-						var labelName = $(this).val();
-
-
-						if (labelName && !labelName.trim() || labelName.length==0)
-							return;
-
-						$.ajax(
-							{
-								url: "{% url 'jira:boardSettingsViewBoardLabelsApiEventVersion1Component' url=board.url %}",
-								data:
-								{
-									'label-name': labelName,
-									'label-id': response.data.id,
-								},
-								type: 'PUT',
-								dataType: 'json',
-							}
-						);
-					});
-
-					$( "#board-label-colour-" + response.data.id  ).focusout(function() {
-						$(this).attr('readonly','');
-
-						var labelColour = $(this).val();
-
-						$.ajax(
-							{
-								url: "{% url 'jira:boardSettingsViewBoardLabelsApiEventVersion1Component' url=board.url %}",
-								data:
-								{
-									'label-colour': labelColour,
-									'label-id': response.data.id,
-								},
-								type: 'PUT',
-								dataType: 'json',
-							}
-						);
-					});
-				}
-			}
-		);
-	}
-
-	function createBoardColumn()
-	{
-		var columnName = $('#board-column-name').val();
-		$('#board-column-name').val('');
-
-		if (columnName && !columnName.trim() || columnName.length==0)
-			return;
-
-		$.ajax(
-			{
-				url: "{% url 'jira:boardSettingsViewBoardColumnsApiEventVersion1Component' url=board.url %}",
-				data:
-				{
-					'column-name': columnName,
-				},
-				type: 'POST',
-				dataType: 'json',
-				success: function(response)
-				{
-					if (response.success)
-					{
-						$('#board-columns-container').append(`
-							<div class="card" id="column-container-${response.data.id}">
-		        				<div class="card-body" style="height: 10px;">
-				        			<div class="row">
-				        				<div class="col">
-				        					<input type="text" id="board-column-name-${response.data.id}" class="form-control form-control-sm" value="${response.data.internalKey}" placeholder="Column name" style="margin-top: -15px;" readonly>
-				        				</div>
-				        				<div class="col-auto">
-				        					<button type="button" class="btn btn-danger btn-sm" onclick="deleteColumn('${response.data.id}');" style="margin-top: -24px;">Delete Column</button>
-				        				</div>
-				        			</div>
-		        				</div>
-		        			</div>`
-		        		);
-
-		        		$( "#board-column-name-" + response.data.id ).focusin(function() {
-							$(this).removeAttr("readonly");
-						});
-
-						$( "#board-column-name-" + response.data.id ).focusout(function() {
-							$(this).attr('readonly','');
-
-							var columnName = $(this).val();
-
-							if (columnName && !columnName.trim() || columnName.length==0)
-								return;
-
-							$.ajax(
-								{
-									url: "{% url 'jira:boardSettingsViewBoardColumnsApiEventVersion1Component' url=board.url %}",
-									data:
-									{
-										'column-name': columnName,
-										'column-id': response.data.id,
-									},
-									type: 'PUT',
-									dataType: 'json',
-								}
-							);
-						});
-					}
-				}
-			}
-		);
-	}
-
-	$( function() {
-		$('#board-columns-container').sortable(
-			{
-				stop: function(e, ui)
-				{
-					const newOrder = $.map($('#board-columns-container > div'), div => div.id);
-					$.ajax(
-						{
-							url: "{% url 'jira:boardColumnsBulkOrderChangeApiEventVersion1Component' url=board.url %}",
-							data:
-							{
-								'new-column-order': newOrder,
-							},
-							type: 'PUT',
-							dataType: 'json',
-						}
-					);
-				}
-			}
-		);
-	} );
-
-	function deleteColumn(columnId)
-	{
-		
-		$.ajax(
-			{
-				url: "{% url 'jira:boardSettingsViewBoardColumnsApiEventVersion1Component' url=board.url %}",
-				data:
-				{
-					'column-id': columnId,
-				},
-				type: 'DELETE',
-				dataType: 'json',
-				success: function(response)
-				{
-					if (!response.success)
-					{
-						Swal.fire(
-	                        {
-	                            icon: 'warning',
-	                            title: "Can't do that!",
-	                            text: response.message
-	                        }
-                    	);
-					}
-					else
-					{
-						$('#column-container-'+columnId).remove();
-					}
-				}
-			}
-		);
-	}
-
-	function deleteLabel(labelId)
-	{
-		$('#label-container-'+labelId).remove();
-		$.ajax(
-			{
-				url: "{% url 'jira:boardSettingsViewBoardLabelsApiEventVersion1Component' url=board.url %}",
-				data:
-				{
-					'label-id': labelId,
-				},
-				type: 'DELETE',
-				dataType: 'json',
-			}
-		);
-	}
-
-</script>
-
-<!-- This jquery version crashes the select2. -->
-<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    </body>
+
+    <script type="text/javascript">
+
+        window.onload = function () {
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+            });
+
+            renderSelectComponents();
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        let boardProjectIdsList = [];
+        let boardAdminsIdsList = [];
+        let boardMembersIdsList = [];
+
+        {% for project in board.projects.all %}
+            boardProjectIdsList.push('{{project.id}}');
+        {% endfor %}
+
+        {% for admin in board.admins.all %}
+            boardAdminsIdsList.push('{{admin.id}}');
+        {% endfor %}
+
+        {% for member in board.members.all %}
+            boardMembersIdsList.push('{{member.id}}');
+        {% endfor %}
+
+        function renderSelectComponents() {
+            $('#board-projects').select2().val(boardProjectIdsList).trigger("change");
+            $('#board-admins').select2().val(boardAdminsIdsList).trigger("change");
+            $('#board-members').select2().val(boardMembersIdsList).trigger("change");
+        }
+
+        function resetBoardGeneralDetails() {
+            $("#board-name").val("{{ board.internalKey }}");
+            renderSelectComponents();
+
+            {% if board.isPrivate %}
+                $("#visibility-members").prop("checked", true);
+            {% else %}
+                $("#visibility-everyone").prop("checked", true);
+            {% endif %}
+        }
+
+        function updateBoardGeneralDetails() {
+            let boardName = $('#board-name').val();
+            let boardProjects = $('#board-projects').val();
+            let boardAdminIds = $('#board-admins').val();
+            let boardMemberIds = $('#board-members').val();
+            let boardVisibility = $('input[name="board-visibility"]:checked').val();
+
+            let isValid = true;
+            let errorMessage = null;
+
+            if (boardName && !boardName.trim() || boardName.length === 0) {
+                // $('#board-name').val('{{ board.internalKey }}');
+                isValid = false;
+                errorMessage = "Board name is empty.";
+            }
+
+            if (boardProjects.length === 0) {
+                isValid = false;
+                errorMessage = "You must add at least one project in this board.";
+            }
+
+            if (boardAdminIds.length === 0) {
+                isValid = false;
+                errorMessage = "You must add at least one admin in this board.";
+            }
+
+            if (!isValid) {
+                Swal.fire(
+                    {
+                        icon: "error",
+                        title: "Can't do that!",
+                        text: errorMessage
+                    }
+                );
+                return;
+            }
+
+            $.ajax(
+                {
+                    url: "{% url 'jira:boardSettingsViewGeneralDetailsApiEventVersion1Component' url=board.url %}",
+                    type: 'PUT',
+                    data: {
+                        'board-name': boardName,
+                        'board-projects': boardProjects,
+                        'board-admins': boardAdminIds,
+                        'board-members': boardMemberIds,
+                        'board-visibility': boardVisibility,
+                    },
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    dataType: 'json',
+                }
+            );
+        }
+    </script>
 
 {% endblock %}

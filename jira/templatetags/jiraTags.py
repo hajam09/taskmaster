@@ -3,6 +3,7 @@ from django.core.cache import cache
 
 from accounts.models import Profile
 from jira.models import Project, Board, Label
+from jira.templatetags.boardNavigationPanel import panelItems
 
 register = template.Library()
 
@@ -19,6 +20,15 @@ def labels():
 
 @register.simple_tag
 def boards():
+    """
+    cachedBoards = cache.get('allBoards')
+    if cachedBoards is not None and cachedBoards.count() == Board.objects.count():
+        return cachedBoards
+
+    allBoardsList = Board.objects.all().prefetch_related('projects', 'admins', 'members')
+    cache.set('allBoards', allBoardsList, None)
+    return allBoardsList
+    """
     return Board.objects.all().prefetch_related('projects', 'admins', 'members')
 
 
@@ -40,3 +50,8 @@ def ticketPriorities():
 @register.simple_tag
 def ticketResolutions():
     return cache.get('TICKET_RESOLUTIONS')
+
+
+@register.simple_tag
+def boardPanelItems(boardUrl):
+    return panelItems(boardUrl)

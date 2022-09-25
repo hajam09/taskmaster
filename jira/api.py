@@ -25,11 +25,9 @@ def compare(s1, s2):
     return s1.translate(mapping) == s2.translate(mapping)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class BoardSettingsViewGeneralDetailsApiEventVersion1Component(View):
 
     def put(self, *args, **kwargs):
-        # MANUAL_TESTED
         url = self.kwargs.get("url", None)
         put = QueryDict(self.request.body)
 
@@ -42,24 +40,17 @@ class BoardSettingsViewGeneralDetailsApiEventVersion1Component(View):
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
-        boardName = put.get("board-name", board.internalKey)
-        boardProjects = put.getlist("board-projects[]", [])
-        boardAdmins = put.getlist("board-admins[]", [])
-        boardMembers = put.getlist("board-members[]", [])
-        boardVisibility = put.get("board-visibility", board.isPrivate)
+        board.internalKey = put.get("board-name", board.internalKey)
+        board.isPrivate = put.get("board-visibility") == 'visibility-members'
 
-        board.internalKey = boardName
-        board.isPrivate = boardVisibility == 'visibility-members'
+        board.projects.clear()
+        board.admins.clear()
+        board.members.clear()
 
         # just passing the ids will do the job
-        board.projects.clear()
-        board.projects.add(*boardProjects)
-
-        board.admins.clear()
-        board.admins.add(*boardAdmins)
-
-        board.members.clear()
-        board.members.add(*boardMembers)
+        board.projects.add(*put.getlist("board-projects[]", []))
+        board.admins.add(*put.getlist("board-admins[]", []))
+        board.members.add(*put.getlist("board-members[]", []))
 
         board.save()
 
@@ -397,10 +388,9 @@ class TeamsViewApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class TeamsObjectApiEventVersion1Component(View):
     # TeamsObjectApiEventVersion1ComponentTest
-    
+
     def delete(self, *args, **kwargs):
         # MANUAL_TESTED
         teamId = self.kwargs.get("teamId", None)
@@ -552,7 +542,6 @@ class TicketObjectForEpicTicketApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class TicketCommentsApiEventVersion1Component(View):
     def get(self, *args, **kwargs):
         ticketId = self.kwargs.get("ticketId", None)
@@ -820,7 +809,6 @@ class AgileBoardTicketColumnUpdateApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class AgileBoardTicketColumnUpdateApiEventVersion2Component(View):
 
     def put(self, *args, **kwargs):
@@ -997,7 +985,6 @@ class AgileBoardDetailsApiEventVersion2Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class BacklogDetailsEpicLessTicketsApiEventVersion1Component(View):
 
@@ -1098,7 +1085,6 @@ class BacklogDetailsEpicLessTicketsApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class BacklogDetailsApiEventVersion1Component(View):
 
     def get(self, *args, **kwargs):
@@ -1260,7 +1246,6 @@ class BacklogDetailsApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class BacklogDetailsApiEventVersion2Component(View):
 
     def get(self, *args, **kwargs):
@@ -1516,7 +1501,6 @@ class EpicDetailsForBoardApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class TeamChatMessagesApiEventVersion1Component(View):
     def get(self, *args, **kwargs):
         url = self.kwargs.get("url", None)
@@ -1574,7 +1558,6 @@ class TeamChatMessagesApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class AgileBoardColumnOperationApiEventVersion1Component(View):
 
     def canDeleteOrEdit(self, columnName):
@@ -1907,7 +1890,6 @@ class SprintObjectApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class TicketObjectDetailApiEventVersion1Component(View):
 
     def get(self, *args, **kwargs):

@@ -245,47 +245,68 @@
         class TicketDatesComponent extends React.Component {
             constructor(props) {
                 super(props);
+
+                this.state = {
+                    showDates: true,
+                }
             }
+
+            switchDatesViewMode = () => {
+                this.setState({
+                    showDates: !this.state.showDates
+                })
+            }
+
+             renderEmptyMode = () => {
+                return <div></div>
+            }
+
+            renderNormalMode = () => {
+                return (
+                    <div className="mod-content">
+                        <div className="item-details">
+                            <dl className="dates">
+                                <dt>
+                                    Created:
+                                </dt>
+                                <dd className="date user-tz" title={this.props.ticket.createdDate}>
+                                            <span data-name="Created" id="created-val" data-fieldtype="datetime">
+                                                <time className="livestamp" dateTime={this.props.ticket.createdDate}>
+                                                    {this.props.ticket.createdDate}
+                                                </time>
+                                            </span>
+                                </dd>
+                            </dl>
+                            <dl className="dates">
+                                <dt>
+                                    Updated:
+                                </dt>
+                                <dd className="date user-tz" title={this.props.ticket.modifiedDate}>
+                                            <span data-name="Updated" id="updated-val" data-fieldtype="datetime">
+                                                <time className="livestamp" dateTime={this.props.ticket.modifiedDate}>
+                                                    {this.props.ticket.modifiedDate}
+                                                </time>
+                                            </span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                )
+            }
+
 
             render() {
                 return (
                     <div id="datesmodule" className="module toggle-wrap">
                         <div id="datesmodule_heading" className="mod-header">
                             <button className="aui-button toggle-title" aria-label="Dates" aria-controls="datesmodule"
-                                    aria-expanded="true" resolved="">
+                                    aria-expanded="true" onClick={this.switchDatesViewMode}>
                                 <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
                             </button>
                             <h4 className="toggle-title" id="datesmodule-label">Dates</h4>
                             <ul className="ops"></ul>
                         </div>
-                        <div className="mod-content">
-                            <div className="item-details">
-                                <dl className="dates">
-                                    <dt>
-                                        Created:
-                                    </dt>
-                                    <dd className="date user-tz" title={this.props.ticket.createdDate}>
-                                            <span data-name="Created" id="created-val" data-fieldtype="datetime">
-                                                <time className="livestamp" dateTime={this.props.ticket.createdDate}>
-                                                    {this.props.ticket.createdDate}
-                                                </time>
-                                            </span>
-                                    </dd>
-                                </dl>
-                                <dl className="dates">
-                                    <dt>
-                                        Updated:
-                                    </dt>
-                                    <dd className="date user-tz" title={this.props.ticket.modifiedDate}>
-                                            <span data-name="Updated" id="updated-val" data-fieldtype="datetime">
-                                                <time className="livestamp" dateTime={this.props.ticket.modifiedDate}>
-                                                    {this.props.ticket.modifiedDate}
-                                                </time>
-                                            </span>
-                                    </dd>
-                                </dl>
-                            </div>
-                        </div>
+                        {this.state.showDates ? this.renderNormalMode() : this.renderEmptyMode()}
                     </div>
                 )
             }
@@ -294,10 +315,17 @@
         class TicketDetailsComponent extends React.Component {
             constructor(props) {
                 super(props);
+
+                this.state = {
+                    showDetails: true,
+                }
             }
 
-            render() {
+            renderEmptyMode = () => {
+                return <div></div>
+            }
 
+            renderNormalMode = () => {
                 const style1 = {
                     backgroundColor: this.props.ticket.status.colour,
                     color: 'white',
@@ -309,125 +337,138 @@
                     height: "auto"
                 }
                 return (
+                    <div className="mod-content">
+                        <ul id="issuedetails" className="property-list two-cols">
+                            <li className="item">
+                                <div className="wrap">
+                                    <strong className="name" title="Type">
+                                        <label htmlFor="issuetype">Type:</label>
+                                    </strong>
+                                    <span id="type-val" className="value">
+                                        <img alt={this.props.ticket.issueType.internalKey} height="16"
+                                             src={this.props.ticket.issueType.icon}
+                                             title={this.props.ticket.issueType.internalKey}
+                                             width="16"></img>
+                                        &nbsp;&nbsp;
+                                        {this.props.ticket.issueType.internalKey}
+                                    </span>
+                                </div>
+                            </li>
+                            <li className="item item-right">
+                                <div className="wrap">
+                                    <strong className="name" title="Status">Status:</strong>
+                                    <span id="status-val" className="value">
+                                        <span
+                                            className=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-yellow jira-issue-status-lozenge-indeterminate jira-issue-status-lozenge-max-width-medium"
+                                            style={style1}>
+                                            {this.props.ticket.status.internalKey}
+                                        </span>
+                                    </span>
+                                </div>
+                            </li>
+                            <li className="item new">
+                                <div className="wrap">
+                                    <strong className="name" title="Priority">
+                                        <label htmlFor="priority-field">Priority:</label>
+                                    </strong>
+                                    <span id="priority-val" className="value">
+                                        <img alt={this.props.ticket.priority.internalKey} height="16"
+                                             src={this.props.ticket.priority.icon}
+                                             title={this.props.ticket.priority.internalKey}
+                                             width="16"></img>
+                                        &nbsp;&nbsp;
+                                        {this.props.ticket.priority.internalKey}
+                                    </span>
+                                </div>
+                            </li>
+                            <li className="item item-right">
+                                <div className="wrap">
+                                    <strong className="name" title="Resolution">Resolution:</strong>
+                                    <span id="resolution-val"
+                                          className={"value " + this.props.ticket.resolution.internalKey}> {this.props.ticket.resolution.internalKey} </span>
+                                </div>
+                            </li>
+                            <li className="item">
+                                <div className="wrap">
+                                    <strong className="name" title="Component/s">
+                                        <label htmlFor="components">Component/s:</label>
+                                    </strong>
+                                    <span id="components-val" className="value">
+                                          <span className="shorten" id="components-field" resolved=""
+                                                style={style3}>
+                                              {
+                                                  this.props.ticket.components.map((component, i) =>
+                                                      <a key={i} title="core Jenkins core"
+                                                         href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.code + "&component=" + component.code}>
+                                                          {component.internalKey}&nbsp;&nbsp;
+                                                      </a>
+                                                  )
+                                              }
+                                          </span>
+                                      </span>
+                                </div>
+                            </li>
+
+                            <li className="item item-right">
+                                <div className="wrap">
+                                    <strong className="name" title="StoryPoint">Story Point:</strong>
+                                    <span id="storyPoint-val" className={"value " + this.props.ticket.storyPoints}>
+                                        {this.props.ticket.storyPoints}
+                                    </span>
+                                </div>
+                            </li>
+
+                            <li className="item">
+                                <div className="wrap" id="wrap-labels">
+                                    <strong className="name" title="Labels"> <label
+                                        htmlFor="labels-textarea">Labels:</label> </strong>
+                                    {
+                                        // TODO: ticket filtering based on label is not Implemented.
+                                        this.props.ticket.labels.map((label, i) =>
+                                            <div className="labels-wrap value" key={i}>
+                                                <a href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.code + "&label=" + label.code}
+                                                   className="aui-lozenge"
+                                                   style={style2}
+                                                   title={label.internalKey}>
+                                                    {label.internalKey}
+                                                </a>
+                                            </div>
+                                        )
+                                    }
+                                </div>
+                            </li>
+
+                            <li className="item item-right">
+                                <div className="wrap">
+                                    <strong className="name" title="fixVersion">Fix version:</strong>
+                                    <span id="fixVersion-val" className={"value " + this.props.ticket.fixVersion}>
+                                        {this.props.ticket.fixVersion}
+                                    </span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                )
+            }
+
+            switchDetailViewMode = () => {
+                this.setState({
+                    showDetails: !this.state.showDetails
+                })
+            }
+
+            render() {
+                return (
                     <div id="details-module" className="module toggle-wrap">
                         <div id="details-module_heading" className="mod-header">
                             <button className="aui-button toggle-title" aria-label="Details"
-                                    aria-controls="details-module" aria-expanded="true" resolved="">
+                                    aria-controls="details-module" aria-expanded="true" onClick={this.switchDetailViewMode}>
                                 <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
                             </button>
                             <h4 className="toggle-title" id="details-module-label">Details</h4>
                             <ul className="ops"></ul>
                         </div>
-                        <div className="mod-content">
-                            <ul id="issuedetails" className="property-list two-cols">
-                                <li className="item">
-                                    <div className="wrap">
-                                        <strong className="name" title="Type">
-                                            <label htmlFor="issuetype">Type:</label>
-                                        </strong>
-                                        <span id="type-val" className="value">
-                                                <img alt={this.props.ticket.issueType.internalKey} height="16"
-                                                     src={this.props.ticket.issueType.icon}
-                                                     title={this.props.ticket.issueType.internalKey}
-                                                     width="16"></img>
-                                            &nbsp;&nbsp;
-                                            {this.props.ticket.issueType.internalKey}
-                                            </span>
-                                    </div>
-                                </li>
-                                <li className="item item-right">
-                                    <div className="wrap">
-                                        <strong className="name" title="Status">Status:</strong>
-                                        <span id="status-val" className="value">
-                                                <span
-                                                    className=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-yellow jira-issue-status-lozenge-indeterminate jira-issue-status-lozenge-max-width-medium"
-                                                    style={style1}>
-                                                    {this.props.ticket.status.internalKey}
-                                                </span>
-                                            </span>
-                                    </div>
-                                </li>
-                                <li className="item new">
-                                    <div className="wrap">
-                                        <strong className="name" title="Priority">
-                                            <label htmlFor="priority-field">Priority:</label>
-                                        </strong>
-                                        <span id="priority-val" className="value">
-                                                <img alt={this.props.ticket.priority.internalKey} height="16"
-                                                     src={this.props.ticket.priority.icon}
-                                                     title={this.props.ticket.priority.internalKey}
-                                                     width="16"></img>
-                                            &nbsp;&nbsp;
-                                            {this.props.ticket.priority.internalKey}
-                                            </span>
-                                    </div>
-                                </li>
-                                <li className="item item-right">
-                                    <div className="wrap">
-                                        <strong className="name" title="Resolution">Resolution:</strong>
-                                        <span id="resolution-val"
-                                              className={"value " + this.props.ticket.resolution.internalKey}> {this.props.ticket.resolution.internalKey} </span>
-                                    </div>
-                                </li>
-                                <li className="item">
-                                    <div className="wrap">
-                                        <strong className="name" title="Component/s">
-                                            <label htmlFor="components">Component/s:</label>
-                                        </strong>
-                                        <span id="components-val" className="value">
-                                              <span className="shorten" id="components-field" resolved=""
-                                                    style={style3}>
-                                                  {
-                                                      this.props.ticket.components.map((component, i) =>
-                                                          <a key={i} title="core Jenkins core"
-                                                             href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.code + "&component=" + component.code}>
-                                                              {component.internalKey}&nbsp;&nbsp;
-                                                          </a>
-                                                      )
-                                                  }
-                                              </span>
-                                          </span>
-                                    </div>
-                                </li>
-
-                                <li className="item item-right">
-                                    <div className="wrap">
-                                        <strong className="name" title="StoryPoint">Story Point:</strong>
-                                        <span id="storyPoint-val" className={"value " + this.props.ticket.storyPoints}>
-                                            {this.props.ticket.storyPoints}
-                                        </span>
-                                    </div>
-                                </li>
-
-                                <li className="item">
-                                    <div className="wrap" id="wrap-labels">
-                                        <strong className="name" title="Labels"> <label
-                                            htmlFor="labels-textarea">Labels:</label> </strong>
-                                        {
-                                            // TODO: ticket filtering based on label is not Implemented.
-                                            this.props.ticket.labels.map((label, i) =>
-                                                <div className="labels-wrap value" key={i}>
-                                                    <a href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.code + "&label=" + label.code} className="aui-lozenge"
-                                                       style={style2}
-                                                       title={label.internalKey}>
-                                                        {label.internalKey}
-                                                    </a>
-                                                </div>
-                                            )
-                                        }
-                                    </div>
-                                </li>
-
-                                <li className="item item-right">
-                                    <div className="wrap">
-                                        <strong className="name" title="fixVersion">Fix version:</strong>
-                                        <span id="fixVersion-val" className={"value " + this.props.ticket.fixVersion}>
-                                            {this.props.ticket.fixVersion}
-                                        </span>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
+                        {this.state.showDetails ? this.renderNormalMode() : this.renderEmptyMode()}
                     </div>
                 )
             }
@@ -454,29 +495,29 @@
                     assignee: assignee,
                     reporter: reporter,
                     watchers: watchers,
+                    showPeople: true,
                 }
             }
 
-            render() {
+            switchPeopleViewMode = () => {
+                this.setState({
+                    showPeople: !this.state.showPeople
+                })
+            }
+
+            renderEmptyMode = () => {
+                return <div></div>
+            }
+
+            renderNormalMode = () => {
                 return (
-                    <div id="peoplemodule" className="module toggle-wrap">
-                        <div id="peoplemodule_heading" className="mod-header">
-                            <button className="aui-button toggle-title" aria-label="People" aria-controls="peoplemodule"
-                                    aria-expanded="true" resolved="">
-                                <span className="accicon">
-                                    <i className="fas fa-angle-down rotate-icon"></i>
-                                </span>
-                            </button>
-                            <h4 className="toggle-title" id="peoplemodule-label">People</h4>
-                            <ul className="ops"></ul>
-                        </div>
-                        <div className="mod-content">
-                            <div className="item-details people-details" id="peopledetails">
-                                <dl>
-                                    <dt title="Assignee">
-                                        <label htmlFor="assignee-field">Assignee:</label>
-                                    </dt>
-                                    <dd>
+                    <div className="mod-content">
+                        <div className="item-details people-details" id="peopledetails">
+                            <dl>
+                                <dt title="Assignee">
+                                    <label htmlFor="assignee-field">Assignee:</label>
+                                </dt>
+                                <dd>
                                         <span id="assignee-val" className="view-issue-field">
                                             <span className="aui-avatar aui-avatar-small">
                                                 <span className="aui-avatar-inner">
@@ -487,13 +528,13 @@
                                             </span>&nbsp;&nbsp;
                                             {this.state.assignee.fullName}
                                         </span>
-                                    </dd>
-                                </dl>
-                                <dl>
-                                    <dt title="Reporter">
-                                        <label htmlFor="reporter-field">Reporter:</label>
-                                    </dt>
-                                    <dd>
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dt title="Reporter">
+                                    <label htmlFor="reporter-field">Reporter:</label>
+                                </dt>
+                                <dd>
                                         <span id="reporter-val" className="view-issue-field">
                                             <span className="user-hover" id="issue_summary_reporter_dumam"
                                                   rel={this.state.reporter.fullName}>
@@ -507,32 +548,49 @@
                                                 {this.state.reporter.fullName}
                                             </span>
                                         </span>
-                                    </dd>
-                                </dl>
-                            </div>
-                            <div className="item-details">
-                                <dl>
-                                    <dt title="Votes">Votes:</dt>
-                                    <dd>
-                                        <aui-badge id="vote-data" className="">0</aui-badge>
-                                        <span id="vote-label"
-                                              title="You have to be logged in to vote for an issue.">&nbsp;&nbsp;Vote for this issue</span>
-                                    </dd>
-                                </dl>
-                                <dl>
-                                    <dt title="Watchers">Watchers:</dt>
-                                    <dd>
-                                        {this.state.watchers.isWatching ? <span
-                                                className="badge badge-pill badge-primary">{this.state.watchers.counter}</span> :
-                                            <aui-badge id="watcher-data"
-                                                       className="">{this.state.watchers.counter}</aui-badge>}
-                                        &nbsp;
-                                        <span id="watch-label"
-                                              title={this.state.watchers.message}>{!this.state.watchers.isWatching ? " Watch this issue" : " Unwatch this issue"}</span>
-                                    </dd>
-                                </dl>
-                            </div>
+                                </dd>
+                            </dl>
                         </div>
+                        <div className="item-details">
+                            <dl>
+                                <dt title="Votes">Votes:</dt>
+                                <dd>
+                                    <aui-badge id="vote-data" className="">0</aui-badge>
+                                    <span id="vote-label"
+                                          title="You have to be logged in to vote for an issue.">&nbsp;&nbsp;Vote for this issue</span>
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dt title="Watchers">Watchers:</dt>
+                                <dd>
+                                    {this.state.watchers.isWatching ? <span
+                                            className="badge badge-pill badge-primary">{this.state.watchers.counter}</span> :
+                                        <aui-badge id="watcher-data"
+                                                   className="">{this.state.watchers.counter}</aui-badge>}
+                                    &nbsp;
+                                    <span id="watch-label"
+                                          title={this.state.watchers.message}>{!this.state.watchers.isWatching ? " Watch this issue" : " Unwatch this issue"}</span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                )
+            }
+
+            render() {
+                return (
+                    <div id="peoplemodule" className="module toggle-wrap">
+                        <div id="peoplemodule_heading" className="mod-header">
+                            <button className="aui-button toggle-title" aria-label="People" aria-controls="peoplemodule"
+                                    aria-expanded="true" onClick={this.switchPeopleViewMode}>
+                                <span className="accicon">
+                                    <i className="fas fa-angle-down rotate-icon"></i>
+                                </span>
+                            </button>
+                            <h4 className="toggle-title" id="peoplemodule-label">People</h4>
+                            <ul className="ops"></ul>
+                        </div>
+                        {this.state.showPeople ? this.renderNormalMode() : this.renderEmptyMode()}
                     </div>
                 )
             }
@@ -541,30 +599,51 @@
         class TicketDescriptionComponent extends React.Component {
             constructor(props) {
                 super(props);
+
+                this.state = {
+                    showDescription: true,
+                }
             }
 
-            render() {
+            switchDescriptionViewMode = () => {
+                this.setState({
+                    showDescription: !this.state.showDescription
+                })
+            }
 
+            renderEmptyMode = () => {
+                return <div></div>
+            }
+
+            renderNormalMode = () => {
                 const style1 = {
                     whiteSpace: "pre-line"
                 }
+
+                return (
+                    <div className="mod-content">
+                        <div id="description-val" className="field-ignore-highlight">
+                            <div className="user-content-block" style={style1}>
+                                {this.props.ticket.description}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            render() {
                 return (
                     <div id="descriptionModule" className="module toggle-wrap">
                         <div id="descriptionModule_heading" className="mod-header">
                             <button className="aui-button toggle-title" aria-label="Description"
-                                    aria-controls="descriptionModule" aria-expanded="true" resolved="">
+                                    aria-controls="descriptionModule" aria-expanded="true"
+                                    onClick={this.switchDescriptionViewMode}>
                                 <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
                             </button>
                             <h4 className="toggle-title" id="descriptionmodule-label">Description</h4>
                             <ul className="ops"></ul>
                         </div>
-                        <div className="mod-content">
-                            <div id="description-val" className="field-ignore-highlight">
-                                <div className="user-content-block" style={style1}>
-                                    {this.props.ticket.description}
-                                </div>
-                            </div>
-                        </div>
+                        {this.state.showDescription ? this.renderNormalMode() : this.renderEmptyMode()}
                     </div>
                 )
             }
@@ -623,13 +702,35 @@
                 super(props);
 
                 this.state = {
+                    showAttachments: true,
                     attachments: []
                 }
 
             }
 
+            renderEmptyMode = () => {
+                return <div></div>
+            }
+
+            switchAttachmentsViewMode = () => {
+                this.setState({
+                    showAttachments: !this.state.showAttachments
+                })
+            }
+
             componentDidMount = () => {
                 this.fetchTicketAttachments();
+            }
+
+            renderNormalMode = () => {
+                return (
+                    <div className="mod-content">
+                        <ol id="attachment_thumbnails" className="item-attachments" data-sort-key="fileName"
+                            data-sort-order="asc">
+                            {this.state.attachments.map((item => <Thumbnail key={item.id} attachment={item}/>))}
+                        </ol>
+                    </div>
+                )
             }
 
 
@@ -648,7 +749,7 @@
                     <div id="attachmentModule" className="module toggle-wrap">
                         <div id="attachmentModuleHeading" className="mod-header">
                             <button className="aui-button toggle-title" aria-label="Attachments"
-                                    aria-controls="attachmentModule" aria-expanded="true" resolved="">
+                                    aria-controls="attachmentModule" aria-expanded="true" onClick={this.switchAttachmentsViewMode}>
                                 <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
                             </button>
                             <h4 className="toggle-title" id="attachmentmodule-label">Attachments</h4>
@@ -709,12 +810,7 @@
                                     </div>
                                 </li>
                             </ul>
-                            <div className="mod-content">
-                                <ol id="attachment_thumbnails" className="item-attachments" data-sort-key="fileName"
-                                    data-sort-order="asc">
-                                    {this.state.attachments.map((item => <Thumbnail key={item.id} attachment={item}/>))}
-                                </ol>
-                            </div>
+                            {this.state.showAttachments ? this.renderNormalMode() : this.renderEmptyMode()}
                         </div>
                     </div>
                 )

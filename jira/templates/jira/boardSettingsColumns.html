@@ -1,4 +1,5 @@
 {% extends "accounts/base.html" %}
+{% load jiraTags %}
 {% load static %}
 {% block content %}
     <link type="text/css" rel="stylesheet" href="{% static 'css/kanbanBoardCSS1.css' %}">
@@ -10,6 +11,8 @@
     <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    {% boardPanelItems board.url as boardPanelItems %}
 
     <style>
         #ghx-mapping {
@@ -26,40 +29,29 @@
                      aria-label="Sidebar">
                 <div class="aui-sidebar-wrapper" style="height: 583px;">
                     <div class="col" style="margin-top: 10px">
-
                         <ul class="navbar-nav mr-auto">
-                            <li class="nav-item active">
-                                <a class="nav-link" href="{% url 'jira:board-settings' url=board.url %}"
-                                   data-toggle="tooltip"
-                                   data-placement="right" title="Settings"><i style="font-size:24px"
-                                                                              class="fa">&#xf085;</i></a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'jira:board-page' url=board.url %}"
-                                   data-toggle="tooltip"
-                                   data-placement="right" title="Board"><i style='font-size:24px'
-                                                                           class='far'>&#xf24d;</i></a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown" href="#" id="navbarDropdown" role="button"
-                                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                                   title="Boards in this project">
-                                    <i style='font-size:24px'
-                                       class='far'>&#xf24d;</i>
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    {% for otherBoard in boardsInProject %}
-                                        <a class="dropdown-item"
-                                           href="{{ otherBoard.getUrl }}">{{ otherBoard.internalKey }}</a>
-                                    {% endfor %}
-                                </div>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'jira:board-backlog' url=board.url %}"
-                                   data-toggle="tooltip"
-                                   data-placement="right" title="Backlog"><i style="font-size:24px"
-                                                                             class="fas fa-tasks"></i></a>
-                            </li>
+                            {% for panel in boardPanelItems %}
+                                {% if not panel.subLinks %}
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ panel.url }}"
+                                           data-toggle="tooltip"
+                                           data-placement="right" title="{{ panel.name }}">{{ panel.icon|safe }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown" href="#" id="navbarDropdown" role="button"
+                                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                           title="{{ panel.name }}">
+                                            {{ panel.icon|safe }}
+                                        </a>
+                                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                            {% for subLink in panel.subLinks %}
+                                                <a class="dropdown-item" href="{{ subLink.url }}">{{ subLink.name }}</a>
+                                            {% endfor %}
+                                        </div>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
                         </ul>
                     </div>
                 </div>
@@ -97,6 +89,25 @@
     </body>
 
     <script type="text/babel">
+
+        function getCookie(name) {
+            let cookieValue = null;
+
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
 
         class ColumnStatusInstanceComponent extends React.Component {
             constructor(props) {
@@ -360,11 +371,13 @@
                 $.ajax(
                     {
                         url: "{% url 'jira:agileBoardColumnOperationApiEventVersion1Component' boardId=board.id%}",
-                        data:
-                            {
-                                columnAndStatus: JSON.stringify(boardUpdate),
-                                checkedBoxes: checkedBoxes,
-                            },
+                        data: {
+                            columnAndStatus: JSON.stringify(boardUpdate),
+                            checkedBoxes: checkedBoxes,
+                        },
+                        headers: {
+                            "X-CSRFToken": getCookie("csrftoken")
+                        },
                         type: 'PUT',
                         dataType: 'json',
                         success: function (response) {
