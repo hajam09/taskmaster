@@ -127,8 +127,8 @@
                                     <dd class="col-sm-12">
                                         <label style="font-size: 85%; color: #6c757d;">Attachment</label>
                                         <div class="file-drop-area border justify-content-center" style="width: 100%;">
-                                            <span class="choose-file-button">Choose files </span>
-                                            <span class="file-message"> or drag and drop files here</span>
+                                            <span class="choose-file-button">Choose files</span>
+                                            <span class="file-message">&nbsp;or drag and drop files here</span>
                                             <input class="file-input" name="attachments" type="file" multiple>
                                         </div>
                                     </dd>
@@ -280,11 +280,11 @@
                                     Created:
                                 </dt>
                                 <dd className="date user-tz" title={this.props.ticket.createdDate}>
-                                            <span data-name="Created" id="created-val" data-fieldtype="datetime">
-                                                <time className="livestamp" dateTime={this.props.ticket.createdDate}>
-                                                    {this.props.ticket.createdDate}
-                                                </time>
-                                            </span>
+                                    <span data-name="Created" id="created-val" data-fieldtype="datetime">
+                                        <time className="livestamp" dateTime={this.props.ticket.createdDate}>
+                                            {this.props.ticket.createdDate}
+                                        </time>
+                                    </span>
                                 </dd>
                             </dl>
                             <dl className="dates">
@@ -292,11 +292,11 @@
                                     Updated:
                                 </dt>
                                 <dd className="date user-tz" title={this.props.ticket.modifiedDate}>
-                                            <span data-name="Updated" id="updated-val" data-fieldtype="datetime">
-                                                <time className="livestamp" dateTime={this.props.ticket.modifiedDate}>
-                                                    {this.props.ticket.modifiedDate}
-                                                </time>
-                                            </span>
+                                    <span data-name="Updated" id="updated-val" data-fieldtype="datetime">
+                                        <time className="livestamp" dateTime={this.props.ticket.modifiedDate}>
+                                            {this.props.ticket.modifiedDate}
+                                        </time>
+                                    </span>
                                 </dd>
                             </dl>
                         </div>
@@ -306,12 +306,21 @@
 
 
             render() {
+                const style1 = {
+                    backgroundColor: '#071e4214'
+                }
+
+                const style2 = {
+                    marginTop: '-5px'
+                }
                 return (
                     <div id="datesmodule" className="module toggle-wrap">
                         <div id="datesmodule_heading" className="mod-header">
                             <button className="aui-button toggle-title" aria-label="Dates" aria-controls="datesmodule"
-                                    aria-expanded="true" onClick={this.switchDatesViewMode}>
-                                <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
+                                    aria-expanded="true" onClick={this.switchDatesViewMode} style={style2}>
+                                <span className="badge badge-light" style={style1}>
+                                    {this.state.showDates ? <i className="fas fa-angle-down rotate-icon"></i> : <i className="fas fa-angle-right rotate-icon"></i>}
+                                </span>
                             </button>
                             <h4 className="toggle-title" id="datesmodule-label">Dates</h4>
                             <ul className="ops"></ul>
@@ -468,12 +477,23 @@
             }
 
             render() {
+
+                const style1 = {
+                    backgroundColor: '#071e4214'
+                }
+
+                const style2 = {
+                    marginTop: '-5px'
+                }
+
                 return (
                     <div id="details-module" className="module toggle-wrap">
                         <div id="details-module_heading" className="mod-header">
                             <button className="aui-button toggle-title" aria-label="Details"
-                                    aria-controls="details-module" aria-expanded="true" onClick={this.switchDetailViewMode}>
-                                <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
+                                    aria-controls="details-module" aria-expanded="true" onClick={this.switchDetailViewMode} style={style2}>
+                                <span className="badge badge-light" style={style1}>
+                                    {this.state.showDetails ? <i className="fas fa-angle-down rotate-icon"></i> : <i className="fas fa-angle-right rotate-icon"></i>}
+                                </span>
                             </button>
                             <h4 className="toggle-title" id="details-module-label">Details</h4>
                             <ul className="ops"></ul>
@@ -588,13 +608,20 @@
             }
 
             render() {
+                 const style1 = {
+                    backgroundColor: '#071e4214'
+                }
+
+                const style2 = {
+                    marginTop: '-5px'
+                }
                 return (
                     <div id="peoplemodule" className="module toggle-wrap">
                         <div id="peoplemodule_heading" className="mod-header">
                             <button className="aui-button toggle-title" aria-label="People" aria-controls="peoplemodule"
-                                    aria-expanded="true" onClick={this.switchPeopleViewMode}>
-                                <span className="accicon">
-                                    <i className="fas fa-angle-down rotate-icon"></i>
+                                    aria-expanded="true" onClick={this.switchPeopleViewMode} style={style2}>
+                                <span className="badge badge-light" style={style1}>
+                                    {this.state.showPeople ? <i className="fas fa-angle-down rotate-icon"></i> : <i className="fas fa-angle-right rotate-icon"></i>}
                                 </span>
                             </button>
                             <h4 className="toggle-title" id="peoplemodule-label">People</h4>
@@ -642,13 +669,22 @@
             }
 
             render() {
+                const style1 = {
+                    backgroundColor: '#071e4214'
+                }
+
+                const style2 = {
+                    marginTop: '-5px'
+                }
                 return (
                     <div id="descriptionModule" className="module toggle-wrap">
                         <div id="descriptionModule_heading" className="mod-header">
                             <button className="aui-button toggle-title" aria-label="Description"
                                     aria-controls="descriptionModule" aria-expanded="true"
-                                    onClick={this.switchDescriptionViewMode}>
-                                <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
+                                    onClick={this.switchDescriptionViewMode} style={style2}>
+                                <span className="badge badge-light" style={style1}>
+                                    {this.state.showDescription ? <i className="fas fa-angle-down rotate-icon"></i> : <i className="fas fa-angle-right rotate-icon"></i>}
+                                </span>
                             </button>
                             <h4 className="toggle-title" id="descriptionmodule-label">Description</h4>
                             <ul className="ops"></ul>
@@ -755,12 +791,22 @@
             }
 
             render() {
+                const style1 = {
+                    backgroundColor: '#071e4214'
+                }
+
+                const style2 = {
+                    marginTop: '-5px'
+                }
+
                 return (
                     <div id="attachmentModule" className="module toggle-wrap">
                         <div id="attachmentModuleHeading" className="mod-header">
                             <button className="aui-button toggle-title" aria-label="Attachments"
-                                    aria-controls="attachmentModule" aria-expanded="true" onClick={this.switchAttachmentsViewMode}>
-                                <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
+                                    aria-controls="attachmentModule" aria-expanded="true" onClick={this.switchAttachmentsViewMode} style={style2}>
+                                <span className="badge badge-light" style={style1}>
+                                    {this.state.showAttachments ? <i className="fas fa-angle-down rotate-icon"></i> : <i className="fas fa-angle-right rotate-icon"></i>}
+                                </span>
                             </button>
                             <h4 className="toggle-title" id="attachmentmodule-label">Attachments</h4>
                             <ul className="ops">
@@ -892,30 +938,53 @@
                 }
             }
 
-            render() {
+            renderEmptyMode = () => {
+                return <div></div>
+            }
 
-                const style1 = {
+            renderNormalMode = () => {
+                const style3 = {
                     fontSize: "24px",
                     cursor: "pointer"
                 }
                 return (
+                    <div className="col-auto">
+                        <i className="fa fa-plus-square float-right"
+                           style={style3} onClick={this.props.switchCreateMode}
+                        ></i>
+                    </div>
+                )
+            }
+
+            render() {
+
+                const style1 = {
+                    backgroundColor: '#071e4214'
+                }
+
+                const style2 = {
+                    marginTop: '-5px'
+                }
+
+
+                return (
                     <div id="linkingmodule_heading" className="mod-header">
                         <button className="aui-button toggle-title" aria-label="Issue Links"
-                                aria-controls="linkingmodule" aria-expanded="true" resolved="">
-                            <span className="accicon">
-                                <i className="fas fa-angle-down rotate-icon"></i>
-                            </span>
+                                aria-controls="linkingmodule" aria-expanded="true"
+                                onClick={this.props.switchTicketViewMode} style={style2}>
+                            <span className="badge badge-light" style={style1}>
+                                    {this.props.showTickets ? <i className="fas fa-angle-down rotate-icon"></i> :
+                                        <i className="fas fa-angle-right rotate-icon"></i>}
+                                </span>
                         </button>
                         <div className="row">
                             <div className="col">
                                 <p className="font-weight-bold">{this.state.heading}</p>
                             </div>
-                            <div className="col-auto">
-                                <i className="fa fa-plus-square float-right"
-                                   style={style1} onClick={this.props.switchCreateMode}
-                                ></i>
-                            </div>
+                            {this.props.showTickets ? this.renderNormalMode() : this.renderEmptyMode()}
+
                         </div>
+
                     </div>
                 );
             }
@@ -944,7 +1013,7 @@
                 }
             }
 
-            renderNormalMode = () => {
+            renderEmptyMode = () => {
                 return <div></div>
             }
 
@@ -1044,13 +1113,21 @@
                 }
             }
 
+            renderListMode = () => {
+                return (
+                    <span>
+                    {this.props.isEpic ? this.props.epicTickets.map((ticket) => <TicketBar key={ticket.id}
+                                                                                           ticket={ticket}/>) : this.props.subTaskTickets.map((ticket) =>
+                        <TicketBar key={ticket.id} ticket={ticket}/>)}
+                        </span>
+                )
+            }
+
             render() {
                 return (
                     <div id="tickets-list-container">
-                        {this.props.isEpic ? this.props.epicTickets.map((ticket) => <TicketBar key={ticket.id}
-                                                                                               ticket={ticket}/>) : this.props.subTaskTickets.map((ticket) =>
-                            <TicketBar key={ticket.id} ticket={ticket}/>)}
-                        {this.props.inCreateMode ? this.renderNewTicketMode() : this.renderNormalMode()}
+                        {this.props.showTickets ? this.renderListMode() : this.renderEmptyMode()}
+                        {this.props.inCreateMode ? this.renderNewTicketMode() : this.renderEmptyMode()}
                     </div>
                 )
             }
@@ -1063,12 +1140,20 @@
                     isEpic: this.props.ticket.issueType.internalKey === 'Epic',
                     inCreateMode: false,
                     epicTickets: [],
-                    subTaskTickets: []
+                    subTaskTickets: [],
+                    showTickets: true,
                 }
 
                 this.switchCreateMode = this.switchCreateMode.bind(this)
                 this.fetchEpicTasks = this.fetchEpicTasks.bind(this)
                 this.fetchSubTasks = this.fetchSubTasks.bind(this)
+                this.switchTicketViewMode = this.switchTicketViewMode.bind(this)
+            }
+
+             switchTicketViewMode = () => {
+                this.setState({
+                    showTickets: !this.state.showTickets
+                })
             }
 
             componentDidMount = () => {
@@ -1104,12 +1189,14 @@
                 return (
                     <div id="linkingmodule" className="module toggle-wrap">
                         <LinkingModuleHead isEpic={this.state.isEpic} inCreateMode={this.state.inCreateMode}
-                                           switchCreateMode={this.switchCreateMode}/>
+                                           switchCreateMode={this.switchCreateMode}
+                                           showTickets={this.state.showTickets} switchTicketViewMode={this.switchTicketViewMode}/>
                         <br></br>
                         <LinkingModuleBody isEpic={this.state.isEpic} inCreateMode={this.state.inCreateMode}
                                            switchCreateMode={this.switchCreateMode} epicTickets={this.state.epicTickets}
                                            fetchEpicTasks={this.fetchEpicTasks} fetchSubTasks={this.fetchSubTasks}
-                                           subTaskTickets={this.state.subTaskTickets} ticket={this.props.ticket}/>
+                                           subTaskTickets={this.state.subTaskTickets} ticket={this.props.ticket}
+                                           showTickets={this.state.showTickets} switchTicketViewMode={this.switchTicketViewMode}/>
                     </div>
                 );
             }
@@ -1118,16 +1205,56 @@
         class TicketCommentInstanceComponent extends React.Component {
             constructor(props) {
                 super(props);
+
+                this.state = {
+                    showComment: true,
+                }
+            }
+
+            generateRandomNumber = () => {
+                return Math.floor(Math.random() * 10000)
+            }
+
+            switchCommentViewMode = () => {
+                this.setState({
+                    showComment: !this.state.showComment
+                })
+            }
+
+            renderEmptyMode = () => {
+                return <div></div>
+            }
+
+            renderNormalMode = () => {
+                return (
+                    <div className="action-body flooded"><span>
+                        {this.props.comment.comment.split('\n').map(str => <p
+                            key={"comment-" + this.props.comment.id + "-" + this.generateRandomNumber()}>{str}</p>)}
+                    </span></div>
+                )
             }
 
             render() {
+                const style1 = {
+                    backgroundColor: '#071e4214'
+                }
+
+                const style2 = {
+                    marginTop: '-5px'
+                }
                 return (
                     <div id={"comment-" + this.props.comment.id}
                          className="issue-data-block activity-comment twixi-block expanded">
                         <div className="twixi-wrap verbose actionContainer">
                             <div className="action-head">
                                 <button aria-label="Collapse comment" title="Collapse comment"
-                                        className="twixi icon-default aui-icon aui-icon-small aui-iconfont-expanded"></button>
+                                        className="aui-button toggle-title" aria-expanded="true"
+                                        onClick={this.switchCommentViewMode} style={style2}>
+                                    <span className="badge badge-light" style={style1}>
+                                    {this.state.showComment ? <i className="fas fa-angle-down rotate-icon"></i> :
+                                        <i className="fas fa-angle-right rotate-icon"></i>}
+                                </span>
+                                </button>
                                 <div className="action-details">
                                     <a className="user-hover user-avatar" rel="7ad1551c39c0"
                                        id="commentauthor_2600002_verbose"
@@ -1146,9 +1273,7 @@
                                     <span className="text-secondary">(edited)</span> : <span></span>}
                                 </div>
                             </div>
-                            <div className="action-body flooded"><span>
-                                {this.props.comment.comment.split('\n').map(str => <p key={"comment-" + this.props.comment.id}>{str}</p>)}
-                            </span></div>
+                            {this.state.showComment ? this.renderNormalMode() : this.renderEmptyMode()}
                             <div className="action-links action-comment-actions">
                             </div>
                         </div>
@@ -1264,9 +1389,16 @@
                 super(props);
 
                 this.state = {
+                    showComments: true,
                     comments: []
                 }
                 this.fetchComments = this.fetchComments.bind(this)
+            }
+
+             switchCommentsViewMode = () => {
+                this.setState({
+                    showComments: !this.state.showComments
+                })
             }
 
             componentDidMount = () => {
@@ -1281,25 +1413,47 @@
                     }))
             }
 
+            renderEmptyMode = () => {
+                return <div></div>
+            }
+
+            renderNormalMode = () => {
+                return (
+                    <ActivityModuleBody
+                        comments={this.state.comments}
+                        fetchComments={this.fetchComments}
+                        ticket={this.props.ticket}/>
+                )
+            }
+
             render() {
+                const style1 = {
+                    backgroundColor: '#071e4214'
+                }
+
+                const style2 = {
+                    marginTop: '-5px'
+                }
+
                 return (
                     <div id="activitymodule" className="module toggle-wrap">
                         <div id="activitymodule_heading" className="mod-header">
-                        <button className="aui-button toggle-title" aria-label="Activity"
-                                aria-controls="activitymodule" aria-expanded="true" resolved="">
-                            <span className="accicon"><i className="fas fa-angle-down rotate-icon"></i></span>
-                        </button>
-                        <div className="row">
-                            <div className="col">
-                                <p className="font-weight-bold">Comments</p>
+                            <button className="aui-button toggle-title" aria-label="Activity"
+                                    aria-controls="activitymodule" aria-expanded="true"
+                                    onClick={this.switchCommentsViewMode} style={style2}>
+                            <span className="badge badge-light" style={style1}>
+                                    {this.state.showComments ? <i className="fas fa-angle-down rotate-icon"></i> :
+                                        <i className="fas fa-angle-right rotate-icon"></i>}
+                                </span>
+                            </button>
+                            <div className="row">
+                                <div className="col">
+                                    <p className="font-weight-bold">Comments</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
                         <br></br>
-                        <ActivityModuleBody
-                            comments={this.state.comments}
-                            fetchComments={this.fetchComments}
-                            ticket={this.props.ticket}/>
+                        {this.state.showComments ? this.renderNormalMode() : this.renderEmptyMode()}
                     </div>
                 )
             }

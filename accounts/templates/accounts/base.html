@@ -1,5 +1,6 @@
 {% load static %}
 {% load jiraTags %}
+{% load templateTags %}
 <!DOCTYPE html>
 <html lang="en-GB">
 	<head>
@@ -41,6 +42,8 @@
     {% labels as labels %}
     {% boards as boards %}
     {% profiles as profiles %}
+
+    {% navigationPanel request as navigationPanel %}
 
     <div class="modal fade bd-example-modal-lg" id="newTicketModal" tabindex="-1" role="dialog"
          aria-labelledby="myLargeModalLabel" aria-hidden="true" style="color: black;">
@@ -148,57 +151,34 @@
 			<span class="navbar-toggler-icon"></span>
 			</button>
 			<div class="collapse navbar-collapse" id="navbarNavDropdown">
-				<ul class="navbar-nav ml-auto">
-					<li class="nav-item active">
-						<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-					</li>
-					{% if user.is_authenticated %}
-					{% if user.is_superuser %}
-					<!-- Admin -->
-					<li class="nav-item dropdown">
-						<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						Account
-						</a>
-						<div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-							<!-- { uurrll 'dashboard:template' 'index' } -->
-                            <a class="dropdown-item" href="{% url 'jira:dashboard-view' %}"><i class="fas fa-chalkboard"></i> Dashboard</a>
-                            <a class="dropdown-item" href="{% url 'jira:teams-page' %}"><i class="fa fa-users"></i> Teams</a>
-							<a class="dropdown-item" href="{% url 'jira:projects-page' %}"><i class="fas fa-project-diagram"></i> Projects</a>
-							<a class="dropdown-item" href="{% url 'jira:boards-page' %}"><i class="far">&#xf24d;</i> Boards</a>
-							<a class="dropdown-item" href="#"><i class="fab fa-confluence"></i> Backlog</a>
-							<div class="dropdown-divider"></div>
-							<a class="dropdown-item" href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-						</div>
-					</li>
-					{% else %}
-					<!-- Member -->
-					<li class="nav-item dropdown">
-						<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						Account
-						</a>
-						<div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-							<!-- <a class="dropdown-item" href="#"><i class='fas fa-user-circle' style='font-size:20px'></i> Profile</a> -->
-							<a class="dropdown-item" href="#"><i class='fas fa-question-circle' style='font-size:20px'></i> Q &amp; A</a>
-							<a class="dropdown-item" href="#"><i class='fas fa-child' style='font-size:20px'></i> My Students</a>
-							<a class="dropdown-item" href="#"><i class='fas fa-cogs' style='font-size:20px'></i> Settings</a>
-							<div class="dropdown-divider"></div>
-							<a class="dropdown-item" href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-						</div>
-					</li>
-					{% endif %}
-					{% else %}
-					<!-- Guest -->
-					<li class="nav-item dropdown">
-						<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						Login / Register
-						</a>
-						<div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-							<a class="dropdown-item" href="{% url 'accounts:register' %}"><i class='fas fa-user-circle' style='font-size:20px'></i> Register</a>
-							<div class="dropdown-divider"></div>
-							<a class="dropdown-item" href="{% url 'accounts:login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
-						</div>
-					</li>
-					{% endif %}
+                <ul class="navbar-nav ml-auto">
+                    {% for panel in navigationPanel %}
+                        {% if not panel.subLinks %}
+                            <li class="nav-item active">
+                                <a class="nav-link" href="{{ panel.url }}" data-toggle="tooltip" data-placement="right"
+                                   title="{{ panel.name }}">
+                                    {% if panel.icon %}{{ panel.icon|safe }}{% endif %} {{ panel.name }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    {% if panel.icon %}{{ panel.icon|safe }}{% endif %} {{ panel.name }}
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                    {% for subLink in panel.subLinks %}
+                                        {% if subLink %}
+                                            <a class="dropdown-item"
+                                               href="{{ subLink.url }}"> {{ subLink.icon|safe }} {{ subLink.name }}</a>
+                                        {% else %}
+                                            <div class="dropdown-divider"></div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
 				</ul>
 			</div>
 		</nav>

@@ -157,7 +157,6 @@ def ticketDetailView(request, internalKey):
     TODO: Implement the comment section.
     TODO: Fix linked issue component.
     TODO: Fix the style for right divs.
-    TODO: Collapse items
     TODO: Fix file attachment style
     TODO: Allow file attachment delete option
     TODO: Optimise the post request.
@@ -296,36 +295,27 @@ def boards(request):
 
 @login_required
 def boardSettings(request, url):
-    """
-    TODO: Only admins can edit.
-    // Contact a TaskMaster or the board administrator to configure this board
-    """
     try:
-        thisBoard = Board.objects.prefetch_related('boardColumns').get(url=url)
+        thisBoard = Board.objects.prefetch_related('boardColumns', 'admins').get(url=url)
     except Board.DoesNotExist:
         raise Http404
+
+    tab = request.GET.get('tab', 'general').lower()
+    TEMPLATE = None
+
+    if tab == "general":
+        TEMPLATE = "boardSettings"
+    elif tab == "columns":
+        TEMPLATE = "boardSettingsColumns"
 
     allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)).distinct()
 
     context = {
         'board': thisBoard,
         'projects': allProjects,
-    }
-    return render(request, 'jira/boardSettings.html', context)
-
-
-@login_required
-def boardSettingsColumns(request, url):
-    try:
-        thisBoard = Board.objects.prefetch_related('boardColumns').get(url=url)
-    except Board.DoesNotExist:
-        raise Http404
-
-    context = {
-        'board': thisBoard,
         'isAdmin': request.user in thisBoard.admins.all()
     }
-    return render(request, 'jira/boardSettingsColumns.html', context)
+    return render(request, 'jira/{}.html'.format(TEMPLATE), context)
 
 
 @login_required

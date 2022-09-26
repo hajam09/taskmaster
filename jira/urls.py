@@ -15,7 +15,6 @@ urlpatterns = [
     path('boards/', views.boards, name='boards-page'),
     path('boards/<slug:url>/', views.board, name='board-page'),
     path('boards/<slug:url>/settings/', views.boardSettings, name='board-settings'),
-    path('boards/<slug:url>/settings/columns', views.boardSettingsColumns, name='board-settings-columns'),
     path('boards/<slug:url>/backlog/', views.backlog, name='board-backlog'),
     path('teams/', views.teams, name='teams-page'),
     path('teams/<slug:url>/', views.team, name='team-page'),

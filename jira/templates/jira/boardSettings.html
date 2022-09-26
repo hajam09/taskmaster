@@ -65,15 +65,25 @@
                             <div id="ghx-work" class="ghx-work">
                                 <div id="ghx-pool-column">
 
+                                    {% if not isAdmin %}
+
+                                        <div class="alert alert-warning text-center" role="alert">
+                                            Contact the TaskMaster or the board administrator to configure this board
+                                        </div>
+
+                                    {% endif %}
+
                                     <div class="col" style="max-width: 80%; padding-top: 10px">
 
                                         <div class="form-group row">
                                             <label class="col-sm-2 col-form-label"></label>
                                             <div class="col-sm-10">
-                                                <button type="button" class="btn aui-button float-right"
-                                                        onclick="updateBoardGeneralDetails();">
-                                                    Save Board
-                                                </button>
+                                                {% if isAdmin %}
+                                                    <button type="button" class="btn aui-button float-right"
+                                                            onclick="updateBoardGeneralDetails();">
+                                                        Save Board
+                                                    </button>
+                                                {% endif %}
                                             </div>
                                         </div>
 
