@@ -489,12 +489,16 @@ def newTicketObject(request):
     newTicket.assignee_id = request.POST['assignee'] or None
     newTicket.reporter = request.user
     newTicket.storyPoints = request.POST["storyPoints"] or None
-    newTicket.issueType_id = request.POST["ticketIssueType"] or None
-    newTicket.priority_id = request.POST["ticketPriority"] or None
+    newTicket.issueType_id = request.POST["issueType"] or None
+    newTicket.priority_id = request.POST["priority"] or None
     # newTicket.board_id = boardId
     # newTicket.column = Column.objects.get(board_id=boardId, internalKey='TO DO')
     newTicket.columnStatus = columnStatus
     newTicket.orderNo = newTicketNumber
     newTicket.save()
 
+    messages.info(
+        request,
+        f"New issue created <a href='{newTicket.getTicketUrl()}'> {newTicket.internalKey} </a>"
+    )
     return redirect(request.META.get('HTTP_REFERER'))

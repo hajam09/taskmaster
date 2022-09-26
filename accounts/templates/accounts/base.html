@@ -44,6 +44,7 @@
     {% profiles as profiles %}
 
     {% navigationPanel request as navigationPanel %}
+    {% ticketCreationForm request as ticketCreationForm %}
 
     <div class="modal fade bd-example-modal-lg" id="newTicketModal" tabindex="-1" role="dialog"
          aria-labelledby="myLargeModalLabel" aria-hidden="true" style="color: black;">
@@ -58,80 +59,10 @@
                 <form method="post" enctype="multipart/form-data" action={% url 'jira:new-ticket-object' %}>
                     {% csrf_token %}
                     <div class="modal-body">
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="project-add-details" role="tabpanel">
-                                <dl class="row">
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Project</label>
-                                        <select id="projects" data-show-content="true" class="form-control"
-                                                name="project">
-                                            {% for t in projects %}
-                                                <option data-content="<img src='{{ t.icon }}' width='20' height='20'>&nbsp; {{ t.internalKey }}"
-                                                        value="{{ t.id }}">{{ t.internalKey }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </dd>
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Issue type</label>
-                                        <select id="ticketIssueType" data-show-content="true"
-                                                class="form-control" name="ticketIssueType">
-                                            {% for t in ticketIssueTypes %}
-                                                <option data-content="<img src='{{ t.icon }}' width='20' height='20'>&nbsp; {{ t.internalKey }}"
-                                                        value="{{ t.id }}">{{ t.internalKey }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </dd>
-                                </dl>
-                                <hr>
-                                <dl class="row">
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Summary</label>
-                                        <input class="form-control col" type="text" placeholder="Summary" name="summary"
-                                               required>
-                                    </dd>
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Priority</label>
-                                        <select id="ticketPriorities" data-show-content="true" class="form-control"
-                                                name="ticketPriority">
-                                            {% for t in ticketPriorities %}
-                                                <option data-content="<img src='{{ t.icon }}' width='20' height='20'>&nbsp; {{ t.internalKey }}"
-                                                        value="{{ t.id }}">{{ t.internalKey }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </dd>
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Story Points</label>
-                                        <input class="form-control col" type="number" placeholder="Story Points"
-                                               name="storyPoints">
-                                    </dd>
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Description</label>
-                                        <textarea class="form-control col" rows="5" name="description"></textarea>
-                                    </dd>
-                                </dl>
-                                <dl class="row">
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Board</label>
-                                        <select id="board" data-show-content="true" class="form-control" name="board">
-                                            {% for t in boards %}
-                                                <option value="{{ t.id }}">{{ t.internalKey }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </dd>
-                                </dl>
-                                <dl class="row">
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Assignee</label>
-                                        <select id="assignee" data-show-content="true" class="form-control"
-                                                name="assignee">
-                                            {% for t in profiles %}
-                                                <option value="{{ t.user.id }}">{{ t.user.get_full_name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </dd>
-                                </dl>
-                            </div>
-                        </div>
+                        {% for field in ticketCreationForm %}
+                            <label style="font-size: 85%; color: #6c757d;">{{ field.label }}</label>
+                            {{ field }}
+                        {% endfor %}
                     </div>
                     <div class="modal-footer">
                         <input class="btn btn-primary" type="submit" value="Create Issue">
@@ -181,8 +112,21 @@
                     {% endfor %}
 				</ul>
 			</div>
-		</nav>
-		{% block content %}
+        </nav>
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == "error" %}
+                        <div style="color: black; text-align: center;" class="alert alert-danger"
+                             role="alert">{{ message|safe }}</div>
+                    {% else %}
+                        <div style="color: black; text-align: center;" class="alert alert-{{ message.tags }}"
+                             role="alert">{{ message|safe }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+        {% block content %}
 		{% endblock %}
 		<!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script> -->
     	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" crossorigin="anonymous"></script>

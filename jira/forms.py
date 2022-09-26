@@ -2,10 +2,12 @@ from datetime import datetime
 
 from django import forms
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 
 from accounts.models import Profile, ComponentGroup, Component, Team
+from jira.models import Project, Board
 
 
 class TeamForm(forms.Form):
@@ -87,6 +89,100 @@ class TeamForm(forms.Form):
         team.admins.add(*self.request.POST.getlist('admins'))
         team.members.add(*self.request.POST.getlist('members'))
         return team
+
+
+class TicketCreationForm(forms.Form):
+    project = forms.ChoiceField(
+        label='Project',
+        widget=forms.Select(
+            attrs={
+                'class': 'form-control'
+            }
+        ),
+    )
+    issueType = forms.ChoiceField(
+        label='Issue type',
+        widget=forms.Select(
+            attrs={
+                'class': 'form-control'
+            }
+        ),
+    )
+    #
+    summary = forms.CharField(
+        label='Summary',
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Summary',
+
+            }
+        ),
+    )
+    priority = forms.ChoiceField(
+        label='Priority',
+        widget=forms.Select(
+            attrs={
+                'class': 'form-control'
+            }
+        ),
+    )
+    storyPoints = forms.IntegerField(
+        label='Story points',
+        widget=forms.NumberInput(
+            attrs={
+                'class': 'form-control'
+            }
+        ),
+    )
+    description = forms.CharField(
+        label='Description',
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control',
+                'rows': 5,
+            }
+        )
+
+    )
+    board = forms.ChoiceField(
+        label='Board',
+        widget=forms.Select(
+            attrs={
+                'class': 'form-control'
+            }
+        ),
+    )
+    assignee = forms.ChoiceField(
+        label='Assignee',
+        widget=forms.Select(
+            attrs={
+                'class': 'form-control'
+            }
+        ),
+    )
+
+    def __init__(self, request, *args, **kwargs):
+        kwargs.setdefault('label_suffix', '')
+        super(TicketCreationForm, self).__init__(*args, **kwargs)
+
+        projectChoices = [(str(i.id), i.internalKey) for i in Project.objects.all()]
+        self.base_fields['project'].choices = projectChoices
+
+        issueTypeChoices = [(str(i.id), i.internalKey) for i in cache.get('TICKET_ISSUE_TYPE')]
+        self.base_fields['issueType'].choices = issueTypeChoices
+
+        priorityChoices = [(str(i.id), i.internalKey) for i in cache.get('TICKET_PRIORITY')]
+        self.base_fields['priority'].choices = priorityChoices
+
+        boardChoices = [(str(i.id), i.internalKey) for i in Board.objects.all()]
+        self.base_fields['board'].choices = boardChoices
+
+        assigneeChoices = [(str(i.id), i.get_full_name()) for i in User.objects.all()]
+        self.base_fields['assignee'].choices = assigneeChoices
+
+        if request.user.is_authenticated:
+            self.base_fields['assignee'].initial = request.user.id
 
 
 class ProjectSettingsForm(forms.Form):

@@ -2,10 +2,16 @@ from django import template
 from django.core.cache import cache
 
 from accounts.models import Profile
+from jira.forms import TicketCreationForm
 from jira.models import Project, Board, Label
 from jira.templatetags.boardNavigationPanel import panelItems
 
 register = template.Library()
+
+
+@register.simple_tag
+def ticketCreationForm(request):
+    return TicketCreationForm(request)
 
 
 @register.simple_tag
