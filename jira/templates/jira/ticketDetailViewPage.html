@@ -59,8 +59,8 @@
                                     </dd>
                                     <dd class="col-sm-12">
                                         <label style="font-size: 85%; color: #6c757d;">Issue type</label>
-                                        <select id="ticketIssueType" data-show-content="true"
-                                                class="form-control" name="ticketIssueType">
+                                        <select id="issueType" data-show-content="true"
+                                                class="form-control" name="issueType">
                                             {% for it in ticketIssueTypes %}
                                                 <option data-content="<img src='{{ it.icon }}' width='20' height='20'>&nbsp; {{ it.internalKey }}"
                                                         {% if it.code == ticket.issueType.code %}
@@ -81,16 +81,6 @@
                                                         {% if tp.code == ticket.priority.code %}
                                                         selected="selected" {% endif %}
                                                         value="{{ tp.id }}">{{ tp.internalKey }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </dd>
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Status</label>
-                                        <select id="ticketStatus" data-show-content="true"
-                                                class="form-control" name="status">
-                                            {% for status in ticket.status %}
-                                                <option {% if status.selected %} selected="selected" {% endif %}
-                                                        value="{{ status.id }}">{{ status.internalKey }}</option>
                                             {% endfor %}
                                         </select>
                                     </dd>
@@ -201,9 +191,75 @@
 
     <script type="text/babel">
 
+        function getCookie(name) {
+            let cookieValue = null;
+
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function stringEquals(a, b) {
+            return a.replace(" ", "").toLowerCase().includes(b.replace(" ", "").toLowerCase())
+        }
+
         class TicketHeaderComponent extends React.Component {
             constructor(props) {
                 super(props);
+
+                let todo = {
+                    id: null,
+                    internalKey: "To Do",
+                };
+                let inProgress = {
+                    id: null,
+                    internalKey: "In Progress"
+                };
+
+
+                for (const item of this.props.ticket.workflow) {
+                    if (stringEquals(item.internalKey, todo.internalKey))
+                        todo.id = item.id
+
+                    if (stringEquals(item.internalKey, inProgress.internalKey))
+                        inProgress.id = item.id
+                }
+
+                this.state = {
+                    todo: todo,
+                    inProgress: inProgress,
+                }
+            }
+
+            updateColumnStatus = (columnStatusId) => {
+
+                fetch('{% url 'jira:ticketObjectApiEventVersion1Component' ticketId=ticket.id %}', {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        'columnStatus': columnStatusId,
+                    }),
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                }).then((response) => response.json())
+                    .then((json) => {
+
+                        if (json.success) {
+                            this.props.fetchTicketDetails();
+                        }
+
+                    })
             }
 
             render() {
@@ -242,9 +298,39 @@
                                     </div>
                                 </div>
                                 <button type="button" className="btn" data-toggle="modal"
-                                        style={style1}
-                                        data-target="#editTicketModal">Edit
+                                        style={style1} data-target="#editTicketModal">Edit
                                 </button>
+                                &nbsp;&nbsp;
+                                <button type="button" className="btn"
+                                        style={style1}>Add Comment
+                                </button>
+
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                <button type="button" className="btn"
+                                        style={style1}
+                                        onClick={() => this.updateColumnStatus(this.state.todo.id)}>To Do
+                                </button>
+                                &nbsp;&nbsp;
+                                <button type="button" className="btn"
+                                        style={style1}
+                                        onClick={() => this.updateColumnStatus(this.state.inProgress.id)}>In Progress
+                                </button>
+                                &nbsp;&nbsp;
+                                <div className="btn-group">
+                                    <button type="button" className="btn dropdown-toggle" data-toggle="dropdown"
+                                            aria-haspopup="true" aria-expanded="false" style={style1}>
+                                        Workflow
+                                    </button>
+                                    <div className="dropdown-menu">
+                                        {this.props.ticket.workflow.map((wf) => <a className="dropdown-item"
+                                                                                   onClick={() => {
+                                                                                       this.updateColumnStatus(wf.id)
+                                                                                   }}
+                                                                                   key={wf.id}>
+                                            {wf.internalKey.split(' ').map(w => w[0].toUpperCase() + w.substring(1).toLowerCase()).join(' ')}</a>)
+                                        }
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </header>
@@ -1466,9 +1552,11 @@
                 this.state = {
                     ticket: null
                 }
+
+                this.fetchTicketDetails = this.fetchTicketDetails.bind(this)
             }
 
-            componentDidMount = () => {
+            fetchTicketDetails = () => {
                 fetch('{% url 'jira:ticketObjectDetailApiEventVersion1Component' ticketId=ticket.id%}', {
                     method: 'GET',
                 }).then((response) => response.json())
@@ -1479,10 +1567,14 @@
                     })
             }
 
+            componentDidMount = () => {
+                this.fetchTicketDetails();
+            }
+
             renderNormalMode = () => {
                 return (
                     <div>
-                        <TicketHeaderComponent ticket={this.state.ticket}/>
+                        <TicketHeaderComponent ticket={this.state.ticket} fetchTicketDetails={this.fetchTicketDetails}/>
                         <div className="issue-body-content">
                             <div className="aui-group issue-body">
 

@@ -14,7 +14,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from accounts.models import Team, Component, TeamChatMessage
+from accounts.models import Team, Component, TeamChatMessage, Profile
 from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment, TicketAttachment, ColumnStatus
 from taskmaster.operations import databaseOperations, generalOperations
 
@@ -670,6 +670,31 @@ class TicketsForEpicTicketApiEventVersion1Component(View):
             "data": {
                 "tickets": epicTickets
             }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class TicketObjectApiEventVersion1Component(View):
+
+    def put(self, *args, **kwargs):
+        ticketId = self.kwargs.get("ticketId", None)
+
+        try:
+            ticket = Ticket.objects.get(id=ticketId)
+        except Ticket.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a ticket with id: {}".format(ticketId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        body = json.loads(self.request.body.decode())
+        for key, value in body.items():
+            setattr(ticket, f"{key}_id", int(value))
+
+        ticket.save()
+        response = {
+            "success": True,
         }
         return JsonResponse(response, status=HTTPStatus.OK)
 
@@ -1900,7 +1925,7 @@ class TicketObjectDetailApiEventVersion1Component(View):
                 'project',
                 'issueType',
                 'resolution',
-                'column',
+                'columnStatus__board',
                 'priority',
                 'assignee__profile', 'reporter__profile'
             ).prefetch_related('label', 'component', 'watchers').get(id=ticketId)
@@ -1926,6 +1951,10 @@ class TicketObjectDetailApiEventVersion1Component(View):
             "priority": ticket.priority.serializeComponentVersion1(),
             "resolution": ticket.resolution.serializeComponentVersion1(),
             "status": ticket.columnStatus.serializeColumnStatusVersion1(),
+            "workflow": [
+                status.serializeColumnStatusVersion1()
+                for status in ticket.columnStatus.board.boardColumnStatus.all()
+            ],
             "assignee": generalOperations.serializeUserVersion2(ticket.assignee),
             "reporter": generalOperations.serializeUserVersion2(ticket.reporter),
             "components": [component.serializeComponentVersion1() for component in ticket.component.all()],
@@ -1942,6 +1971,77 @@ class TicketObjectDetailApiEventVersion1Component(View):
             "data": ticketDetails,
         }
 
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def post(self, *args, **kwargs):
+        body = json.loads(self.request.body.decode())
+        ticket = Ticket()
+
+        thisProject = Project.objects.filter(id=body["project"]).first()
+        newTicketNumber = thisProject.projectTickets.count() + 1
+        ticket.internalKey = thisProject.code + "-" + str(newTicketNumber)
+        ticket.orderNo = newTicketNumber
+
+        for key, value in body.items():
+            value = value or None
+
+            if hasattr(ticket, f"{key}_id"):
+                setattr(ticket, f"{key}_id", int(value))
+            elif hasattr(ticket, f"{key}"):
+                setattr(ticket, f"{key}", value)
+
+        ticket.save()
+        response = {
+            "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class ProjectObjectApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        projectId = int(self.kwargs.get("projectId", None))
+
+        if projectId == 0:
+            projects = Project.objects.all()
+        else:
+            projects = Project.objects.filter(id=projectId)
+
+        response = {
+            "success": True,
+            "data": {
+                "projects": [
+                    project.serializeProjectVersion1()
+                    for project in projects
+                ]
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class ProfileObjectApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        profileId = int(self.request.GET['id'])
+
+        if profileId == 0:
+            profiles = Profile.objects.select_related('user')
+        else:
+            profiles = Profile.objects.filter(id=profileId)
+
+        response = {
+            "success": True,
+            "data": {
+                "profiles": [
+                    {
+                        "id": profile.id,
+                        "firstName": profile.user.first_name,
+                        "lastName": profile.user.last_name,
+                    }
+                    for profile in profiles
+                ]
+            }
+        }
         return JsonResponse(response, status=HTTPStatus.OK)
 
 

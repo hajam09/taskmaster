@@ -38,13 +38,13 @@
     {% ticketIssueTypes as ticketIssueTypes %}
     {% ticketPriorities as ticketPriorities %}
     {% ticketResolutions as ticketResolutions %}
-    {% projects as projects %}
-    {% labels as labels %}
-    {% boards as boards %}
-    {% profiles as profiles %}
+{#    {% projects as projects %}#}
+{#    {% labels as labels %}#}
+{#    {% boards as boards %}#}
+{#    {% profiles as profiles %}#}
 
     {% navigationPanel request as navigationPanel %}
-    {% ticketCreationForm request as ticketCreationForm %}
+{#    {% ticketCreationForm request as ticketCreationForm %}#}
 
     <div class="modal fade bd-example-modal-lg" id="newTicketModal" tabindex="-1" role="dialog"
          aria-labelledby="myLargeModalLabel" aria-hidden="true" style="color: black;">
@@ -205,7 +205,11 @@
         if (priorityCache == null) {
             const priorityListArray = [];
             {% for t in ticketPriorities %}
-                priorityListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
+                priorityListArray.push({
+                    "id": "{{ t.id }}",
+                    "code": "{{ t.code }}",
+                    "internalKey": "{{ t.internalKey }}"
+                });
             {% endfor %}
             localStorage.setItem("priorityList", JSON.stringify({object: priorityListArray}));
         } else {
@@ -213,7 +217,11 @@
             if ($.isEmptyObject(priorityList)) {
                 const priorityListArray = [];
                 {% for t in ticketPriorities %}
-                    priorityListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
+                    priorityListArray.push({
+                        "id": "{{ t.id }}",
+                        "code": "{{ t.code }}",
+                        "internalKey": "{{ t.internalKey }}"
+                    });
                 {% endfor %}
                 localStorage.setItem("priorityList", JSON.stringify({object: priorityListArray}));
             }

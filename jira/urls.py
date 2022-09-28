@@ -74,6 +74,11 @@ urlpatterns += [
         name='ticketCommentsApiEventVersion1Component'
     ),
     path(
+        'api/v1/ticketObjectApiEventVersion1Component/<int:ticketId>',
+        TicketObjectApiEventVersion1Component.as_view(),
+        name='ticketObjectApiEventVersion1Component'
+    ),
+    path(
         'api/v1/ticketObjectForEpicTicketApiEventVersion1Component/',
         TicketObjectForEpicTicketApiEventVersion1Component.as_view(),
         name='ticketObjectForEpicTicketApiEventVersion1Component'
@@ -157,5 +162,15 @@ urlpatterns += [
         'api/v1/ticketObjectBulkCreateApiEventVersion1Component',
         TicketObjectBulkCreateApiEventVersion1Component.as_view(),
         name='ticketObjectBulkCreateApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/projectObjectApiEventVersion1Component/<int:projectId>',
+        ProjectObjectApiEventVersion1Component.as_view(),
+        name='projectObjectApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/profileObjectApiEventVersion1Component',
+        ProfileObjectApiEventVersion1Component.as_view(),
+        name='profileObjectApiEventVersion1Component'
     ),
 ]

@@ -147,10 +147,8 @@
                                     <div class="form-group">
                                         <select class="form-control select2bs4" multiple="multiple"
                                                 name="projectMembers"
+                                                id="projectMembers"
                                                 data-placeholder="Select board members." style="width: 100%">
-                                            {% for p in profiles %}
-                                                <option value="{{ p.user.id }}">{{ p.user.get_full_name }}</option>
-                                            {% endfor %}
                                         </select>
                                     </div>
                                 </dd>
@@ -200,12 +198,12 @@
                     </div>
                     <div class="col">
                         <button type="button" class="btn btn-primary float-right" data-toggle="modal"
-                                data-target="#newProjectModal">New Project
+                                data-target="#newProjectModal" onclick="updateModal()">New Project
                         </button>
                     </div>
                 </div>
                 <br>
-                {% if allProjects.count > 0 %}
+                {% if projects.count > 0 %}
                     <table id="projectTable" class="table table-sm table-bordered table-hover">
                         <thead>
                         <tr>
@@ -217,7 +215,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for p in allProjects %}
+                        {% for p in projects %}
                             <tr>
                                 <td>
                                     {% if debug %}
@@ -368,6 +366,36 @@
             }
             //... and adds the "active" class on the current step:
             x[n].className += " active";
+        }
+
+        function updateModal() {
+            const isMembersOptionsEmtpy = $('#projectMembers').has('option').length === 0;
+
+            if (isMembersOptionsEmtpy) {
+                $.ajax(
+                    {
+                        url: "{% url 'jira:profileObjectApiEventVersion1Component'%}",
+                        data: {
+                            id: 0
+                        },
+                        type: 'get',
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response.success) {
+                                let options = []
+
+                                for (const profile of response.data.profiles) {
+                                    options.push(`<option value="${profile.id}">${profile.firstName + " " + profile.lastName}</option>`)
+                                }
+
+                                if (isMembersOptionsEmtpy)
+                                    $('#projectMembers').append(options);
+
+                            }
+                        }
+                    }
+                );
+            }
         }
     </script>
 {% endblock %}

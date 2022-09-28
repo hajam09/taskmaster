@@ -73,7 +73,7 @@
                             </dl>
                             <br>
                             <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                                You can these details at any time.
+                                You can edit these details at any time.
                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
@@ -109,12 +109,12 @@
                     </div>
                     <div class="col">
                         <button type="button" class="btn btn-primary float-right" data-toggle="modal"
-                                data-target="#newTeamModal">New Team
+                                data-target="#newTeamModal" onclick="updateModal();">New Team
                         </button>
                     </div>
                 </div>
                 <br>
-                {% if teams.count > 0 %}
+                {% if teams %}
                     <table id="teamTable" class="table table-sm table-bordered table-hover">
                         <thead>
                         <tr>
@@ -260,5 +260,39 @@
                 $('#teamTable_length').remove();
             }
         );
+
+        function updateModal() {
+            const isAdminOptionsEmtpy = $('#id_admins').has('option').length === 0;
+            const isMembersOptionsEmtpy = $('#id_members').has('option').length === 0;
+
+            if (isAdminOptionsEmtpy || isMembersOptionsEmtpy) {
+                $.ajax(
+                    {
+                        url: "{% url 'jira:profileObjectApiEventVersion1Component'%}",
+                        data: {
+                            id: 0
+                        },
+                        type: 'get',
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response.success) {
+                                let options = []
+
+                                for (const profile of response.data.profiles) {
+                                    options.push(`<option value="${profile.id}">${profile.firstName + " " + profile.lastName}</option>`)
+                                }
+
+                                if (isAdminOptionsEmtpy)
+                                    $('#id_admins').append(options);
+
+                                if (isMembersOptionsEmtpy)
+                                    $('#id_members').append(options);
+
+                            }
+                        }
+                    }
+                );
+            }
+        }
     </script>
 {% endblock %}

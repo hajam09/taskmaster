@@ -741,6 +741,10 @@
                 const style2 = {
                     display: this.state.panelDetailVisibility
                 }
+
+                const style1 = {
+                    backgroundColor: '#071e4214'
+                }
                 return (
                     <div
                         className="js-sortable ghx-classification-item ghx-label-4-border ui-droppable ghx-open"
@@ -770,8 +774,10 @@
                                          className="epic-more-button js-epic-actions"
                                          aria-controls={"dd-trigger-" + this.props.ticket.internalKey + "_drop"}
                                          aria-haspopup="true"
-                                         aria-expanded="false"><span
-                                        className="aui-icon aui-icon-small aui-iconfont-more"></span>
+                                         aria-expanded="false">
+                                         <span className="badge badge-light float-right" style={style1}>
+                                             <i className="fas fa-angle-down rotate-icon"></i>
+                                         </span>
                                     </div>
                                 </h3>
                             </div>
@@ -853,7 +859,8 @@
                     allIssuesVisibility: "none",
                     epicTickets: [],
                     showEpicLess: false,
-                    backlogGroups: []
+                    backlogGroups: [],
+                    projects: [],
                 }
             }
 
@@ -893,11 +900,11 @@
 
             componentDidMount = () => {
                 this.showAllBacklogGroupsAllTicketsComponent();
-                this.showBoardProjectsEpicsDetails();
             }
 
             hideEpicPanel = () => {
                 if (this.state.visibility === "none") {
+                    this.showBoardProjectsEpicsDetails();
                     this.setState({
                         visibility: ""
                     })
@@ -934,6 +941,55 @@
                 }
             }
 
+            updateAddEpicModal = () => {
+
+                if (this.state.projects.length > 0)
+                    return;
+
+                fetch('{% url 'jira:projectObjectApiEventVersion1Component' projectId=0 %}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((response) => {
+                        if (response.success) {
+                            this.setState({
+                                projects: response.data.projects
+                            })
+                        }
+                    })
+            }
+
+            createEpic = () => {
+                const issueTypeList = JSON.parse(localStorage.getItem("issueTypeList")).object;
+                const priorityList = JSON.parse(localStorage.getItem("priorityList")).object;
+
+                let summary = this.refs.epicNameInput.value;
+                let project = this.refs.epicProjectInput.value;
+                let issueType = issueTypeList.find(element => element.code === "EPIC").id;
+                let priority = priorityList.find(element => element.code === "MEDIUM").id;
+
+                fetch('{% url 'jira:ticketObjectDetailApiEventVersion1Component' ticketId=0 %}', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    dataType: 'json',
+                    body: JSON.stringify({
+                            'summary': summary,
+                            'project': project,
+                            'priority': priority,
+                            'issueType': issueType,
+                            'reporter': {{ request.user.id }},
+                        })
+                }).then((response) => response.json())
+                    .then((response) => {
+                        if (response.success) {
+                            this.showBoardProjectsEpicsDetails();
+                        }
+                    })
+
+            }
+
             render() {
 
                 const style1 = {
@@ -954,6 +1010,45 @@
 
                 return (
                     <div id="ghx-plan-group" className="ghx-plan-group ghx-epic-expanded">
+
+                        <div className="modal fade" id="addEpicModal" tabIndex="-1" role="dialog"
+                             aria-labelledby="addColumnModalLabel" aria-hidden="true">
+                            <div className="modal-dialog" role="document">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h3 className="modal-title">Add Epic</h3>
+                                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div className="modal-body">
+                                        <div className="form-group">
+                                            <label htmlFor="epicName">Name</label>
+                                            <input type="text" className="form-control" id="epicName"
+                                                   ref="epicNameInput" required={true}></input>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="epicProject">Project</label>
+                                            <select className="form-control" id="epicProject" ref="epicProjectInput">
+                                                {this.state.projects.map((project) => <option key={project.id}
+                                                                                              value={project.id}>{project.internalKey}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-light" data-dismiss="modal"
+                                                onClick={this.createEpic}>Add
+                                        </button>
+                                        <button type="button" className="btn btn-danger" data-dismiss="modal"
+                                                onClick={this.resetAddColumnModal}>Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
                         <div id="ghx-classification-menu-column">
                             <ul id="ghx-classification-menu"
                                 className="ghx-ide-menu ghx-classification-menu">
@@ -988,7 +1083,8 @@
                                              title="Create epic">
                                             <button
                                                 className="aui-button aui-button-subtle ghx-expander ghx-heading-expander js-epic-create-toggle"
-                                                aria-expanded="true" title="Create epic">
+                                                aria-expanded="true" title="Create epic" data-toggle="modal" data-target="#addEpicModal"
+                                                onClick={this.updateAddEpicModal}>
                                                 <i style={style2} className="fa">&#xf067;</i>
                                             </button>
                                         </div>

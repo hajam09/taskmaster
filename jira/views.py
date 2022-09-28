@@ -24,6 +24,7 @@ def index(request):
 
 
 def dashboard(request):
+    # 6 queries
     projectComponents = Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS').prefetch_related(
         'ticketComponents__issueType', 'ticketComponents__priority'
     )
@@ -78,6 +79,7 @@ def dashboard(request):
 
 @login_required
 def teams(request):
+    # 6 queries
     allTeams = Team.objects.all().prefetch_related('admins', 'members')
 
     if request.method == "POST":
@@ -101,6 +103,7 @@ def teams(request):
 
 @login_required
 def team(request, url):
+    # 10 queries
     """
     TODO: Group messages by each day and display the date if message is sent on a new date.
     """
@@ -151,6 +154,7 @@ def team(request, url):
 
 
 def ticketDetailView(request, internalKey):
+    # 7 queries
     """
     TODO: remove unused css on the ticket css files
     TODO: Fix spacing on the texts.
@@ -172,15 +176,14 @@ def ticketDetailView(request, internalKey):
         raise Http404
 
     if request.method == "POST":
-        ticket.summary = request.POST['summary']
-        ticket.description = request.POST['description']
-        ticket.fixVersion = request.POST['fixVersion']
-        ticket.storyPoints = request.POST['storyPoints'] or None
 
-        ticket.assignee_id = request.POST['assignee']
-        ticket.issueType_id = request.POST['ticketIssueType']
-        ticket.priority_id = request.POST['priority']
-        ticket.columnStatus_id = request.POST['status']
+        for key, value in request.POST.items():
+            value = value or None
+
+            if hasattr(ticket, f"{key}_id"):
+                setattr(ticket, f"{key}_id", int(value))
+            elif hasattr(ticket, f"{key}"):
+                setattr(ticket, f"{key}", value)
 
         ticket.component.clear()
         ticket.component.add(*request.POST.getlist('components'))
@@ -226,11 +229,7 @@ def ticketDetailView(request, internalKey):
         "priority": ticket.priority.serializeComponentVersion1(),
         "assignee": generalOperations.serializeUserVersion2(ticket.assignee),
         "components": [component.serializeComponentVersion1() for component in ticket.component.all()],
-        "labels": [label.serializeLabelVersion1() for label in ticket.label.all()],
-        "status": [
-            status.serializeColumnStatusVersion1(selected=ticket.columnStatus_id == status.id)
-            for status in ticket.columnStatus.board.boardColumnStatus.all()
-        ],
+        "labels": [label.serializeLabelVersion1() for label in ticket.label.all()]
     }
 
     projectComponents = Component.objects.filter(
@@ -238,6 +237,7 @@ def ticketDetailView(request, internalKey):
     )
     context = {
         'ticket': ticketDetails,
+        'profiles': Profile.objects.all().select_related('user'),
         'projectComponents': projectComponents,
     }
     return render(request, "jira/ticketDetailViewPage.html", context)
@@ -245,6 +245,7 @@ def ticketDetailView(request, internalKey):
 
 @login_required
 def boards(request):
+    # 9 queries
     if request.method == "POST":
         try:
             newBoard = Board.objects.create(
@@ -289,37 +290,45 @@ def boards(request):
                 f'Board with name {request.POST["boardName"]} already exists.'
             )
         return redirect('jira:boards-page')
+    
+    context = {
+        'boards': Board.objects.all().prefetch_related('projects', 'admins', 'members'),
+        'profiles': Profile.objects.all().select_related('user'),
+        'projects': Project.objects.all(),
+    }
 
-    return render(request, 'jira/boards.html')
+    return render(request, 'jira/boards.html', context)
 
 
 @login_required
 def boardSettings(request, url):
     try:
-        thisBoard = Board.objects.prefetch_related('boardColumns', 'admins').get(url=url)
+        thisBoard = Board.objects.prefetch_related('admins').get(url=url)
     except Board.DoesNotExist:
         raise Http404
 
     tab = request.GET.get('tab', 'general').lower()
     TEMPLATE = None
 
-    if tab == "general":
-        TEMPLATE = "boardSettings"
-    elif tab == "columns":
-        TEMPLATE = "boardSettingsColumns"
-
-    allProjects = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)).distinct()
-
     context = {
         'board': thisBoard,
-        'projects': allProjects,
-        'isAdmin': request.user in thisBoard.admins.all()
+        'isAdmin': request.user in thisBoard.admins.all(),
     }
+
+    if tab == "general":
+        # 10 queries
+        TEMPLATE = "boardSettings"
+        context['projects'] = Project.objects.filter(Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)).distinct()
+        context['profiles'] = Profile.objects.all().select_related('user')
+    elif tab == "columns":
+        # 6 queries
+        TEMPLATE = "boardSettingsColumns"
     return render(request, 'jira/{}.html'.format(TEMPLATE), context)
 
 
 @login_required
 def board(request, url):
+    # 5 queries
     try:
         thisBoard = Board.objects.get(url=url)
     except Board.DoesNotExist:
@@ -328,18 +337,14 @@ def board(request, url):
     if not thisBoard.hasAccessPermission(request.user):
         raise PermissionDenied()
 
-    boardsInProject = Board.objects.filter(
-        projects__in=thisBoard.projects.all().values_list('id', flat=True)
-    ).distinct()
-
     context = {
         "board": thisBoard,
-        "boardsInProject": boardsInProject,
     }
     return render(request, 'jira/agileBoard.html', context)
 
 
 def backlog(request, url):
+    # 5 queries
     try:
         thisBoard = Board.objects.get(url=url)
     except Board.DoesNotExist:
@@ -348,22 +353,15 @@ def backlog(request, url):
     if not thisBoard.hasAccessPermission(request.user):
         raise PermissionDenied()
 
-    boardsInProject = Board.objects.filter(
-        projects__in=thisBoard.projects.all().values_list('id', flat=True)
-    ).distinct()
-
     context = {
         "board": thisBoard,
-        "boardsInProject": boardsInProject,
     }
     return render(request, "jira/backlog.html", context)
 
 
 @login_required
 def projects(request):
-    projectQuery = Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)
-    allProjects = Project.objects.filter(projectQuery).distinct().select_related('status', 'lead')
-
+    # 4 queries
     if request.method == "POST":
         try:
             newProject = Project()
@@ -387,16 +385,23 @@ def projects(request):
             )
         return redirect('jira:projects-page')
 
+    allProjects = Project.objects.filter(
+        Q(isPrivate=True, members__in=[request.user]) | Q(isPrivate=False)
+    ).distinct().select_related('status', 'lead')
+
     context = {
-        'allProjects': allProjects,
+        'projects': allProjects,
     }
     return render(request, 'jira/projects.html', context)
 
 
 @login_required
 def projectSettings(request, url):
+    # 11 queries
     try:
-        project = Project.objects.get(url=url)
+        project = Project.objects.prefetch_related(
+            'boardProjects__admins', 'boardProjects__members', 'boardProjects__projects'
+        ).select_related('lead').get(url=url)
     except Project.DoesNotExist:
         raise Http404
 
@@ -415,6 +420,7 @@ def projectSettings(request, url):
 
 
 def issuesListView(request):
+    # 3 queries
     """
     TODO: Display status values with CSS.
     TODO: Allow users to add dropdown manually.

@@ -61,6 +61,7 @@ class TeamForm(forms.Form):
     )
 
     def __init__(self, request, *args, **kwargs):
+        kwargs.setdefault('label_suffix', '')
         super(TeamForm, self).__init__(*args, **kwargs)
         self.request = request
         userChoices = [(str(i.user.id), i.user.get_full_name()) for i in Profile.objects.all().select_related('user')]

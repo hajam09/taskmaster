@@ -10,6 +10,16 @@ def panelItems(boardUrl):
         projects__in=thisBoard.projects.all().values_list('id', flat=True)
     ).distinct()
 
+    """
+    allBoards = Board.objects.all().prefetch_related('projects')
+    thisBoard = next((board for board in allBoards if board.url == boardUrl))
+    thisBoardProjects = [i for i in thisBoard.projects.all()]
+    boardsInProject = [
+        board for board in allBoards
+        if any(x in board.projects.all() for x in thisBoardProjects)
+    ]
+    """
+
     links = [
         linkItem('Settings', '', Icon('&#xf085', 'fa', '24'), [
             linkItem('General', f"{reverse('jira:board-settings', kwargs={'url': boardUrl})}?tab=general"),
