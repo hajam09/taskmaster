@@ -1466,15 +1466,17 @@ class EpicDetailsForBoardApiEventVersion1Component(View):
             for childTicket in childTickets:
                 issues += 1
 
-                if childTicket.column.internalKey == "BACKLOG" or childTicket.column.internalKey == "TO DO":
+                if childTicket.columnStatus is None:
                     notStarted += 1
-
-                if childTicket.column.internalKey == "IN PROGRESS":
-                    inProgress += 1
-
-                # TODO: What if ticket status can be used to determined the finish line.
-                if childTicket.column.internalKey == "DONE":
-                    completed += 1
+                else:
+                    if childTicket.columnStatus.category == ColumnStatus.Category.TODO:
+                        notStarted += 1
+                    elif childTicket.columnStatus.category == ColumnStatus.Category.IN_PROGRESS:
+                        inProgress += 1
+                    elif childTicket.columnStatus.category == ColumnStatus.Category.DONE:
+                        completed += 1
+                    else:
+                        raise Exception("Unexpected columnStatus.category for ticket ", childTicket.id)
 
                 if childTicket.storyPoints is None:
                     unEstimated += 1
@@ -1816,7 +1818,6 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class SprintObjectApiEventVersion1Component(View):
 
@@ -1874,9 +1875,7 @@ class SprintObjectApiEventVersion1Component(View):
                 get all the tickets which are not in DONE. move them to next sprint if available else create one.
                 set the current sprint to complete.
             """
-            openSprints = Sprint.objects.filter(
-                board__id=boardId, isComplete=False,
-            ).order_by('orderNo')
+            openSprints = Sprint.objects.filter(board__id=boardId, isComplete=False).order_by('orderNo')
 
             try:
                 nextSprint = openSprints[1]
@@ -1893,7 +1892,7 @@ class SprintObjectApiEventVersion1Component(View):
             unDoneTicketIds = [
                 ticket.id
                 for ticket in currentSprint.tickets.all()
-                if ticket.resolution.code != "RESOLVED" and ticket.issueType.code != "EPIC"
+                if (ticket.resolution.code in ["UNRESOLVED", "REOPENED"] or ticket.columnStatus.category != ColumnStatus.Category.DONE) and ticket.issueType.code != "EPIC"
             ]
 
             currentSprint.removeTicketsFromSprint(unDoneTicketIds)
@@ -2000,7 +1999,7 @@ class TicketObjectDetailApiEventVersion1Component(View):
 class ProjectObjectApiEventVersion1Component(View):
 
     def get(self, *args, **kwargs):
-        projectId = int(self.kwargs.get("projectId", None))
+        projectId = int(self.kwargs.get("projectId", 0))
 
         if projectId == 0:
             projects = Project.objects.all()
@@ -2013,6 +2012,54 @@ class ProjectObjectApiEventVersion1Component(View):
                 "projects": [
                     project.serializeProjectVersion1()
                     for project in projects
+                ]
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class BoardObjectApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        boardId = int(self.kwargs.get("boardId", 0))
+
+        if boardId == 0:
+            boards = Board.objects.all()
+        else:
+            boards = Board.objects.filter(id=boardId)
+
+        response = {
+            "success": True,
+            "data": {
+                "boards": [
+                    board.serializeBoardVersion1()
+                    for board in boards
+                ]
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class UserObjectApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        userId = int(self.kwargs.get("userId", 0))
+
+        if userId == 0:
+            users = User.objects.all()
+        else:
+            users = User.objects.filter(id=userId)
+
+        response = {
+            "success": True,
+            "data": {
+                "users": [
+                    {
+                        "id": user.id,
+                        "firstName": user.first_name,
+                        "lastName": user.last_name,
+                    }
+                    for user in users
                 ]
             }
         }

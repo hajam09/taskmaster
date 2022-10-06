@@ -408,6 +408,14 @@
                 const style5 = {
                     pointerEvents: this.state.canEdit
                 }
+
+                const style6 = {
+                    backgroundColor: "#0052cc",
+                    color: "white",
+                }
+                const style7 = {
+                    backgroundColor: "#ebecf0",
+                }
                 return (
                     <div style={style5}>
                         <div className="modal fade" id="addColumnModal" tabIndex="-1" role="dialog"
@@ -437,11 +445,11 @@
                                         </div>
                                     </div>
                                     <div className="modal-footer">
-                                        <button type="button" className="btn btn-light" data-dismiss="modal"
-                                                onClick={this.createColumnInstance}>Add
+                                        <button type="button" className="btn" data-dismiss="modal"
+                                                onClick={this.createColumnInstance} style={style6}>Add
                                         </button>
-                                        <button type="button" className="btn btn-danger" data-dismiss="modal"
-                                                onClick={this.resetAddColumnModal}>Cancel
+                                        <button type="button" className="btn" data-dismiss="modal"
+                                                onClick={this.resetAddColumnModal} style={style7}>Cancel
                                         </button>
                                     </div>
                                 </div>
@@ -477,11 +485,11 @@
                                         </div>
                                     </div>
                                     <div className="modal-footer">
-                                        <button type="button" className="btn btn-light" data-dismiss="modal"
-                                                onClick={this.createStatusInstance}>Add
+                                        <button type="button" className="btn" data-dismiss="modal"
+                                                onClick={this.createStatusInstance} style={style6}>Add
                                         </button>
-                                        <button type="button" className="btn btn-danger" data-dismiss="modal"
-                                                onClick={this.resetAddStatusModal}>Cancel
+                                        <button type="button" className="btn" data-dismiss="modal"
+                                                onClick={this.resetAddStatusModal} style={style7}>Cancel
                                         </button>
                                     </div>
                                 </div>

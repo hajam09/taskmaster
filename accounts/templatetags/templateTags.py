@@ -19,6 +19,7 @@ def navigationPanel(request):
                 linkItem('Teams', reverse('jira:teams-page'), Icon('', 'fa fa-users', '15')),
                 linkItem('Projects', reverse('jira:projects-page'), Icon('', 'fas fa-project-diagram', '15')),
                 linkItem('Boards', reverse('jira:boards-page'), Icon('&#xf24d;', 'far', '15')),
+                linkItem('Settings', f"{reverse('accounts:account-settings')}?tab=profileAndVisibility", Icon('&#xf013;', 'fa', '15')),
                 None,
                 linkItem('Logout', reverse('accounts:logout'), Icon('', 'fas fa-sign-out-alt', '15')),
             ]),

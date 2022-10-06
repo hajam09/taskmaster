@@ -167,8 +167,8 @@ class TicketCreationForm(forms.Form):
         kwargs.setdefault('label_suffix', '')
         super(TicketCreationForm, self).__init__(*args, **kwargs)
 
-        projectChoices = [(str(i.id), i.internalKey) for i in Project.objects.all()]
-        self.base_fields['project'].choices = projectChoices
+        # projectChoices = [(str(i.id), i.internalKey) for i in Project.objects.all()]
+        # self.base_fields['project'].choices = projectChoices
 
         issueTypeChoices = [(str(i.id), i.internalKey) for i in cache.get('TICKET_ISSUE_TYPE')]
         self.base_fields['issueType'].choices = issueTypeChoices
@@ -176,11 +176,11 @@ class TicketCreationForm(forms.Form):
         priorityChoices = [(str(i.id), i.internalKey) for i in cache.get('TICKET_PRIORITY')]
         self.base_fields['priority'].choices = priorityChoices
 
-        boardChoices = [(str(i.id), i.internalKey) for i in Board.objects.all()]
-        self.base_fields['board'].choices = boardChoices
+        # boardChoices = [(str(i.id), i.internalKey) for i in Board.objects.all()]
+        # self.base_fields['board'].choices = boardChoices
 
-        assigneeChoices = [(str(i.id), i.get_full_name()) for i in User.objects.all()]
-        self.base_fields['assignee'].choices = assigneeChoices
+        # assigneeChoices = [(str(i.id), i.get_full_name()) for i in User.objects.all()]
+        # self.base_fields['assignee'].choices = assigneeChoices
 
         if request.user.is_authenticated:
             self.base_fields['assignee'].initial = request.user.id

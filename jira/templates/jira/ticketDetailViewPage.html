@@ -149,8 +149,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <input class="btn btn-primary" type="submit" style="background-color: #0052cc" value="Update">
-                        <button class="btn btn-secondary" type="reset" data-dismiss="modal">Cancel</button>
+                        <button class="btn" type="reset" data-dismiss="modal" style="background-color: #f5f6f8;">Cancel</button>
+                        <input class="btn" type="submit" style="background-color: #0052cc; color: white" value="Update">
                     </div>
                 </form>
             </div>
@@ -221,10 +221,12 @@
                 let todo = {
                     id: null,
                     internalKey: "To Do",
+                    category: "TODO",
                 };
                 let inProgress = {
                     id: null,
-                    internalKey: "In Progress"
+                    internalKey: "In Progress",
+                    category: "IN_PROGRESS",
                 };
 
 
@@ -242,13 +244,45 @@
                 }
             }
 
-            updateColumnStatus = (columnStatusId) => {
+            updateColumnStatus = (columnStatus) => {
+                let resolutionId = null;
+                const resolutionList = JSON.parse(localStorage.getItem("resolutionList")).object;
+
+                if (columnStatus.category === 'DONE') {
+                    for (const resolution of resolutionList) {
+                        if (resolution.code === "RESOLVED") {
+                            resolutionId = resolution.id;
+                            break;
+                        }
+                    }
+                } else {
+                    if (this.props.ticket.resolution.code === "RESOLVED") {
+                        for (const resolution of resolutionList) {
+                            if (resolution.code === "REOPENED") {
+                                resolutionId = resolution.id;
+                                break;
+                            }
+                        }
+                    }
+                    else if(this.props.ticket.resolution.code === "REOPENED") {
+                        for (const resolution of resolutionList) {
+                            if (resolution.code === "UNRESOLVED") {
+                                resolutionId = resolution.id;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                let body = {
+                    columnStatus: columnStatus.id
+                };
+                if (resolutionId)
+                    body.resolution = resolutionId;
 
                 fetch('{% url 'jira:ticketObjectApiEventVersion1Component' ticketId=ticket.id %}', {
                     method: 'PUT',
-                    body: JSON.stringify({
-                        'columnStatus': columnStatusId,
-                    }),
+                    body: JSON.stringify(body),
                     headers: {
                         "X-CSRFToken": getCookie("csrftoken")
                     },
@@ -308,12 +342,12 @@
                                 &nbsp;&nbsp;&nbsp;&nbsp;
                                 <button type="button" className="btn"
                                         style={style1}
-                                        onClick={() => this.updateColumnStatus(this.state.todo.id)}>To Do
+                                        onClick={() => this.updateColumnStatus(this.state.todo)}>To Do
                                 </button>
                                 &nbsp;&nbsp;
                                 <button type="button" className="btn"
                                         style={style1}
-                                        onClick={() => this.updateColumnStatus(this.state.inProgress.id)}>In Progress
+                                        onClick={() => this.updateColumnStatus(this.state.inProgress)}>In Progress
                                 </button>
                                 &nbsp;&nbsp;
                                 <div className="btn-group">
@@ -324,7 +358,7 @@
                                     <div className="dropdown-menu">
                                         {this.props.ticket.workflow.map((wf) => <a className="dropdown-item"
                                                                                    onClick={() => {
-                                                                                       this.updateColumnStatus(wf.id)
+                                                                                       this.updateColumnStatus(wf)
                                                                                    }}
                                                                                    key={wf.id}>
                                             {wf.internalKey.split(' ').map(w => w[0].toUpperCase() + w.substring(1).toLowerCase()).join(' ')}</a>)
@@ -1434,14 +1468,28 @@
             }
 
             renderNewCommentMode = () => {
+
+                const style1 = {
+                    color: "white",
+                    backgroundColor: "#0052cc",
+                }
+
+                const style2 = {
+                    marginRight: "10px",
+                    backgroundColor: "#f5f6f8",
+                }
                 return (
                     <div className="className-group">
                         <textarea className="form-control" id="commentBox" placeholder="Write comment here..."
                                   rows="4" ref="comment"></textarea>
                         <br></br>
-                        <button type="button" className="btn btn-outline-primary float-right" onClick={this.createNewComment}>Submit</button>
+                        <button type="button" className="btn float-right" onClick={this.createNewComment}
+                                style={style1}>Submit
+                        </button>
                         <span></span>
-                        <button type="button" className="btn btn-outline-danger float-right" onClick={this.switchCreateMode}>Cancel</button>
+                        <button type="button" className="btn float-right" onClick={this.switchCreateMode}
+                                style={style2}>Cancel
+                        </button>
                     </div>
                 );
             }

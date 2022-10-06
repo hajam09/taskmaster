@@ -154,45 +154,5 @@ def passwordReset(request, uidb64, token):
 
 
 @login_required
-def accountPersonalSettings(request):
-    context = {
-        'activeTab': 'personalSettings'
-    }
-    return render(request, 'accounts/accountPersonalSettings.html', context)
-
-
-@login_required
-def accountProfileAndVisibility(request):
-    context = {
-        'activeTab': 'profileAndVisibility'
-    }
-    return render(request, 'accounts/profileAndVisibility.html', context)
-
-
-@login_required
-def accountSecurity(request):
-    if request.method == "POST":
-        form = PasswordUpdateForm(request, request.POST)
-
-        if form.is_valid():
-            form.updatePassword()
-            isSuccess = form.reAuthenticate()
-
-            if not isSuccess:
-                return redirect("accounts:login")
-    else:
-        form = PasswordUpdateForm(request)
-
-    context = {
-        'form': form,
-        'activeTab': 'accountSecurity'
-    }
-    return render(request, 'accounts/accountSecurity.html', context)
-
-
-@login_required
-def accountNotifications(request):
-    context = {
-        'activeTab': 'Notifications'
-    }
-    return render(request, 'accounts/accountNotifications.html', context)
+def accountSettings(request):
+    return render(request, 'accounts/accountSettings.html')

@@ -44,7 +44,7 @@
 {#    {% profiles as profiles %}#}
 
     {% navigationPanel request as navigationPanel %}
-{#    {% ticketCreationForm request as ticketCreationForm %}#}
+    {% ticketCreationForm request as ticketCreationForm %}
 
     <div class="modal fade bd-example-modal-lg" id="newTicketModal" tabindex="-1" role="dialog"
          aria-labelledby="myLargeModalLabel" aria-hidden="true" style="color: black;">
@@ -77,7 +77,7 @@
 	<body>
 		<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
 			<a class="navbar-brand" href="#">TaskMaster</a>
-            <button type="button" class="btn btn-primary float-left pull-left" data-toggle="modal" data-target="#newTicketModal">Create</button>
+            <button type="button" class="btn btn-primary float-left pull-left" data-toggle="modal" data-target="#newTicketModal" onclick=populateTicketModalFields();>Create</button>
 			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 			</button>
@@ -115,14 +115,11 @@
         </nav>
         <div class="container">
             {% if messages %}
-                {% for message in messages %}
-                    {% if message.tags == "error" %}
-                        <div style="color: black; text-align: center;" class="alert alert-danger"
-                             role="alert">{{ message|safe }}</div>
-                    {% else %}
-                        <div style="color: black; text-align: center;" class="alert alert-{{ message.tags }}"
-                             role="alert">{{ message|safe }}</div>
-                    {% endif %}
+                {% for msg in messages %}
+                    <div style="color: black; text-align: center;"
+                         class="alert alert-{% if msg.tags == "error" %}danger{% else %}{{ msg.tags }}{% endif %}"
+                         role="alert">{{ msg|safe }} {{ msg.tags }}
+                    </div>
                 {% endfor %}
             {% endif %}
         </div>
@@ -136,6 +133,7 @@
 	</body>
     <script type="text/javascript">
 
+        // TODO: Check if the localStorage is any use or plan more efficient method.
         let projectCache = localStorage.getItem("projectList");
         let issueTypeCache = localStorage.getItem("issueTypeList");
         let resolutionCache = localStorage.getItem("resolutionList");
@@ -188,7 +186,7 @@
         if (resolutionCache == null) {
             const resolutionListArray = [];
             {% for t in ticketResolutions %}
-                resolutionListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
+                resolutionListArray.push({"id": "{{ t.id }}", "code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
             {% endfor %}
             localStorage.setItem("resolutionList", JSON.stringify({object: resolutionListArray}));
         } else {
@@ -241,6 +239,64 @@
                     labelListArray.push({"code": "{{ t.code }}", "internalKey": "{{ t.internalKey }}"});
                 {% endfor %}
                 localStorage.setItem("labelList", JSON.stringify({object: labelListArray}));
+            }
+        }
+
+        function populateTicketModalFields() {
+
+            if ($('#id_project > option').length === 0) {
+
+                fetch('{% url 'jira:projectObjectApiEventVersion1Component' projectId=0 %}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((response) => {
+                        if (response.success) {
+                            for (const project of response.data.projects) {
+                                $('#id_project').append($('<option>', {
+                                    value: project.id,
+                                    text: project.internalKey
+                                }));
+                            }
+                        }
+                    })
+            }
+
+            if ($('#id_board > option').length === 0) {
+
+                fetch('{% url 'jira:boardObjectApiEventVersion1Component' boardId=0 %}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((response) => {
+                        if (response.success) {
+                            for (const board of response.data.boards) {
+                                $('#id_board').append($('<option>', {
+                                    value: board.id,
+                                    text: board.internalKey
+                                }));
+                            }
+                        }
+                    })
+            }
+
+            if ($('#id_assignee > option').length === 0) {
+
+                fetch('{% url 'jira:userObjectApiEventVersion1Component' userId=0 %}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((response) => {
+                        if (response.success) {
+                            $('#id_assignee').append($('<option>', {
+                                value: 0,
+                                text: `Unassigned`
+                            }));
+                            for (const user of response.data.users) {
+                                $('#id_assignee').append($('<option>', {
+                                    value: user.id,
+                                    text: `${user.firstName} ${user.lastName}`
+                                }));
+                            }
+                        }
+                    })
             }
         }
     </script>

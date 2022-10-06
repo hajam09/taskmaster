@@ -190,19 +190,8 @@
         </div>
     </div>
 
-    <div class="container-fluid" style="margin: auto;overflow-x: hipen; color: black; max-width: 1800px;">
+    <div class="container-fluid" style="margin: auto; color: black; max-width: 1800px;">
         <br>
-        {% if messages %}
-            {% for message in messages %}
-                {% if message.tags == "error" %}
-                    <div style="color: black; text-align: center;" class="alert alert-danger"
-                         role="alert">{{ message }}</div>
-                {% else %}
-                    <div style="color: black; text-align: center;" class="alert alert-{{ message.tags }}"
-                         role="alert">{{ message }}</div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
         <div class="row">
             <div class="col-12">
                 <div class="row">
@@ -224,6 +213,7 @@
                             <th>Admins</th>
                             <th>Members</th>
                             <th>Type</th>
+                            <th>Visibility</th>
                             <th>Project</th>
                         </tr>
                         </thead>
@@ -333,11 +323,20 @@
                                 {% endif %}
                                 <td>
                                     {% if b.type == 'KANBAN' %}
-                                        <span class="badge badge-primary"
-                                              style="background-color: #7f45dd">{{ b.type }}</span>
+                                        <span class="badge"
+                                              style="color: white;background-color: #7f45dd">{{ b.type }}</span>
                                     {% else %}
-                                        <span class="badge badge-primary"
-                                              style="background-color: #00761b">{{ b.type }}</span>
+                                        <span class="badge"
+                                              style="color: white;background-color: #00761b">{{ b.type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if b.isPrivate %}
+                                        <span class="badge"
+                                              style="color: #403294;background-color: #eae6ff">All Users</span>
+                                    {% else %}
+                                        <span class="badge"
+                                              style="color: #bf2600;background-color: #ffebe6">Restricted</span>
                                     {% endif %}
                                 </td>
                                 {% if b.projects.count == 1 %}

@@ -1,6 +1,7 @@
 from django.urls import path
 
 from accounts import views
+from accounts.api import *
 
 app_name = "accounts"
 
@@ -11,6 +12,19 @@ urlpatterns = [
     path('activate-account/<uidb64>/<token>', views.activateAccount, name='activate-account'),
     path('password-forgotten/', views.passwordForgotten, name='password-forgotten'),
     path('password-reset/<uidb64>/<token>', views.passwordReset, name='password-reset'),
-    path('manage-profile/profile-and-visibility', views.accountProfileAndVisibility, name='profile-and-visibility'),
-    path('manage-profile/account-security', views.accountSecurity, name='account-security'),
+    path('account-settings', views.accountSettings, name='account-settings'),
+]
+
+# api
+urlpatterns += [
+    path(
+        'api/v1/accountSettingsSecurityPasswordUpdateApiEventVersion1Component/',
+        AccountSettingsSecurityPasswordUpdateApiEventVersion1Component.as_view(),
+        name='accountSettingsSecurityPasswordUpdateApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/userDetailsApiEventVersion1Component/',
+        UserDetailsApiEventVersion1Component.as_view(),
+        name='userDetailsApiEventVersion1Component'
+    ),
 ]

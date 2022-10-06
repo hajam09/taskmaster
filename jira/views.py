@@ -267,10 +267,10 @@ def boards(request):
             # mandatory ColumnStatus for a board
             ColumnStatus.objects.bulk_create(
                 [
-                    ColumnStatus(internalKey="OPEN", board=newBoard, column=c1, category=Column.Category.TODO, colour="#42526E"),
-                    ColumnStatus(internalKey="TO DO", board=newBoard, column=c2, category=Column.Category.TODO, colour="#42526E"),
-                    ColumnStatus(internalKey="IN PROGRESS", board=newBoard, column=c3, category=Column.Category.IN_PROGRESS, colour="#0052CC"),
-                    ColumnStatus(internalKey="DONE", board=newBoard, column=c4, setResolution=True, category=Column.Category.DONE, colour="#00875A")
+                    ColumnStatus(internalKey="OPEN", board=newBoard, column=c1, category=ColumnStatus.Category.TODO, colour="#42526E"),
+                    ColumnStatus(internalKey="TO DO", board=newBoard, column=c2, category=ColumnStatus.Category.TODO, colour="#42526E"),
+                    ColumnStatus(internalKey="IN PROGRESS", board=newBoard, column=c3, category=ColumnStatus.Category.IN_PROGRESS, colour="#0052CC"),
+                    ColumnStatus(internalKey="DONE", board=newBoard, column=c4, setResolution=True, category=ColumnStatus.Category.DONE, colour="#00875A")
                 ]
             )
 
@@ -481,10 +481,10 @@ def newTicketObject(request):
     boardId = request.POST['board'] or None
     boardObject = Board.objects.get(id=boardId)
     columnName = "TO DO" if boardObject.type == Board.Types.KANBAN else "OPEN"
-
     columnStatus = ColumnStatus.objects.get(
         internalKey__icontains=columnName, board_id=boardId, category=Column.Category.TODO
     )
+    assigneeId = request.POST['assignee'] if request.POST['assignee'] and request.POST['assignee'] != "0" else None
 
     newTicket = Ticket()
     newTicket.internalKey = thisProject.code + "-" + str(newTicketNumber)
@@ -492,7 +492,7 @@ def newTicketObject(request):
     newTicket.description = request.POST["description"] or None
     newTicket.resolution_id = next((i.id for i in cache.get('TICKET_RESOLUTIONS') if i.code == 'UNRESOLVED'))
     newTicket.project = thisProject
-    newTicket.assignee_id = request.POST['assignee'] or None
+    newTicket.assignee_id = assigneeId
     newTicket.reporter = request.user
     newTicket.storyPoints = request.POST["storyPoints"] or None
     newTicket.issueType_id = request.POST["issueType"] or None

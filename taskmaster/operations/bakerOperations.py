@@ -71,34 +71,22 @@ def createUserObjects(limit=20, maxLimit=20):
 
 def createProfileObjects(users=None):
     if users is None or len(users) == 0:
-        users = createUserObjects()
+        createUserObjects()
 
-    requiredProfile = []
-
-    for user in users:
-        try:
-            user.profile
-        except Profile.DoesNotExist:
-            requiredProfile.append(user)
+    BULK_PROFILES = []
 
     for user in User.objects.all():
         try:
             user.profile
         except Profile.DoesNotExist:
-            if user not in requiredProfile:
-                requiredProfile.append(user)
-
-    # TODO: Convert this to list comprehension
-    BULK_PROFILES = []
-
-    for user in requiredProfile:
-        BULK_PROFILES.append(
-            Profile(
-                user=user,
-                publicName=user.get_full_name(),
-                jobTitle=random.choice(JOB_TITLE),
+            BULK_PROFILES.append(
+                Profile(
+                    user=user,
+                    publicName=user.get_full_name(),
+                    jobTitle=random.choice(JOB_TITLE),
+                )
             )
-        )
+
     return Profile.objects.bulk_create(BULK_PROFILES)
 
 

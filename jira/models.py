@@ -85,6 +85,15 @@ class Board(BaseModel):
             return True
         return user in self.members.all() or user in self.admins.all()
 
+    def serializeBoardVersion1(self):
+        return {
+            "id": self.id or None,
+            "internalKey": self.internalKey,
+            "url": self.url,
+            "type": self.type,
+            "link": self.getUrl(),
+        }
+
 
 class Label(BaseModel):
     internalKey = models.CharField(max_length=2048, unique=True)
