@@ -680,7 +680,7 @@ class TicketObjectApiEventVersion1Component(View):
         ticketId = self.kwargs.get("ticketId", None)
 
         try:
-            ticket = Ticket.objects.get(id=ticketId)
+            ticket = Ticket.objects.select_related('columnStatus').get(id=ticketId)
         except Ticket.DoesNotExist:
             response = {
                 "success": False,
@@ -691,6 +691,19 @@ class TicketObjectApiEventVersion1Component(View):
         body = json.loads(self.request.body.decode())
         for key, value in body.items():
             setattr(ticket, f"{key}_id", int(value))
+
+        resolutionList = cache.get('TICKET_RESOLUTIONS')
+        resolvedResolution = databaseOperations.getObjectByCode(resolutionList, "RESOLVED")
+        reOpenedResolution = databaseOperations.getObjectByCode(resolutionList, "REOPENED")
+        unResolvedResolution = databaseOperations.getObjectByCode(resolutionList, "UNRESOLVED")
+
+        if ticket.columnStatus.category == ColumnStatus.Category.DONE:
+            ticket.resolution_id = resolvedResolution.id
+        else:
+            if ticket.resolution == resolvedResolution:
+                ticket.resolution_id = reOpenedResolution.id
+            elif ticket.resolution == reOpenedResolution:
+                ticket.resolution_id = unResolvedResolution.id
 
         ticket.save()
         response = {

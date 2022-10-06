@@ -244,45 +244,13 @@
                 }
             }
 
-            updateColumnStatus = (columnStatus) => {
-                let resolutionId = null;
-                const resolutionList = JSON.parse(localStorage.getItem("resolutionList")).object;
-
-                if (columnStatus.category === 'DONE') {
-                    for (const resolution of resolutionList) {
-                        if (resolution.code === "RESOLVED") {
-                            resolutionId = resolution.id;
-                            break;
-                        }
-                    }
-                } else {
-                    if (this.props.ticket.resolution.code === "RESOLVED") {
-                        for (const resolution of resolutionList) {
-                            if (resolution.code === "REOPENED") {
-                                resolutionId = resolution.id;
-                                break;
-                            }
-                        }
-                    }
-                    else if(this.props.ticket.resolution.code === "REOPENED") {
-                        for (const resolution of resolutionList) {
-                            if (resolution.code === "UNRESOLVED") {
-                                resolutionId = resolution.id;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                let body = {
-                    columnStatus: columnStatus.id
-                };
-                if (resolutionId)
-                    body.resolution = resolutionId;
+            updateColumnStatus = (columnStatusId) => {
 
                 fetch('{% url 'jira:ticketObjectApiEventVersion1Component' ticketId=ticket.id %}', {
                     method: 'PUT',
-                    body: JSON.stringify(body),
+                    body: JSON.stringify({
+                        'columnStatus': columnStatusId,
+                    }),
                     headers: {
                         "X-CSRFToken": getCookie("csrftoken")
                     },
@@ -342,12 +310,12 @@
                                 &nbsp;&nbsp;&nbsp;&nbsp;
                                 <button type="button" className="btn"
                                         style={style1}
-                                        onClick={() => this.updateColumnStatus(this.state.todo)}>To Do
+                                        onClick={() => this.updateColumnStatus(this.state.todo.id)}>To Do
                                 </button>
                                 &nbsp;&nbsp;
                                 <button type="button" className="btn"
                                         style={style1}
-                                        onClick={() => this.updateColumnStatus(this.state.inProgress)}>In Progress
+                                        onClick={() => this.updateColumnStatus(this.state.inProgress.id)}>In Progress
                                 </button>
                                 &nbsp;&nbsp;
                                 <div className="btn-group">
@@ -358,7 +326,7 @@
                                     <div className="dropdown-menu">
                                         {this.props.ticket.workflow.map((wf) => <a className="dropdown-item"
                                                                                    onClick={() => {
-                                                                                       this.updateColumnStatus(wf)
+                                                                                       this.updateColumnStatus(wf.id)
                                                                                    }}
                                                                                    key={wf.id}>
                                             {wf.internalKey.split(' ').map(w => w[0].toUpperCase() + w.substring(1).toLowerCase()).join(' ')}</a>)
