@@ -1914,6 +1914,7 @@ class SprintObjectApiEventVersion1Component(View):
             nextSprint.addTicketsToSprint(unDoneTicketIds)
 
         elif function == 'DELETE_SPRINT':
+            # TODO: Bug: when sprint is deleted the remaining tickets are not showing up in the backlog
             sprint = Sprint.objects.get(id=sprintId, board__id=boardId, isComplete=False)
             sprintTicketsId = sprint.tickets.values_list('id', flat=True)
             sprint.removeTicketsFromSprint(sprintTicketsId)

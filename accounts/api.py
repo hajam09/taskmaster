@@ -1,10 +1,14 @@
 import json
+import os
 from http import HTTPStatus
 
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
-from django.http import JsonResponse, QueryDict
+from django.http import JsonResponse
 from django.views import View
+
+from accounts.models import Profile
 
 
 class AccountSettingsSecurityPasswordUpdateApiEventVersion1Component(View):
@@ -65,7 +69,6 @@ class UserDetailsApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
     def put(self, *args, **kwargs):
-        # TODO: Update user profilePicture
         put = json.loads(self.request.body)
 
         self.request.user.first_name = put.get("firstName")
@@ -79,5 +82,52 @@ class UserDetailsApiEventVersion1Component(View):
 
         response = {
             "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class UserProfilePictureApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+
+        try:
+            profile = self.request.user.profile
+        except Profile.DoesNotExist:
+            profile = None
+
+        if not self.request.user or not profile:
+            response = {
+                "success": False,
+            }
+            return JsonResponse(response, status=HTTPStatus.OK)
+
+        response = {
+            "success": True,
+            "data": {
+                "id": self.request.user.id,
+                "profileId": profile.id,
+                "picture": profile.profilePicture.url if profile.profilePicture else None
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def delete(self, *args, **kwargs):
+
+        try:
+            profile = self.request.user.profile
+        except Profile.DoesNotExist:
+            profile = None
+
+        profileAndPictureExists = profile and profile.profilePicture.name
+
+        if profileAndPictureExists:
+            previousProfileImage = os.path.join(settings.MEDIA_ROOT, profile.profilePicture.name)
+            if os.path.exists(previousProfileImage):
+                profile.profilePicture = None
+                profile.save(update_fields=['profilePicture'])
+                os.remove(previousProfileImage)
+
+        response = {
+            "success": True
         }
         return JsonResponse(response, status=HTTPStatus.OK)

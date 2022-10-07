@@ -8,6 +8,23 @@
 
     <link rel="stylesheet" type="text/css" href="{% static 'css/baseNavigationBar.css' %}"/>
 
+    <style>
+        .panel {
+            box-shadow: none;
+        }
+
+        .panel-body *:first-child {
+            margin-top: 0;
+        }
+
+        .profile-avatar {
+            width: 200px;
+            position: relative;
+            margin: 0px auto;
+            margin-top: 196px;
+        }
+    </style>
+
     <div id="wrapper" class="wrapper-content">
 
     </div>
@@ -63,6 +80,8 @@
             constructor(props) {
                 super(props);
 
+                const manPicture = "https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png";
+
                 this.state = {
                     id: null,
                     email: null,
@@ -77,7 +96,9 @@
                         publicName: false,
                         jobTitle: false,
                         department: false,
-                    }
+                    },
+                    profilePicture: manPicture,
+                    manPicture: manPicture,
                 }
             }
 
@@ -138,6 +159,7 @@
 
             componentDidMount = () => {
                 this.getUserDetails();
+                this.getUserProfilePicture();
             }
 
             updateFieldEditMode = (event) => {
@@ -158,6 +180,54 @@
                     })
             }
 
+            getUserProfilePicture = () => {
+                fetch('{% url 'accounts:userProfilePictureApiEventVersion1Component' %}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((json) => {
+                        if (json.success) {
+                            if (json.data.picture !== null) {
+                                this.setState({
+                                    profilePicture: json.data.picture
+                                })
+                            }
+
+                        }
+                    })
+            }
+
+            removeProfilePicture = () => {
+
+                fetch('{% url 'accounts:userProfilePictureApiEventVersion1Component' %}', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-type': 'application/json',
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                }).then((response) => response.json())
+                    .then((json) => {
+                        if (json.success) {
+                            this.setState({
+                                profilePicture: this.state.manPicture
+                            })
+                        }
+                    })
+            }
+
+            openFileDialog = () => {
+                $('#profilePicture').click();
+            }
+
+            uploadProfilePicture = () => {
+
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'csrfmiddlewaretoken',
+                    value: getCookie("csrftoken"),
+                }).appendTo('#profilePictureForm');
+
+                $( "#profilePictureForm" ).submit();
+            }
 
             render() {
 
@@ -174,6 +244,36 @@
                                 <div className="form-group">
                                     <p>Manage your personal information and control which information other people
                                         see.</p>
+                                    <div className="card">
+                                        <div className="card-body">
+                                            <div className="form-group row justify-content-center align-items-center">
+                                                <div className="panel panel-default">
+                                                    <div className="panel-body text-center">
+                                                        <img src={this.state.profilePicture}
+                                                             className="img-circle profile-avatar"
+                                                             alt="User avatar"></img>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="form-group row justify-content-center align-items-center">
+                                                <form method="POST" encType="multipart/form-data"
+                                                      id="profilePictureForm">
+                                                    <input type="file" name="profilePicture" id="profilePicture"
+                                                           onChange={this.uploadProfilePicture} hidden></input>
+                                                    <button type="button" className="btn btn-secondary btn-sm"
+                                                            onClick={this.openFileDialog}>Upload
+                                                    </button>
+                                                </form>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                                <button type="button" className="btn btn-danger btn-sm"
+                                                        onClick={this.removeProfilePicture}>Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <br></br>
+
                                     <h5>About you</h5>
 
                                     <div className="card">

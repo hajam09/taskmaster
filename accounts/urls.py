@@ -27,4 +27,9 @@ urlpatterns += [
         UserDetailsApiEventVersion1Component.as_view(),
         name='userDetailsApiEventVersion1Component'
     ),
+    path(
+        'api/v1/userProfilePictureApiEventVersion1Component/',
+        UserProfilePictureApiEventVersion1Component.as_view(),
+        name='userProfilePictureApiEventVersion1Component'
+    ),
 ]

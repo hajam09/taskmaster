@@ -1,5 +1,7 @@
+import os
 from http import HTTPStatus
 
+from django.conf import settings
 from django.contrib import auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -15,6 +17,7 @@ from django.utils.http import urlsafe_base64_decode
 from accounts.forms import LoginForm, PasswordUpdateForm
 from accounts.forms import PasswordResetForm
 from accounts.forms import RegistrationForm
+from accounts.models import Profile
 from taskmaster.operations import emailOperations
 
 
@@ -155,4 +158,19 @@ def passwordReset(request, uidb64, token):
 
 @login_required
 def accountSettings(request):
+    if request.method == "POST" and "profilePicture" in request.FILES:
+        try:
+            profile = request.user.profile
+        except Profile.DoesNotExist:
+            profile = None
+
+        if profile:
+            if profile.profilePicture:
+                previousProfileImage = os.path.join(settings.MEDIA_ROOT, profile.profilePicture.name)
+                if os.path.exists(previousProfileImage):
+                    os.remove(previousProfileImage)
+
+            profile.profilePicture = request.FILES["profilePicture"]
+            profile.save(update_fields=['profilePicture'])
+
     return render(request, 'accounts/accountSettings.html')
