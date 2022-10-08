@@ -230,6 +230,7 @@ class Ticket(BaseModel):
 
 class TicketAttachment(BaseModel):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='ticketAttachments')
+    uploadedBy = models.ForeignKey(User, on_delete=models.CASCADE, related_name='uploadedTicketAttachments')
     internalKey = models.CharField(max_length=2048, default=generateString)
     attachment = models.FileField(upload_to='ticket-attachment/', blank=True)
 

@@ -118,14 +118,15 @@ class UserProfilePictureApiEventVersion1Component(View):
         except Profile.DoesNotExist:
             profile = None
 
-        profileAndPictureExists = profile and profile.profilePicture.name
+        profileAndPictureExists = profile is not None and profile.profilePicture.name != ""
 
         if profileAndPictureExists:
             previousProfileImage = os.path.join(settings.MEDIA_ROOT, profile.profilePicture.name)
-            if os.path.exists(previousProfileImage):
-                profile.profilePicture = None
-                profile.save(update_fields=['profilePicture'])
+            if os.path.exists(previousProfileImage) and "/media/avatars/" not in profile.profilePicture.url:
                 os.remove(previousProfileImage)
+
+            profile.profilePicture = None
+            profile.save(update_fields=['profilePicture'])
 
         response = {
             "success": True

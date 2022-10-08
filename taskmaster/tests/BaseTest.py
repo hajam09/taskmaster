@@ -6,7 +6,7 @@ from django.test import RequestFactory
 from django.test import TestCase
 
 from accounts.models import Component
-from taskmaster.operations import seedDataOperations
+from taskmaster.operations import seedDataOperations, generalOperations
 from taskmaster.settings import TEST_PASSWORD
 from taskmaster.tests import userDataHelper
 
@@ -36,13 +36,7 @@ class BaseTest(TestCase):
     @classmethod
     def setUpClass(cls):
         seedDataOperations.runSeedDataInstaller()
-
-        cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'), None)
-        cache.set('PROJECT_STATUS', Component.objects.filter(componentGroup__code='PROJECT_STATUS'), None)
-        cache.set('TICKET_PRIORITY', Component.objects.filter(componentGroup__code='TICKET_PRIORITY'), None)
-        cache.set('TICKET_RESOLUTIONS', Component.objects.filter(componentGroup__code='TICKET_RESOLUTIONS'), None)
-        cache.set('FILE_ICONS', Component.objects.filter(componentGroup__code='FILE_ICONS'), None)
-
+        generalOperations.setCaches()
         super(BaseTest, cls).setUpClass()
 
     def tearDown(self) -> None:

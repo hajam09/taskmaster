@@ -12,15 +12,12 @@ from jira.forms import ProjectSettingsForm, TeamForm
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label, ColumnStatus, Sprint
 from taskmaster.operations import emailOperations, generalOperations
 
-cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'), None)
-cache.set('PROJECT_STATUS', Component.objects.filter(componentGroup__code='PROJECT_STATUS'), None)
-cache.set('TICKET_PRIORITY', Component.objects.filter(componentGroup__code='TICKET_PRIORITY'), None)
-cache.set('TICKET_RESOLUTIONS', Component.objects.filter(componentGroup__code='TICKET_RESOLUTIONS'), None)
-cache.set('FILE_ICONS', Component.objects.filter(componentGroup__code='FILE_ICONS'), None)
+generalOperations.setCaches()
 
 
+@login_required
 def index(request):
-    pass
+    return render(request, "jira/index.html")
 
 
 def dashboard(request):
@@ -157,15 +154,10 @@ def ticketDetailView(request, internalKey):
     # 7 queries
     """
     TODO: remove unused css on the ticket css files
-    TODO: Fix spacing on the texts.
-    TODO: Implement the comment section.
     TODO: Fix linked issue component.
     TODO: Fix the style for right divs.
-    TODO: Fix file attachment style
-    TODO: Allow file attachment delete option
     TODO: Optimise the post request.
     TODO: Allow users to change EPIC colour on the ticket page.
-    TODO: Implement a carousel in ticket page attachments when it exceeds the horizontal length.
     """
 
     try:
@@ -210,6 +202,7 @@ def ticketDetailView(request, internalKey):
         TicketAttachment.objects.bulk_create(
             TicketAttachment(
                 ticket=ticket,
+                uploadedBy=request.user,
                 internalKey=attachment.name,
                 attachment=attachment
             )
@@ -462,15 +455,7 @@ def yourWork(request):
     pass
 
 
-def profileAndSettings(request):
-    pass
-
-
 def peopleAndTeamSearch(request):
-    pass
-
-
-def profileView(request, url):
     pass
 
 

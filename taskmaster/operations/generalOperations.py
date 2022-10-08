@@ -1,4 +1,7 @@
 from django.contrib.auth.models import User
+from django.core.cache import cache
+
+from accounts.models import Component
 
 
 def isPasswordStrong(password):
@@ -38,3 +41,11 @@ def serializeUserVersion2(user: User):
         "fullName": user.get_full_name(),
         "icon": user.profile.profilePicture.url,
     }
+
+
+def setCaches():
+    cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'), None)
+    cache.set('PROJECT_STATUS', Component.objects.filter(componentGroup__code='PROJECT_STATUS'), None)
+    cache.set('TICKET_PRIORITY', Component.objects.filter(componentGroup__code='TICKET_PRIORITY'), None)
+    cache.set('TICKET_RESOLUTIONS', Component.objects.filter(componentGroup__code='TICKET_RESOLUTIONS'), None)
+    cache.set('FILE_ICONS', Component.objects.filter(componentGroup__code='FILE_ICONS'), None)

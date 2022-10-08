@@ -6,7 +6,7 @@ from jira.api import *
 app_name = "jira"
 
 urlpatterns = [
-    # path('', views.mainPage, name='main-page'),
+    path('', views.index, name='index-view'),
     path('dashboard/', views.dashboard, name='dashboard-view'),
     path('issuesListView/', views.issuesListView, name='issuesListView'),
     path('ticket/<slug:internalKey>/', views.ticketDetailView, name='ticket-detail-view'),
@@ -177,6 +177,11 @@ urlpatterns += [
         'api/v1/userObjectApiEventVersion1Component/<int:userId>',
         UserObjectApiEventVersion1Component.as_view(),
         name='userObjectApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/ticketAttachmentObjectApiEventVersion1Component',
+        TicketAttachmentObjectApiEventVersion1Component.as_view(),
+        name='ticketAttachmentObjectApiEventVersion1Component'
     ),
     path(
         'api/v1/profileObjectApiEventVersion1Component',

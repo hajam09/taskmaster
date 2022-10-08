@@ -17,7 +17,7 @@ def sendEmailToActivateAccount(request, user: User):
     fullName = user.get_full_name()
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     prtg = PasswordResetTokenGenerator()
-    url = reverse('accounts:activate-account', kwargs={'uidb64': uid, "token": prtg.make_token(user)})
+    url = reverse('accounts:activate-account', kwargs={'encodedId': uid, "token": prtg.make_token(user)})
 
     message = """
         Hi {},
@@ -43,7 +43,7 @@ def sendEmailToResetPassword(request, user: User):
     fullName = user.get_full_name()
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     prtg = PasswordResetTokenGenerator()
-    url = reverse('accounts:password-reset', kwargs={'uidb64': uid, "token": prtg.make_token(user)})
+    url = reverse('accounts:password-reset', kwargs={'encodedId': uid, "token": prtg.make_token(user)})
 
     message = """
             Hi {},

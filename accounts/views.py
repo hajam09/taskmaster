@@ -14,7 +14,7 @@ from django.utils.encoding import DjangoUnicodeDecodeError
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 
-from accounts.forms import LoginForm, PasswordUpdateForm
+from accounts.forms import LoginForm
 from accounts.forms import PasswordResetForm
 from accounts.forms import RegistrationForm
 from accounts.models import Profile
@@ -40,11 +40,10 @@ def login(request):
 
         if form.is_valid():
             cache.delete(uniqueVisitorId)
-            # TODO: If previous url is registration or login, then redirect to index view or board view
             redirectUrl = request.GET.get('next')
             if redirectUrl:
                 return redirect(redirectUrl)
-            return redirect('accounts:login')
+            return redirect('jira:dashboard-view')
 
         if cache.get(uniqueVisitorId) is None:
             cache.set(uniqueVisitorId, 1)
@@ -90,9 +89,9 @@ def logout(request):
     return redirect('accounts:login')
 
 
-def activateAccount(request, uidb64, token):
+def activateAccount(request, encodedId, token):
     try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
+        uid = force_text(urlsafe_base64_decode(encodedId))
         user = User.objects.get(pk=uid)
     except (DjangoUnicodeDecodeError, ValueError, User.DoesNotExist):
         user = None
@@ -131,9 +130,9 @@ def passwordForgotten(request):
     return render(request, "accounts/passwordForgotten.html")
 
 
-def passwordReset(request, uidb64, token):
+def passwordReset(request, encodedId, token):
     try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
+        uid = force_text(urlsafe_base64_decode(encodedId))
         user = User.objects.get(pk=uid)
     except (DjangoUnicodeDecodeError, ValueError, User.DoesNotExist):
         user = None

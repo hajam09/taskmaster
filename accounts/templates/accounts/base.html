@@ -118,7 +118,7 @@
                 {% for msg in messages %}
                     <div style="color: black; text-align: center;"
                          class="alert alert-{% if msg.tags == "error" %}danger{% else %}{{ msg.tags }}{% endif %}"
-                         role="alert">{{ msg|safe }} {{ msg.tags }}
+                         role="alert">{{ msg|safe }}
                     </div>
                 {% endfor %}
             {% endif %}

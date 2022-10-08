@@ -467,17 +467,28 @@ class TicketCommentObjectApiEventVersion1Component(View):
                 'count': 0,
                 'liked': False
             },
-            'creator': {
-                'id': ticketComment.creator.id,
-                'fullName': ticketComment.creator.get_full_name(),
-                'icon': ticketComment.creator.profile.profilePicture.url
-            }
-
+            'creator': generalOperations.serializeUserVersion2(ticketComment.creator),
         }
 
         response = {
             'success': True,
             'data': data
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def delete(self, *args, **kwargs):
+        body = json.loads(self.request.body)
+        TicketComment.objects.filter(id=body['id']).delete()
+        response = {
+            'success': True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def put(self, *args, **kwargs):
+        body = json.loads(self.request.body)
+        TicketComment.objects.filter(id=body['id']).update(comment=body['comment'], edited=True)
+        response = {
+            'success': True,
         }
         return JsonResponse(response, status=HTTPStatus.OK)
 
@@ -563,11 +574,8 @@ class TicketCommentsApiEventVersion1Component(View):
                     'count': comment.dislikes.count(),
                     'disliked': self.request in comment.dislikes.all()
                 },
-                'creator': {
-                    'id': comment.creator.id,
-                    'fullName': comment.creator.get_full_name(),
-                    'icon': comment.creator.profile.profilePicture.url
-                }
+                'creator': generalOperations.serializeUserVersion2(comment.creator),
+                'canEdit': comment.creator.id == self.request.user.id,
             }
             for comment in ticketComments
         ]
@@ -609,6 +617,7 @@ class TicketAttachmentsApiEventVersion1Component(View):
                 'url': i.attachment.url,
                 'icon': getIcon(i),
                 'internalKey': i.internalKey,
+                'canDelete': i.uploadedBy.id == self.request.user.id,
                 'name': i.attachment.name.split("/")[1],
                 'size': f'{ticketAttachments.first().attachment.size} bytes',
                 'createdDttm': i.createdDttm.strftime('%Y-%m-%d %H:%M')
@@ -2076,6 +2085,17 @@ class UserObjectApiEventVersion1Component(View):
                     for user in users
                 ]
             }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class TicketAttachmentObjectApiEventVersion1Component(View):
+
+    def delete(self, *args, **kwargs):
+        body = json.loads(self.request.body)
+        TicketAttachment.objects.filter(id=body['id']).delete()
+        response = {
+            "success": True,
         }
         return JsonResponse(response, status=HTTPStatus.OK)
 

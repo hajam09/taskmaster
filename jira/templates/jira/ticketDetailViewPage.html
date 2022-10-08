@@ -12,7 +12,7 @@
           href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
 
     <style>
-    .file-drop-area {
+        .file-drop-area {
             position: relative;
             display: flex;
             align-items: center;
@@ -355,7 +355,7 @@
                 })
             }
 
-             renderEmptyMode = () => {
+            renderEmptyMode = () => {
                 return <div></div>
             }
 
@@ -636,16 +636,16 @@
                                     <label htmlFor="assignee-field">Assignee:</label>
                                 </dt>
                                 <dd>
-                                        <span id="assignee-val" className="view-issue-field">
-                                            <span className="aui-avatar aui-avatar-small">
-                                                <span className="aui-avatar-inner">
-                                                    <img
-                                                        src={this.state.assignee.icon}
-                                                        alt={this.state.assignee.fullName}></img>
-                                                </span>
-                                            </span>&nbsp;&nbsp;
-                                            {this.state.assignee.fullName}
-                                        </span>
+                                    <span id="assignee-val" className="view-issue-field">
+                                        <span className="aui-avatar aui-avatar-small">
+                                            <span className="aui-avatar-inner">
+                                                <img
+                                                    src={this.state.assignee.icon}
+                                                    alt={this.state.assignee.fullName}></img>
+                                            </span>
+                                        </span>&nbsp;&nbsp;
+                                        {this.state.assignee.fullName}
+                                    </span>
                                 </dd>
                             </dl>
                             <dl>
@@ -653,19 +653,19 @@
                                     <label htmlFor="reporter-field">Reporter:</label>
                                 </dt>
                                 <dd>
-                                        <span id="reporter-val" className="view-issue-field">
-                                            <span className="user-hover" id="issue_summary_reporter_dumam"
-                                                  rel={this.state.reporter.fullName}>
-                                                <span className="aui-avatar aui-avatar-small">
-                                                    <span className="aui-avatar-inner">
-                                                        <img src={this.state.reporter.icon}
-                                                             alt={this.state.reporter.fullName}></img>
-                                                    </span>
+                                    <span id="reporter-val" className="view-issue-field">
+                                        <span className="user-hover" id="issue_summary_reporter_dumam"
+                                              rel={this.state.reporter.fullName}>
+                                            <span className="aui-avatar aui-avatar-small">
+                                                <span className="aui-avatar-inner">
+                                                    <img src={this.state.reporter.icon}
+                                                         alt={this.state.reporter.fullName}></img>
                                                 </span>
-                                                &nbsp;&nbsp;
-                                                {this.state.reporter.fullName}
                                             </span>
+                                            &nbsp;&nbsp;
+                                            {this.state.reporter.fullName}
                                         </span>
+                                    </span>
                                 </dd>
                             </dl>
                         </div>
@@ -696,7 +696,7 @@
             }
 
             render() {
-                 const style1 = {
+                const style1 = {
                     backgroundColor: '#071e4214'
                 }
 
@@ -788,6 +788,24 @@
                 super(props);
             }
 
+            deleteAttachment = () => {
+                fetch('{% url 'jira:ticketAttachmentObjectApiEventVersion1Component' %}', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-type': 'application/json',
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    body: JSON.stringify({
+                        id: this.props.attachment.id,
+                    }),
+                }).then((response) => response.json())
+                    .then((json) => {
+                        if (json.success) {
+                            this.props.fetchTicketAttachments();
+                        }
+                    })
+            };
+
             render() {
                 return (
                     <li className="attachment-content js-file-attachment" draggable="true"
@@ -809,7 +827,12 @@
                         </div>
                         <dl>
                             <dt>
-                                <span className="blender"></span>
+                                {
+                                    this.props.attachment.canDelete ?
+                                        <span className="float-right"> <i className="fa fa-trash"
+                                                                          onClick={this.deleteAttachment}></i> </span> :
+                                        <span></span>
+                                }
                                 <a
                                     href={this.props.attachment.url}
                                     className="attachment-title"
@@ -840,6 +863,7 @@
                     attachments: []
                 }
 
+                this.fetchTicketAttachments = this.fetchTicketAttachments.bind(this)
             }
 
             renderEmptyMode = () => {
@@ -861,15 +885,15 @@
                     <div className="mod-content">
                         <ol id="attachment_thumbnails" className="item-attachments" data-sort-key="fileName"
                             data-sort-order="asc">
-                            {this.state.attachments.map((item => <Thumbnail key={item.id} attachment={item}/>))}
+                            {this.state.attachments.map((item => <Thumbnail key={item.id} attachment={item}
+                                                                            fetchTicketAttachments={this.fetchTicketAttachments}/>))}
                         </ol>
                     </div>
                 )
             }
 
 
-            fetchTicketAttachments()
-            {
+            fetchTicketAttachments() {
                 fetch('{% url 'jira:ticketAttachmentsApiEventVersion1Component' ticketId=ticket.id %}')
                     .then(response => response.json())
                     .then(data => this.setState({
@@ -1089,8 +1113,7 @@
                     issueTypeList.sort(function (x, y) {
                         return x.code == STORY ? -1 : y.code == STORY ? 1 : 0;
                     });
-                }
-                else{
+                } else {
                     issueTypeList = [];
                 }
 
@@ -1238,7 +1261,7 @@
                 this.switchTicketViewMode = this.switchTicketViewMode.bind(this)
             }
 
-             switchTicketViewMode = () => {
+            switchTicketViewMode = () => {
                 this.setState({
                     showTickets: !this.state.showTickets
                 })
@@ -1278,13 +1301,15 @@
                     <div id="linkingmodule" className="module toggle-wrap">
                         <LinkingModuleHead isEpic={this.state.isEpic} inCreateMode={this.state.inCreateMode}
                                            switchCreateMode={this.switchCreateMode}
-                                           showTickets={this.state.showTickets} switchTicketViewMode={this.switchTicketViewMode}/>
+                                           showTickets={this.state.showTickets}
+                                           switchTicketViewMode={this.switchTicketViewMode}/>
                         <br></br>
                         <LinkingModuleBody isEpic={this.state.isEpic} inCreateMode={this.state.inCreateMode}
                                            switchCreateMode={this.switchCreateMode} epicTickets={this.state.epicTickets}
                                            fetchEpicTasks={this.fetchEpicTasks} fetchSubTasks={this.fetchSubTasks}
                                            subTaskTickets={this.state.subTaskTickets} ticket={this.props.ticket}
-                                           showTickets={this.state.showTickets} switchTicketViewMode={this.switchTicketViewMode}/>
+                                           showTickets={this.state.showTickets}
+                                           switchTicketViewMode={this.switchTicketViewMode}/>
                     </div>
                 );
             }
@@ -1293,19 +1318,83 @@
         class TicketCommentInstanceComponent extends React.Component {
             constructor(props) {
                 super(props);
+                // commentMode: VIEW, EDIT, HIDE
 
                 this.state = {
-                    showComment: true,
+                    commentMode: 'VIEW',
+                    editDeleteDisplay: 'none'
                 }
+            }
+
+            renderCommentByMode = () => {
+                if (this.state.commentMode === 'HIDE')
+                    return this.renderEmptyMode();
+                else if (this.state.commentMode === 'VIEW')
+                    return this.renderViewMode();
+                else if (this.state.commentMode === 'EDIT')
+                    return this.renderEditMode();
+            }
+
+            onMouseEnter = () => {
+                this.setState({
+                    editDeleteDisplay: ''
+                })
+            }
+
+            onMouseLeave = () => {
+                this.setState({
+                    editDeleteDisplay: 'none'
+                })
+            }
+
+            deleteComment = (commentId) => {
+                fetch('{% url 'jira:ticketCommentObjectApiEventVersion1Component' %}', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-type': 'application/json',
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    body: JSON.stringify({
+                        id: commentId,
+                    }),
+                }).then((response) => response.json())
+                    .then((json) => {
+                        if (json.success) {
+                            this.props.fetchComments();
+                        }
+                    })
+            }
+
+            updateComment = () => {
+                let comment = this.refs.newCommentValue.value;
+                let id = this.props.comment.id;
+
+                fetch('{% url 'jira:ticketCommentObjectApiEventVersion1Component' %}', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-type': 'application/json',
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    body: JSON.stringify({
+                        id: id,
+                        comment: comment,
+                    })
+                }).then((response) => response.json())
+                    .then((json) => {
+                        if (json.success) {
+                            this.props.fetchComments();
+                            this.setCommentMode('VIEW');
+                        }
+                    })
             }
 
             generateRandomNumber = () => {
                 return Math.floor(Math.random() * 10000)
             }
 
-            switchCommentViewMode = () => {
+            setCommentMode = (mode) => {
                 this.setState({
-                    showComment: !this.state.showComment
+                    commentMode: mode
                 })
             }
 
@@ -1313,12 +1402,47 @@
                 return <div></div>
             }
 
-            renderNormalMode = () => {
+            renderViewMode = () => {
+                {
+                    this.props.comment.comment.split('\n').map(str => <p
+                        key={"comment-" + this.props.comment.id + "-" + this.generateRandomNumber()}>{str}</p>)
+                }
                 return (
                     <div className="action-body flooded"><span>
-                        {this.props.comment.comment.split('\n').map(str => <p
-                            key={"comment-" + this.props.comment.id + "-" + this.generateRandomNumber()}>{str}</p>)}
+                        {
+                            this.props.comment.comment.split(/\r\n|\r|\n/).map((str) => <p
+                                key={"comment-" + this.props.comment.id + "-" + this.generateRandomNumber()}>{str}</p>)
+                        }
                     </span></div>
+                )
+            }
+
+            renderEditMode = () => {
+
+                const style1 = {
+                    color: "white",
+                    backgroundColor: "#0052cc",
+                }
+
+                const style2 = {
+                    marginRight: "10px",
+                    backgroundColor: "#f5f6f8",
+                }
+
+                const numberOfParagraphs = this.props.comment.comment.split(/\r\n|\r|\n/).length;
+                return (
+                    <div className="form-group">
+                        <textarea className="form-control" defaultValue={this.props.comment.comment}
+                                  rows={numberOfParagraphs} ref="newCommentValue"></textarea>
+                        <br></br>
+                        <button type="button" className="btn float-right" onClick={this.updateComment}
+                                style={style1}>Update
+                        </button>
+                        <span></span>
+                        <button type="button" className="btn float-right"
+                                style={style2} onClick={() => { this.setCommentMode('VIEW') }}>Cancel
+                        </button>
+                    </div>
                 )
             }
 
@@ -1330,6 +1454,10 @@
                 const style2 = {
                     marginTop: '-5px'
                 }
+
+                const style3 = {
+                    display: this.state.editDeleteDisplay
+                }
                 return (
                     <div id={"comment-" + this.props.comment.id}
                          className="issue-data-block activity-comment twixi-block expanded">
@@ -1337,9 +1465,9 @@
                             <div className="action-head">
                                 <button aria-label="Collapse comment" title="Collapse comment"
                                         className="aui-button toggle-title" aria-expanded="true"
-                                        onClick={this.switchCommentViewMode} style={style2}>
+                                        onClick={() => { this.setCommentMode(this.state.commentMode === 'HIDE' ? 'VIEW' : 'HIDE') }} style={style2}>
                                     <span className="badge badge-light" style={style1}>
-                                    {this.state.showComment ? <i className="fas fa-angle-down rotate-icon"></i> :
+                                    {this.state.commentMode === 'VIEW' ? <i className="fas fa-angle-down rotate-icon"></i> :
                                         <i className="fas fa-angle-right rotate-icon"></i>}
                                 </span>
                                 </button>
@@ -1359,9 +1487,23 @@
                                           dateTime={this.props.comment.createdDttm}>{this.props.comment.createdDttm}</time></span></a>
                                     &nbsp;&nbsp;{this.props.comment.edited ?
                                     <span className="text-secondary">(edited)</span> : <span></span>}
+                                    &nbsp;
+                                    {
+                                        this.props.comment.canEdit ?
+                                            <span onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave}>
+                                        <i className="fa fa-trash" style={style3} onClick={() => {
+                                            this.deleteComment(this.props.comment.id)
+                                        }}></i>
+                                                &nbsp;&nbsp;
+                                                <i className="fa fa-edit" style={style3} onClick={() => {
+                                                    this.setCommentMode(this.state.commentMode === 'EDIT' ? 'VIEW' : 'EDIT')
+                                                }}></i>
+                                    </span> : <span></span>
+                                    }
+
                                 </div>
                             </div>
-                            {this.state.showComment ? this.renderNormalMode() : this.renderEmptyMode()}
+                            {this.renderCommentByMode()}
                             <div className="action-links action-comment-actions">
                             </div>
                         </div>
@@ -1467,7 +1609,8 @@
                 return (
                     <div id="ticket-comment-list-container">
                         {this.props.comments.map((comment) => <TicketCommentInstanceComponent key={comment.id}
-                                                                                              comment={comment}/>)}
+                                                                                              comment={comment}
+                                                                                              fetchComments={this.props.fetchComments}/>)}
                         <br></br>
                         <br></br>
                         {this.state.inCreateMode ? this.renderNewCommentMode() : this.renderNormalMode()}
@@ -1497,7 +1640,7 @@
                 this.fetchComments = this.fetchComments.bind(this)
             }
 
-             switchCommentsViewMode = () => {
+            switchCommentsViewMode = () => {
                 this.setState({
                     showComments: !this.state.showComments
                 })
