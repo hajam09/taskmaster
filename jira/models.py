@@ -66,7 +66,7 @@ class Board(BaseModel):
     projects = models.ManyToManyField(Project, blank=True, related_name='boardProjects')
     admins = models.ManyToManyField(User, blank=True, related_name='boardAdmins')
     members = models.ManyToManyField(User, blank=True, related_name='boardMembers')
-    type = models.CharField(max_length=10, choices=Types.choices, default=Types.KANBAN)  # TODO: Change to component if needed
+    type = models.CharField(max_length=10, choices=Types.choices, default=Types.KANBAN)
     isPrivate = models.BooleanField(default=False)
 
     class Meta:

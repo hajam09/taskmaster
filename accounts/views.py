@@ -18,7 +18,7 @@ from accounts.forms import LoginForm
 from accounts.forms import PasswordResetForm
 from accounts.forms import RegistrationForm
 from accounts.models import Profile
-from taskmaster.operations import emailOperations
+from taskmaster.operations import emailOperations, generalOperations
 
 
 def login(request):
@@ -163,12 +163,8 @@ def accountSettings(request):
         except Profile.DoesNotExist:
             profile = None
 
-        if profile:
-            if profile.profilePicture:
-                previousProfileImage = os.path.join(settings.MEDIA_ROOT, profile.profilePicture.name)
-                if os.path.exists(previousProfileImage):
-                    os.remove(previousProfileImage)
-
+        if profile is not None:
+            generalOperations.deleteImage(profile.profilePicture)
             profile.profilePicture = request.FILES["profilePicture"]
             profile.save(update_fields=['profilePicture'])
 

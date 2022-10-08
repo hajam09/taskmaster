@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 
 from accounts.models import Profile, ComponentGroup, Component, Team
 from jira.models import Project, Board
+from taskmaster.operations import generalOperations
 
 
 class TeamForm(forms.Form):
@@ -362,9 +363,8 @@ class ProjectSettingsForm(forms.Form):
         self.project.components.clear()
         self.project.components.add(*ids)
 
-        # TODO: Implement file upload via form.
-        # TODO: Delete old file.
         if self.request.FILES.get('project-icon'):
+            generalOperations.deleteImage(self.project.icon)
             self.project.icon = self.request.FILES.get('project-icon')
 
         self.project.save()

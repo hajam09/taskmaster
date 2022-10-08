@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.views import View
 
 from accounts.models import Profile
+from taskmaster.operations import generalOperations
 
 
 class AccountSettingsSecurityPasswordUpdateApiEventVersion1Component(View):
@@ -111,21 +112,16 @@ class UserProfilePictureApiEventVersion1Component(View):
         }
         return JsonResponse(response, status=HTTPStatus.OK)
 
-    def delete(self, *args, **kwargs):
+    def put(self, *args, **kwargs):
 
         try:
             profile = self.request.user.profile
         except Profile.DoesNotExist:
             profile = None
 
-        profileAndPictureExists = profile is not None and profile.profilePicture.name != ""
-
-        if profileAndPictureExists:
-            previousProfileImage = os.path.join(settings.MEDIA_ROOT, profile.profilePicture.name)
-            if os.path.exists(previousProfileImage) and "/media/avatars/" not in profile.profilePicture.url:
-                os.remove(previousProfileImage)
-
-            profile.profilePicture = None
+        if profile is not None:
+            generalOperations.deleteImage(profile.profilePicture)
+            profile.profilePicture = generalOperations.getRandomAvatar()
             profile.save(update_fields=['profilePicture'])
 
         response = {

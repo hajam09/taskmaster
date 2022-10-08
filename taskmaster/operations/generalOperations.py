@@ -1,3 +1,6 @@
+import os
+import random
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 
@@ -49,3 +52,19 @@ def setCaches():
     cache.set('TICKET_PRIORITY', Component.objects.filter(componentGroup__code='TICKET_PRIORITY'), None)
     cache.set('TICKET_RESOLUTIONS', Component.objects.filter(componentGroup__code='TICKET_RESOLUTIONS'), None)
     cache.set('FILE_ICONS', Component.objects.filter(componentGroup__code='FILE_ICONS'), None)
+
+
+def getRandomAvatar():
+    return "avatars/" + random.choice(os.listdir(os.path.join(settings.MEDIA_ROOT, "avatars/")))
+
+
+def deleteImage(imageField):
+    if imageField is None:
+        return
+
+    existingImage = os.path.join(settings.MEDIA_ROOT, imageField.name)
+    try:
+        if os.path.exists(existingImage) and "/media/avatars/" not in imageField.url:
+            os.remove(existingImage)
+    except ValueError:
+        pass

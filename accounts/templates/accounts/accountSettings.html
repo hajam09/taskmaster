@@ -80,8 +80,6 @@
             constructor(props) {
                 super(props);
 
-                const manPicture = "https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png";
-
                 this.state = {
                     id: null,
                     email: null,
@@ -97,8 +95,7 @@
                         jobTitle: false,
                         department: false,
                     },
-                    profilePicture: manPicture,
-                    manPicture: manPicture,
+                    profilePicture: "https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png",
                 }
             }
 
@@ -196,10 +193,10 @@
                     })
             }
 
-            removeProfilePicture = () => {
+            generateRandomProfilePicture = () => {
 
                 fetch('{% url 'accounts:userProfilePictureApiEventVersion1Component' %}', {
-                    method: 'DELETE',
+                    method: 'PUT',
                     headers: {
                         'Content-type': 'application/json',
                         "X-CSRFToken": getCookie("csrftoken")
@@ -207,9 +204,7 @@
                 }).then((response) => response.json())
                     .then((json) => {
                         if (json.success) {
-                            this.setState({
-                                profilePicture: this.state.manPicture
-                            })
+                            this.getUserProfilePicture();
                         }
                     })
             }
@@ -266,7 +261,7 @@
                                                 </form>
                                                 &nbsp;&nbsp;&nbsp;&nbsp;
                                                 <button type="button" className="btn btn-danger btn-sm"
-                                                        onClick={this.removeProfilePicture}>Remove
+                                                        onClick={this.generateRandomProfilePicture}>Generate
                                                 </button>
                                             </div>
                                         </div>
