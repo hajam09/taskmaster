@@ -6,10 +6,16 @@
     <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css"/>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
+
+
     <link type="text/css" rel="stylesheet" href="{% static 'css/ticketPageCss1.css' %}" media="all">
     <link type="text/css" rel="stylesheet" href="{% static 'css/ticketPageCss2.css' %}" media="all">
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
 
     <style>
         .file-drop-area {
@@ -50,40 +56,10 @@
                     <div class="modal-body">
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="project-add-details" role="tabpanel">
-                                <dl class="row">
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Summary</label>
-                                        <input class="form-control col" type="text" placeholder="Summary" name="summary"
-                                               value="{{ ticket.summary }}"
-                                               required>
-                                    </dd>
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Issue type</label>
-                                        <select id="issueType" data-show-content="true"
-                                                class="form-control" name="issueType">
-                                            {% for it in ticketIssueTypes %}
-                                                <option data-content="<img src='{{ it.icon }}' width='20' height='20'>&nbsp; {{ it.internalKey }}"
-                                                        {% if it.code == ticket.issueType.code %}
-                                                        selected="selected" {% endif %}
-                                                        value="{{ it.id }}">{{ it.internalKey }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </dd>
-                                </dl>
+
                                 <hr>
                                 <dl class="row">
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Priority</label>
-                                        <select id="ticketPriorities" data-show-content="true"
-                                                class="form-control" name="priority">
-                                            {% for tp in ticketPriorities %}
-                                                <option data-content="<img src='{{ tp.icon }}' width='20' height='20'>&nbsp; {{ tp.internalKey }}"
-                                                        {% if tp.code == ticket.priority.code %}
-                                                        selected="selected" {% endif %}
-                                                        value="{{ tp.id }}">{{ tp.internalKey }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </dd>
+
                                     <dd class="col-sm-12">
                                         <label style="font-size: 85%; color: #6c757d;">Components</label>
                                         <select class="form-control select2bs4" multiple="multiple" name="components" id="ticket-components"
@@ -104,47 +80,8 @@
                                             {% endfor %}
                                         </select>
                                     </dd>
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Story Points</label>
-                                        <input class="form-control col" type="number" placeholder="Story Points"
-                                               name="storyPoints" value="{{ ticket.storyPoints }}">
-                                    </dd>
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Fix Version</label>
-                                        <input class="form-control col" type="text" placeholder="Fix Version"
-                                               name="fixVersion" value="{{ ticket.fixVersion }}">
-                                    </dd>
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Attachment</label>
-                                        <div class="file-drop-area border justify-content-center" style="width: 100%;">
-                                            <span class="choose-file-button">Choose files</span>
-                                            <span class="file-message">&nbsp;or drag and drop files here</span>
-                                            <input class="file-input" name="attachments" type="file" multiple>
-                                        </div>
-                                    </dd>
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Description</label>
-                                        <textarea class="form-control col" rows="5" name="description"
-                                                  required>{{ ticket.description }}</textarea>
-                                    </dd>
                                 </dl>
                                 <hr>
-                                <dl class="row">
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Assignee</label>
-                                        <select id="assignee" data-show-content="true" class="form-control"
-                                                name="assignee">
-                                            {% for p in profiles %}
-
-                                                <option data-content="<img src='{{ p.profilePicture.url }}' width='20' height='20'>&nbsp; {{ p.user.get_full_name }}"
-                                                        {% if p.user.id == ticket.assignee.id %}
-                                                        selected="selected" {% endif %}
-                                                        value="{{ p.user.id }}">{{ p.user.get_full_name }}</option>
-
-                                            {% endfor %}
-                                        </select>
-                                    </dd>
-                                </dl>
                             </div>
                         </div>
                     </div>
@@ -161,6 +98,237 @@
     </div>
 
     <script type="text/javascript">
+        function getIssueTypeOptions() {
+            // TODO: Get this from cache or API.
+            let items = [];
+
+            {% for item in ticketIssueTypes %}
+                items.push({
+                    id: '{{ item.id }}',
+                    icon: "{{ item.icon }}",
+                    internalKey: "{{ item.internalKey }}",
+                    code: "{{ item.code }}",
+                    isCurrent: "{{ item.code }}" === "{{ ticket.issueType.code }}",
+                })
+            {% endfor %}
+            return items;
+        }
+
+        function getPriorityOptions() {
+            // TODO: Get this from cache or API.
+            let items = [];
+
+            {% for item in ticketPriorities %}
+                items.push({
+                    id: '{{ item.id }}',
+                    icon: "{{ item.icon }}",
+                    internalKey: "{{ item.internalKey }}",
+                    code: "{{ item.code }}",
+                    isCurrent: "{{ item.code }}" === "{{ ticket.issueType.code }}",
+                })
+            {% endfor %}
+            return items;
+        }
+
+        function getComponentOptions(){
+            // TODO: Get this from cache or API.
+            let items = [];
+
+            {% for item in projectComponents %}
+                items.push({
+                    id: '{{ item.id }}',
+                    internalKey: "{{ item.internalKey }}",
+                })
+            {% endfor %}
+            return items;
+        }
+
+        function getComponentDefaultValues() {
+
+            let items = [];
+            {% for component in ticket.components %}
+                items.push('{{ component.id }}')
+            {% endfor %}
+            return items;
+        }
+
+        function getUsersOptions() {
+            // TODO: Get this from cache or API.
+            let items = [];
+
+            {% for item in profiles %}
+                items.push({
+                    id: "{{ item.user.id }}",
+                    icon: "{{ item.profilePicture.url }}",
+                    internalKey: "{{ item.user.get_full_name }}",
+                    code: "{{ item.id }}",
+                    isCurrent: "{{ item.user.id }}" === "{{ ticket.assignee.id }}",
+                })
+            {% endfor %}
+            return items;
+        }
+
+        const ticketEditFields = [
+            {
+                id: "summary",
+                internalKey: "Summary",
+                defaultValue: "{{ ticket.summary }}",
+                isRequired: true,
+                elementType: "TEXT",
+                options: null,
+                isMultiple: false,
+                enabled: true,
+            },
+            {
+                id: "issueType",
+                internalKey: "Issue Type",
+                defaultValue: "{{ ticket.issueType.id }}",
+                isRequired: true,
+                elementType: "SELECT",
+                options: getIssueTypeOptions(),
+                isMultiple: false,
+                enabled: true,
+            },
+            {
+                id: "priority",
+                internalKey: "Priority",
+                defaultValue: "{{ ticket.priority.id }}",
+                isRequired: true,
+                elementType: "SELECT",
+                options: getPriorityOptions(),
+                isMultiple: false,
+                enabled: true,
+            },
+            {
+                id: "components",
+                internalKey: "Components",
+                defaultValue: getComponentDefaultValues(),
+                isRequired: false,
+                elementType: "SELECT",
+                options: getComponentOptions(),
+                isMultiple: true,
+                enabled: true,
+            },
+            {
+                id: "storyPoints",
+                internalKey: "Story Points",
+                defaultValue: "{{ ticket.storyPoints }}",
+                isRequired: false,
+                elementType: "NUMBER",
+                options: null,
+                isMultiple: false,
+                enabled: true,
+            },
+            {
+                id: "fixVersion",
+                internalKey: "Fix Version",
+                defaultValue: "{{ ticket.fixVersion }}",
+                isRequired: false,
+                elementType: "TEXT",
+                options: null,
+                isMultiple: false,
+                enabled: true,
+            },
+            {
+                id: "attachments",
+                internalKey: "Attachment",
+                defaultValue: null,
+                isRequired: false,
+                elementType: "ATTACHMENT",
+                options: null,
+                isMultiple: true,
+                enabled: true,
+            },
+            {
+                id: "description",
+                internalKey: "Description",
+                defaultValue: "{{ ticket.description|linebreaksbr }}",
+                isRequired: false,
+                elementType: "TEXTAREA",
+                options: null,
+                isMultiple: false,
+                enabled: true,
+            },
+            {
+                id: "assignee",
+                internalKey: "Assignee",
+                defaultValue: "{{ ticket.assignee.id }}",
+                isRequired: false,
+                elementType: "SELECT",
+                options: getUsersOptions(),
+                isMultiple: false,
+                enabled: true,
+            },
+        ]
+
+        window.onload = function (e) {
+            let editModal = $('#project-add-details');
+
+            for (const field of ticketEditFields) {
+
+                if (!field.enabled)
+                    continue;
+
+                let element = null;
+
+                if (field.elementType === "TEXT") {
+                    element = `<input class="form-control col" type="text" placeholder="${field.internalKey}" name="${field.id}" value="${field.defaultValue}" required="${field.isRequired}">`;
+                } else if (field.elementType === "NUMBER") {
+                    element = `<input class="form-control col" type="number" placeholder="${field.internalKey}" name="${field.id}" value="${field.defaultValue}">`;
+                }
+                 else if (field.elementType === "TEXTAREA") {
+                    element = `<textarea class="form-control col" rows="5" name="${field.id}" required="${field.isRequired}">${field.defaultValue.replaceAll("<br>", "\n")}</textarea>`;
+                } else if (field.elementType === "ATTACHMENT") {
+                    element = `
+                     <div class="file-drop-area border justify-content-center" style="width: 100%;">
+                        <span class="choose-file-button">Choose files</span>
+                        <span class="file-message">&nbsp;or drag and drop files here</span>
+                        <input class="file-input" name="${field.id}" type="file" multiple="${field.isMultiple}">
+                    </div>
+                     `;
+                }
+                else if (field.elementType === "SELECT") {
+
+                    let optionElements = '';
+                    if (field.options) {
+                        for (const option of field.options) {
+                            let iconPlaceHolder = option.icon ? `data-content="<img src='${option.icon}' width='20' height='20'>&nbsp; ${option.internalKey}"` : '';
+                            optionElements += `<option value="${option.id}" ${iconPlaceHolder}>${option.internalKey}</option>`;
+                        }
+                    }
+
+                    if (field.isMultiple)
+                        element = `<select id="${field.id}" name="${field.id}" data-show-content="true" class="form-control" data-live-search="true" multiple>${optionElements}</select>`;
+                    else
+                        element = `<select id="${field.id}" name="${field.id}" data-show-content="true" class="form-control" data-live-search="true">${optionElements}</select>`;
+
+
+                    $('#' + field.id).selectpicker({
+                        actionsBox: true,
+                        liveSearch: true,
+                        liveSearchNormalize: true,
+                        width: '100%',
+                        title: 'Issue type',
+                        showContent: false,
+                    });
+                }
+
+                editModal.append(
+                    `<dd class="col-sm-12">
+                        <label style="font-size: 85%; color: #6c757d;">${field.internalKey}</label><br>
+                            ${element}
+                    </dd>`
+                )
+
+                if (field.elementType === "SELECT") {
+                    if (!field.isMultiple)
+                        $('#' + field.id).attr('disabled', false)
+                    $('#' + field.id).selectpicker('refresh');
+                    $('#' + field.id).selectpicker('val', field.defaultValue);
+                }
+            }
+        }
+
 
         $('.select2bs4').select2({});
         let ticketLabels = $('#ticketLabels').select2({
@@ -1775,6 +1943,6 @@
         ReactDOM.render(<TicketViewComponent/>, document.getElementById('issue-content'));
     </script>
 
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+{#    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>#}
+{#    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>#}
 {% endblock %}
