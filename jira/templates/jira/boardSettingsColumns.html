@@ -295,6 +295,7 @@
                     method: 'POST',
                     headers: {
                         'Content-type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
                     },
                     body: JSON.stringify({
                         'function': 'CREATE_BOARD_COLUMN',
@@ -318,6 +319,7 @@
                     method: 'POST',
                     headers: {
                         'Content-type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
                     },
                     body: JSON.stringify({
                         'function': 'CREATE_COLUMN_STATUS',

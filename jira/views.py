@@ -1,3 +1,6 @@
+import operator
+from functools import reduce
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
@@ -260,10 +263,10 @@ def boards(request):
             # mandatory ColumnStatus for a board
             ColumnStatus.objects.bulk_create(
                 [
-                    ColumnStatus(internalKey="OPEN", board=newBoard, column=c1, category=ColumnStatus.Category.TODO, colour="#42526E"),
-                    ColumnStatus(internalKey="TO DO", board=newBoard, column=c2, category=ColumnStatus.Category.TODO, colour="#42526E"),
-                    ColumnStatus(internalKey="IN PROGRESS", board=newBoard, column=c3, category=ColumnStatus.Category.IN_PROGRESS, colour="#0052CC"),
-                    ColumnStatus(internalKey="DONE", board=newBoard, column=c4, setResolution=True, category=ColumnStatus.Category.DONE, colour="#00875A")
+                    ColumnStatus(internalKey="OPEN", board=newBoard, column=c1, category=ColumnStatus.Category.TODO, colour=ColumnStatus.Colour.TODO),
+                    ColumnStatus(internalKey="TO DO", board=newBoard, column=c2, category=ColumnStatus.Category.TODO, colour=ColumnStatus.Colour.TODO),
+                    ColumnStatus(internalKey="IN PROGRESS", board=newBoard, column=c3, category=ColumnStatus.Category.IN_PROGRESS, colour=ColumnStatus.Colour.IN_PROGRESS),
+                    ColumnStatus(internalKey="DONE", board=newBoard, column=c4, setResolution=True, category=ColumnStatus.Category.DONE, colour=ColumnStatus.Colour.DONE)
                 ]
             )
 
@@ -283,7 +286,7 @@ def boards(request):
                 f'Board with name {request.POST["boardName"]} already exists.'
             )
         return redirect('jira:boards-page')
-    
+
     context = {
         'boards': Board.objects.all().prefetch_related('projects', 'admins', 'members'),
         'profiles': Profile.objects.all().select_related('user'),
@@ -415,15 +418,38 @@ def projectSettings(request, url):
 def issuesListView(request):
     # 3 queries
     """
-    TODO: Display status values with CSS.
     TODO: Allow users to add dropdown manually.
     TODO: User pagination to improve query performance.
     """
+
+    qFilterSet = []
     filterDict = {}
     for key, value in request.GET.items():
-        filterDict[f'{key}__code__in'] = value.split(',')
+        """
+        e.g.
+        # (OR: ('project__internalKey__icontains', 'OneTutor'), ('project__internalKey__icontains', 'Dunder Mifflin'))
+        
+        querySet = (
+                (Q(project__internalKey__icontains="OneTutor") | Q(project__internalKey__icontains="Dunder Mifflin"))
+                &
+                (Q(columnStatus__internalKey__icontains="In Progress"))
+        )
+        """
 
-    allTickets = Ticket.objects.filter(**filterDict).select_related(
+        qFilterSet.append(
+            reduce(
+                operator.or_, [Q(**{f'{key}__internalKey__icontains': v}) for v in value.split(',')]
+            )
+        )
+        filterDict[f'{key}__internalKey__in'] = value.split(',')
+
+    try:
+        ticketQuerySet = Ticket.objects.filter(reduce(operator.and_, qFilterSet))
+    except TypeError:
+        # Ticket.objects.filter(**filterDict)
+        ticketQuerySet = Ticket.objects.filter(**{})
+
+    allTickets = ticketQuerySet.select_related(
         'resolution', 'issueType', 'assignee__profile', 'reporter__profile', 'priority', 'columnStatus'
     )
 

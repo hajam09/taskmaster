@@ -163,7 +163,8 @@
                 issueTypeListArray.push({
                     "id": "{{ t.id }}",
                     "code": "{{ t.code }}",
-                    "internalKey": "{{ t.internalKey }}"
+                    "internalKey": "{{ t.internalKey }}",
+                    "icon": "{{ t.icon }}"
                 });
             {% endfor %}
             localStorage.setItem("issueTypeList", JSON.stringify({object: issueTypeListArray}));
@@ -175,7 +176,9 @@
                     issueTypeListArray.push({
                         "id": "{{ t.id }}",
                         "code": "{{ t.code }}",
-                        "internalKey": "{{ t.internalKey }}"
+                        "internalKey": "{{ t.internalKey }}",
+                        "icon": "{{ t.icon }}"
+
                     });
                 {% endfor %}
 
@@ -206,7 +209,8 @@
                 priorityListArray.push({
                     "id": "{{ t.id }}",
                     "code": "{{ t.code }}",
-                    "internalKey": "{{ t.internalKey }}"
+                    "internalKey": "{{ t.internalKey }}",
+                    "icon": "{{ t.icon }}"
                 });
             {% endfor %}
             localStorage.setItem("priorityList", JSON.stringify({object: priorityListArray}));
@@ -218,7 +222,8 @@
                     priorityListArray.push({
                         "id": "{{ t.id }}",
                         "code": "{{ t.code }}",
-                        "internalKey": "{{ t.internalKey }}"
+                        "internalKey": "{{ t.internalKey }}",
+                        "icon": "{{ t.icon }}"
                     });
                 {% endfor %}
                 localStorage.setItem("priorityList", JSON.stringify({object: priorityListArray}));

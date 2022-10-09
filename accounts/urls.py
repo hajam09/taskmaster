@@ -32,4 +32,9 @@ urlpatterns += [
         UserProfilePictureApiEventVersion1Component.as_view(),
         name='userProfilePictureApiEventVersion1Component'
     ),
+    path(
+        'api/v1/componentByComponentGroupObjectApiEventVersion1Component/<slug:attribute>',
+        ComponentByComponentGroupObjectApiEventVersion1Component.as_view(),
+        name='componentByComponentGroupObjectApiEventVersion1Component'
+    ),
 ]

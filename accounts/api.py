@@ -7,8 +7,8 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.http import JsonResponse
 from django.views import View
-
-from accounts.models import Profile
+from django.db.models import Q
+from accounts.models import Profile, Component
 from taskmaster.operations import generalOperations
 
 
@@ -126,5 +126,29 @@ class UserProfilePictureApiEventVersion1Component(View):
 
         response = {
             "success": True
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class ComponentByComponentGroupObjectApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        attribute = self.kwargs.get("attribute")
+
+        querySet = Q(componentGroup__internalKey__icontains=attribute) | Q(componentGroup__code__icontains=attribute)
+
+        if attribute.isnumeric():
+            querySet = querySet | Q(componentGroup_id=attribute)
+
+        componentList = Component.objects.filter(querySet)
+
+        response = {
+            "success": True,
+            "data": {
+                "components": [
+                    component.serializeComponentVersion1()
+                    for component in componentList
+                ]
+            }
         }
         return JsonResponse(response, status=HTTPStatus.OK)

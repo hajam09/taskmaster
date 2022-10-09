@@ -169,6 +169,16 @@ urlpatterns += [
         name='projectObjectApiEventVersion1Component'
     ),
     path(
+        'api/v1/labelObjectApiEventVersion1Component/',
+        LabelObjectApiEventVersion1Component.as_view(),
+        name='labelObjectApiEventVersion1Component'
+    ),
+    path(
+        'api/v1/columnStatusObjectApiEventVersion1Component/',
+        ColumnStatusObjectApiEventVersion1Component.as_view(),
+        name='columnStatusObjectApiEventVersion1Component'
+    ),
+    path(
         'api/v1/boardObjectApiEventVersion1Component/<int:boardId>',
         BoardObjectApiEventVersion1Component.as_view(),
         name='boardObjectApiEventVersion1Component'

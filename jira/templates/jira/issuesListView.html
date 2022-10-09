@@ -2,9 +2,16 @@
 {% load static %}
 {% block content %}
 
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css"/>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
+
     <style type="text/css">
         body {
             color: black;
+            font-family: "Roboto", sans-serif;
         }
 
         .checkbox-menu li label {
@@ -41,7 +48,7 @@
         }
     </style>
 
-    <div class="container-fluid" style="margin: auto;overflow-x: hipen; color: black; max-width: 1800px;">
+    <div class="container-fluid" style="margin: auto; color: black; max-width: 1800px;">
         <br>
         <div class="row">
             <div class="col-12">
@@ -51,74 +58,7 @@
                     </div>
                 </div>
                 <br>
-                <div class="row">
-                    <div class="col-auto">
-                        <div class="dropdown">
-                            <button class="btn btn-default dropdown-toggle" type="button" id="projectsDropdown"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                Project:
-                            </button>
-                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
-                                id="projectLists">
-
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="dropdown">
-                            <button class="btn btn-default dropdown-toggle" type="button" id="projectsDropdown"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                Type:
-                            </button>
-                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
-                                id="issueTypeList">
-
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="dropdown">
-                            <button class="btn btn-default dropdown-toggle" type="button" id="projectsDropdown"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                Resolution:
-                            </button>
-                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
-                                id="resolutionList">
-
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="dropdown">
-                            <button class="btn btn-default dropdown-toggle" type="button" id="projectsDropdown"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                Priority:
-                            </button>
-                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
-                                id="priorityList">
-
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="dropdown">
-                            <button class="btn btn-default dropdown-toggle" type="button" id="projectsDropdown"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                Label:
-                            </button>
-                            <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="projectsDropdown"
-                                id="labelList">
-
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="dropdown">
-                            <input class="btn btn-primary" type="button" onclick="updateQuery();" value="Submit">
-                            <input class="btn btn-danger" type="button" onclick="clearAllQuery();" value="Clear all">
-                        </div>
-                    </div>
-                </div>
+                <div class="row" id="filterDropdowns"></div>
                 <br>
                 {% if tickets|length > 0 %}
                     <table id="ticketsTable" class="table table-sm table-borderless table-hover">
@@ -185,7 +125,9 @@
                                          loading="lazy"
                                          width="25" height="25">
                                 </td>
-                                <td>{{ t.status.internalKey }}</td>
+                                <td><span class="badge"
+                                          style="background-color: {{ t.status.colour }}; color: white;text-transform: uppercase;">{{ t.status.internalKey }}</span>
+                                </td>
                                 <td><i>{{ t.resolution.internalKey }}</i></td>
                                 <td>{{ t.created }}</td>
                                 <td>{{ t.modified }}</td>
@@ -204,65 +146,198 @@
 
     <script type="text/javascript">
 
+        const dropdownMapping = [
+            {
+                id: "project",
+                internalKey: "Project:",
+                isMultiple: true,
+                enabled: true,
+                url: "{% url 'jira:projectObjectApiEventVersion1Component' projectId=0 %}",
+                replyKey: "projects",
+                cssType: "IMAGE",
+            },
+            {
+                id: "issueType",
+                internalKey: "Type:",
+                isMultiple: true,
+                enabled: true,
+                url: "{% url 'accounts:componentByComponentGroupObjectApiEventVersion1Component' attribute='TICKET_ISSUE_TYPE' %}",
+                replyKey: "components",
+                cssType: "IMAGE",
+            },
+            {
+                id: "resolution",
+                internalKey: "Resolution:",
+                isMultiple: true,
+                enabled: true,
+                url: "{% url 'accounts:componentByComponentGroupObjectApiEventVersion1Component' attribute='TICKET_RESOLUTIONS' %}",
+                replyKey: "components",
+                cssType: "TEXT",
+            },
+            {
+                id: "priority",
+                internalKey: "Priority:",
+                isMultiple: true,
+                enabled: true,
+                url: "{% url 'accounts:componentByComponentGroupObjectApiEventVersion1Component' attribute='TICKET_PRIORITY' %}",
+                replyKey: "components",
+                cssType: "IMAGE",
+            },
+            {
+                id: "label",
+                internalKey: "Label:",
+                isMultiple: true,
+                enabled: true,
+                url: "{% url 'jira:labelObjectApiEventVersion1Component' %}",
+                replyKey: "labels",
+                cssType: "TEXT",
+            },
+            {
+                id: "componentList",
+                internalKey: "Component:",
+                isMultiple: true,
+                enabled: false,
+                url: null,
+                replyKey: "components",
+                cssType: "TEXT",
+            },
+            {
+                id: "columnStatus",
+                internalKey: "Status:",
+                isMultiple: true,
+                enabled: true,
+                url: "{% url 'jira:columnStatusObjectApiEventVersion1Component' %}",
+                replyKey: "status",
+                cssType: "BADGE",
+            },
+        ]
+
+        window.onload = function (e) {
+            let filterDropdownsContainer = $('#filterDropdowns');
+
+            for(const mapping of dropdownMapping) {
+                if (!mapping.enabled)
+                    continue;
+
+                filterDropdownsContainer.append(
+                    `<div class="col-auto">
+                        <select id=${mapping.id} data-live-search="true" multiple></select>
+                    </div>`
+                )
+
+                let dropdownSelectPicker = $("#"+mapping.id);
+
+                dropdownSelectPicker.selectpicker({
+                    actionsBox: true,
+                    liveSearch: true,
+                    liveSearchNormalize: true,
+                    width: 'fit',
+                    title: mapping.internalKey,
+                    showContent: false,
+                });
+
+                fetch(mapping.url, {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((response) => {
+                        if (response.success) {
+                            let optionList = response.data[mapping.replyKey];
+
+                            for (const option of optionList) {
+                                let optionElement = null;
+
+                                if (mapping.cssType === "IMAGE") {
+                                    optionElement = `<option value="${option.internalKey}" data-content="<img src='${option.icon}' width='20' height='20'>&nbsp; ${option.internalKey}">${option.internalKey}</option>`;
+                                } else if (mapping.cssType === "TEXT") {
+                                    optionElement = `<option value="${option.internalKey}">${option.internalKey}</option>`;
+                                } else if (mapping.cssType === "BADGE") {
+                                    optionElement = `<option value="${option.internalKey}" data-content="<span class='badge' style='background-color: ${option.colour}; color: white;text-transform: uppercase;'>${option.internalKey}</span>">${option.internalKey}</option>`;
+                                } else {
+
+                                }
+                                dropdownSelectPicker.append(
+                                    optionElement
+                                )
+                            }
+
+                            dropdownSelectPicker.selectpicker('refresh');
+
+                            // set the dropdown default values using the search query parameters.
+                            let parameterValues = getParameterByName(mapping.id);
+                            let parameterValuesList = parameterValues ? parameterValues.split(',') : [];
+                            dropdownSelectPicker.selectpicker('val', parameterValuesList);
+                        }
+                    })
+            }
+
+            filterDropdownsContainer.append(
+                `<div class="dropdown">
+                    <input class="btn btn-sm" type="button" style="background-color: #f5f6f8; color: black" value="Submit" onclick="updateQuery()">
+                    &nbsp;
+                    <input class="btn btn-sm" type="button" style="background-color: #0052cc; color: white;" value="Clear all" onclick="clearAllQuery();">
+                </div>`
+            )
+        }
+
+        function getNewUrl() {
+            // generate new path based on the dropdown selected values.
+            let currentPath = "{% url 'jira:issuesListView' %}";
+            let urlParameters = [];
+
+            for (const mapping of dropdownMapping) {
+                if (!mapping.enabled)
+                    continue;
+
+                let selectedOptions = $("#" + mapping.id).val();
+
+                if (selectedOptions.length > 0)
+                    urlParameters.push(mapping.id + "=" + selectedOptions.join(","))
+            }
+
+            if (urlParameters.length > 0)
+                currentPath = currentPath + "?" + urlParameters.join("&");
+
+            return currentPath;
+        }
+
+        function getCurrentUrl() {
+            let currentPath = "{% url 'jira:issuesListView' %}";
+            let urlParameters = [];
+
+            for (const mapping of dropdownMapping) {
+                if (!mapping.enabled)
+                    continue;
+
+                let parameterValues = getParameterByName(mapping.id);
+
+                if (!parameterValues)
+                    continue;
+
+                urlParameters.push(mapping.id + "=" + parameterValues)
+            }
+
+            if (urlParameters.length > 0)
+                currentPath += "?";
+
+            return currentPath + urlParameters.join("&");
+        }
+
+        function updateQuery() {
+            let newPath = getNewUrl();
+            let currentPath = "{% url 'jira:issuesListView' %}" + window.location.search;
+
+            if (newPath === currentPath)
+                return;
+
+            window.history.pushState("", "", newPath);
+            location.reload();
+        }
+
         function clearAllQuery() {
             let currentPath = "{% url 'jira:issuesListView' %}";
             window.history.pushState("", "", currentPath);
             location.reload();
         }
-
-        function updateQuery() {
-            const checkedProjects = $('.projects:checkbox:checked').map(function () {
-                return this.value;
-            }).get().join();
-
-            const checkedIssueTypes = $('.issueTypes:checkbox:checked').map(function () {
-                return this.value;
-            }).get().join();
-
-            const checkedResolution = $('.resolution:checkbox:checked').map(function () {
-                return this.value;
-            }).get().join();
-
-            const checkedPriorities = $('.priority:checkbox:checked').map(function () {
-                return this.value;
-            }).get().join();
-
-            const checkedLabels = $('.label:checkbox:checked').map(function () {
-                return this.value;
-            }).get().join();
-
-            let currentPath = "{% url 'jira:issuesListView' %}"
-            let urlParameters = [];
-
-            if (checkedProjects.length > 0)
-                urlParameters.push("project=" + checkedProjects);
-
-            if (checkedIssueTypes.length > 0)
-                urlParameters.push("issueType=" + checkedIssueTypes);
-
-            if (checkedResolution.length > 0)
-                urlParameters.push("resolution=" + checkedResolution);
-
-            if (checkedPriorities.length > 0)
-                urlParameters.push("priority=" + checkedPriorities);
-
-            if (checkedLabels.length > 0)
-                urlParameters.push("label=" + checkedLabels);
-
-            if (urlParameters.length > 0)
-                currentPath += "?";
-
-            window.history.pushState("", "", currentPath + urlParameters.join("&"));
-            location.reload();
-        }
-
-        $(".checkbox-menu").on("change", "input[type='checkbox']", function () {
-            $(this).closest("li").toggleClass("active", this.checked);
-        });
-
-        $(document).on('click', '.allow-focus', function (e) {
-            e.stopPropagation();
-        });
 
         function getParameterByName(name, url = window.location.href) {
             name = name.replace(/[\[\]]/g, '\\$&');
@@ -273,154 +348,18 @@
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
 
-        function updateCheckBox() {
-
-            let projectCodes = getParameterByName('project');
-            let issueTypeCodes = getParameterByName('issueType');
-            let resolutionCodes = getParameterByName('resolution');
-            let priorityCodes = getParameterByName('priority');
-            let labelCodes = getParameterByName('label');
-
-            projectCodes = projectCodes ? projectCodes.split(',') : [];
-            issueTypeCodes = issueTypeCodes ? issueTypeCodes.split(',') : [];
-            resolutionCodes = resolutionCodes ? resolutionCodes.split(',') : [];
-            priorityCodes = priorityCodes ? priorityCodes.split(',') : [];
-            labelCodes = labelCodes ? labelCodes.split(',') : [];
-
-            $('.projects:checkbox').map(function () {
-                if (projectCodes.includes(this.value))
-                    this.checked = "checked";
-            })
-
-            $('.issueTypes:checkbox').map(function () {
-                if (issueTypeCodes.includes(this.value))
-                    this.checked = "checked";
-            })
-
-            $('.resolution:checkbox').map(function () {
-                if (resolutionCodes.includes(this.value))
-                    this.checked = "checked";
-            })
-
-            $('.priority:checkbox').map(function () {
-                if (priorityCodes.includes(this.value))
-                    this.checked = "checked";
-            })
-
-            $('.label:checkbox').map(function () {
-                if (labelCodes.includes(this.value))
-                    this.checked = "checked";
-            })
-        }
-
-        function fillCheckBox() {
-
-            const projectList = localStorage.getItem("projectList");
-            const issueTypeList = localStorage.getItem("issueTypeList");
-            const resolutionList = localStorage.getItem("resolutionList");
-            const priorityList = localStorage.getItem("priorityList");
-            const labelList = localStorage.getItem("labelList");
-
-            if (projectList != null) {
-                const objects = JSON.parse(projectList).object;
-                for (const item of objects) {
-                    $("#projectLists").append(
-                        `
-                        <li>
-                            <label>
-                                <input class="projects" type="checkbox"
-                                       value="${item.code}"> ${item.internalKey}
-                            </label>
-                        </li>
-                        `
-                    );
-                }
-            }
-
-            if (issueTypeList != null) {
-                const objects = JSON.parse(issueTypeList).object;
-                for (const item of objects) {
-                    $("#issueTypeList").append(
-                        `
-                        <li>
-                            <label>
-                                <input class="issueTypes" type="checkbox"
-                                       value="${item.code}"> ${item.internalKey}
-                            </label>
-                        </li>
-                        `
-                    );
-                }
-            }
-
-            if (resolutionList != null) {
-                const objects = JSON.parse(resolutionList).object;
-                for (const item of objects) {
-                    $("#resolutionList").append(
-                        `
-                        <li>
-                            <label>
-                                <input class="resolution" type="checkbox"
-                                       value="${item.code}"> ${item.internalKey}
-                            </label>
-                        </li>
-                        `
-                    );
-                }
-            }
-
-            if (priorityList != null) {
-                const objects = JSON.parse(priorityList).object;
-                for (const item of objects) {
-                    $("#priorityList").append(
-                        `
-                        <li>
-                            <label>
-                                <input class="priority" type="checkbox"
-                                       value="${item.code}"> ${item.internalKey}
-                            </label>
-                        </li>
-                        `
-                    );
-                }
-            }
-
-            if (labelList != null) {
-                const objects = JSON.parse(labelList).object;
-                for (const item of objects) {
-                    $("#labelList").append(
-                        `
-                        <li>
-                            <label>
-                                <input class="label" type="checkbox"
-                                       value="${item.code}"> ${item.internalKey}
-                            </label>
-                        </li>
-                        `
-                    );
-                }
-            }
-        }
-
-
         $(function () {
-                fillCheckBox();
-                updateCheckBox();
+            $("#ticketsTable").DataTable({
+                "responsive": true,
+                "autoWidth": false,
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "info": false,
+                "pageLength": 18,
+            });
 
-                $("#ticketsTable").DataTable(
-                    {
-                        "responsive": true,
-                        "autoWidth": false,
-                        "paging": true,
-                        "searching": true,
-                        "ordering": true,
-                        "info": false,
-                        "pageLength": 18,
-                    }
-                );
-
-                $('#ticketsTable_length').remove();
-            }
-        );
+            $('#ticketsTable_length').remove();
+        });
     </script>
 {% endblock %}

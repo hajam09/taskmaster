@@ -2041,6 +2041,51 @@ class ProjectObjectApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
+class LabelObjectApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        labelId = None
+        labels = Label.objects.all() if labelId is None else Label.objects.filter(id=labelId)
+
+        response = {
+            "success": True,
+            "data": {
+                "labels": [
+                    label.serializeLabelVersion1()
+                    for label in labels
+                ]
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class ColumnStatusObjectApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        statusId = None
+        getUniqueOnly = True
+        statusList = ColumnStatus.objects.all() if statusId is None else ColumnStatus.objects.filter(id=statusId)
+
+        if getUniqueOnly:
+            uniqueStatus = []
+            for item in statusList:
+                if item.internalKey.casefold() not in [i.internalKey.casefold() for i in uniqueStatus]:
+                    uniqueStatus.append(item)
+
+            statusList = uniqueStatus
+
+        response = {
+            "success": True,
+            "data": {
+                "status": [
+                    status.serializeColumnStatusVersion1()
+                    for status in statusList
+                ]
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
 class BoardObjectApiEventVersion1Component(View):
 
     def get(self, *args, **kwargs):
