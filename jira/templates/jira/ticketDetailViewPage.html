@@ -56,32 +56,6 @@
                     <div class="modal-body">
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="project-add-details" role="tabpanel">
-
-                                <hr>
-                                <dl class="row">
-
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Components</label>
-                                        <select class="form-control select2bs4" multiple="multiple" name="components" id="ticket-components"
-                                                style="width: 100%">
-                                            {% for component in projectComponents %}
-                                                <option value="{{ component.id }}">{{ component.internalKey }}</option>
-                                            {% endfor %}
-
-                                        </select>
-                                    </dd>
-                                    <dd class="col-sm-12">
-                                        <label style="font-size: 85%; color: #6c757d;">Labels</label>
-                                        <select class="form-control ticketLabels" multiple="multiple" name="labels"
-                                                id="ticketLabels"
-                                                style="width: 100%">
-                                            {% for label in labels %}
-                                                <option value="{{ label.internalKey }}">{{ label.internalKey }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </dd>
-                                </dl>
-                                <hr>
                             </div>
                         </div>
                     </div>
@@ -130,7 +104,7 @@
             return items;
         }
 
-        function getComponentOptions(){
+        function getComponentOptions() {
             // TODO: Get this from cache or API.
             let items = [];
 
@@ -143,11 +117,40 @@
             return items;
         }
 
+        function getLabelsOptions() {
+            let items = [];
+
+            fetch("{% url 'jira:labelObjectApiEventVersion1Component' %}", {
+                method: 'GET',
+            }).then((response) => response.json())
+                .then((response) => {
+                    if (response.success) {
+                        for (const label of response.data.labels) {
+                            items.push({
+                                id: label.internalKey,
+                                internalKey: label.internalKey,
+                            })
+                        }
+                    }
+                })
+
+            return items;
+        }
+
         function getComponentDefaultValues() {
 
             let items = [];
             {% for component in ticket.components %}
                 items.push('{{ component.id }}')
+            {% endfor %}
+            return items;
+        }
+
+        function getLabelsDefaultValues() {
+
+            let items = [];
+            {% for label in ticket.labels %}
+                items.push('{{ label.internalKey }}')
             {% endfor %}
             return items;
         }
@@ -177,6 +180,7 @@
                 elementType: "TEXT",
                 options: null,
                 isMultiple: false,
+                enableSelectPicker: false,
                 enabled: true,
             },
             {
@@ -187,6 +191,7 @@
                 elementType: "SELECT",
                 options: getIssueTypeOptions(),
                 isMultiple: false,
+                enableSelectPicker: true,
                 enabled: true,
             },
             {
@@ -196,6 +201,7 @@
                 isRequired: true,
                 elementType: "SELECT",
                 options: getPriorityOptions(),
+                enableSelectPicker: true,
                 isMultiple: false,
                 enabled: true,
             },
@@ -206,6 +212,18 @@
                 isRequired: false,
                 elementType: "SELECT",
                 options: getComponentOptions(),
+                enableSelectPicker: false,
+                isMultiple: true,
+                enabled: true,
+            },
+            {
+                id: "labels",
+                internalKey: "Labels",
+                defaultValue: getLabelsDefaultValues(),
+                isRequired: false,
+                elementType: "SELECT",
+                options: getLabelsOptions(),
+                enableSelectPicker: false,
                 isMultiple: true,
                 enabled: true,
             },
@@ -216,6 +234,7 @@
                 isRequired: false,
                 elementType: "NUMBER",
                 options: null,
+                enableSelectPicker: false,
                 isMultiple: false,
                 enabled: true,
             },
@@ -226,6 +245,7 @@
                 isRequired: false,
                 elementType: "TEXT",
                 options: null,
+                enableSelectPicker: false,
                 isMultiple: false,
                 enabled: true,
             },
@@ -236,6 +256,7 @@
                 isRequired: false,
                 elementType: "ATTACHMENT",
                 options: null,
+                enableSelectPicker: false,
                 isMultiple: true,
                 enabled: true,
             },
@@ -246,6 +267,7 @@
                 isRequired: false,
                 elementType: "TEXTAREA",
                 options: null,
+                enableSelectPicker: false,
                 isMultiple: false,
                 enabled: true,
             },
@@ -256,6 +278,7 @@
                 isRequired: false,
                 elementType: "SELECT",
                 options: getUsersOptions(),
+                enableSelectPicker: true,
                 isMultiple: false,
                 enabled: true,
             },
@@ -298,19 +321,20 @@
                     }
 
                     if (field.isMultiple)
-                        element = `<select id="${field.id}" name="${field.id}" data-show-content="true" class="form-control" data-live-search="true" multiple>${optionElements}</select>`;
+                        element = `<select style="width: 100%;" id="${field.id}" name="${field.id}" data-show-content="true" class="form-control" data-live-search="true" multiple>${optionElements}</select>`;
                     else
-                        element = `<select id="${field.id}" name="${field.id}" data-show-content="true" class="form-control" data-live-search="true">${optionElements}</select>`;
+                        element = `<select style="width: 100%;" id="${field.id}" name="${field.id}" data-show-content="true" class="form-control" data-live-search="true">${optionElements}</select>`;
 
-
-                    $('#' + field.id).selectpicker({
-                        actionsBox: true,
-                        liveSearch: true,
-                        liveSearchNormalize: true,
-                        width: '100%',
-                        title: 'Issue type',
-                        showContent: false,
-                    });
+                    if (field.enableSelectPicker) {
+                        $('#' + field.id).selectpicker({
+                            actionsBox: true,
+                            liveSearch: true,
+                            liveSearchNormalize: true,
+                            width: '100%',
+                            title: 'Issue type',
+                            showContent: false,
+                        });
+                    }
                 }
 
                 editModal.append(
@@ -323,39 +347,31 @@
                 if (field.elementType === "SELECT") {
                     if (!field.isMultiple)
                         $('#' + field.id).attr('disabled', false)
-                    $('#' + field.id).selectpicker('refresh');
-                    $('#' + field.id).selectpicker('val', field.defaultValue);
+
+                    if (field.enableSelectPicker) {
+                        $('#' + field.id).selectpicker('refresh');
+                        $('#' + field.id).selectpicker('val', field.defaultValue);
+                    }
                 }
             }
+
+            $('#components').select2().val(getComponentDefaultValues()).trigger("change");
+
+            let ticketLabels = $('#labels').select2({
+                tags: true,
+            });
+
+            const labels = getLabelsDefaultValues();
+
+            labels.forEach(function (e) {
+                if (!ticketLabels.find('option:contains(' + e + ')').length)
+                    ticketLabels.append($('<option>').text(e));
+            });
+
+            ticketLabels.val(labels).trigger("change");
         }
 
-
-        $('.select2bs4').select2({});
-        let ticketLabels = $('#ticketLabels').select2({
-            tags: true,
-        });
-
-        const componentsLabel = [];
-        const labels = [];
-
-        {% for component in ticket.components %}
-            componentsLabel.push('{{ component.id }}')
-        {% endfor %}
-
-        {% for label in ticket.labels %}
-            labels.push('{{ label.internalKey }}')
-        {% endfor %}
-
-        labels.forEach(function (e) {
-            if (!ticketLabels.find('option:contains(' + e + ')').length)
-                ticketLabels.append($('<option>').text(e));
-        });
-
-        $('#ticket-components').select2().val(componentsLabel).trigger("change");
-
-        ticketLabels.val(labels).trigger("change");
     </script>
-
 
     <script type="text/babel">
 
