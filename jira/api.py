@@ -743,39 +743,19 @@ class SubTaskTicketObjectForTicketApiEventVersion1Component(View):
         ticket = Ticket()
         ticket.internalKey = parentTicket.project.code + "-" + str(newTicketNumber)
         ticket.summary = summary
-        ticket.resolution = Component.objects.get(componentGroup__code='TICKET_RESOLUTIONS', code="UNRESOLVED")
-        ticket.project = parentTicket.project
-        ticket.reporter = self.request.user
-        ticket.issueType = Component.objects.get(componentGroup__code='TICKET_ISSUE_TYPE', code="SUB_TASK")
-        ticket.priority = Component.objects.get(componentGroup__code='TICKET_PRIORITY', code="MEDIUM")
-        ticket.board = parentTicket.board
-        ticket.column = Column.objects.get(board=parentTicket.board, internalKey='TO DO')
+        ticket.resolution_id = next((i.id for i in cache.get('TICKET_RESOLUTIONS') if i.code == 'UNRESOLVED'))
+        ticket.project_id = parentTicket.project_id
+        ticket.reporter_id = self.request.user.id
+        ticket.issueType_id = next((i.id for i in cache.get('TICKET_ISSUE_TYPE') if i.code == 'SUB_TASK'))
+        ticket.priority_id = next((i.id for i in cache.get('TICKET_PRIORITY') if i.code == 'MEDIUM'))
+        ticket.columnStatus_id = parentTicket.columnStatus_id
         ticket.orderNo = newTicketNumber
         ticket.save()
 
-        # TODO: Update to the current sprint
         parentTicket.subTask.add(ticket)
-
-        data = {
-            'id': ticket.pk,
-            'internalKey': ticket.internalKey,
-            'summary': ticket.summary,
-            'url': ticket.getTicketUrl(),
-            'issueType': {
-                'id': ticket.issueType.pk,
-                'icon': ticket.issueType.icon,
-                'internalKey': ticket.issueType.internalKey
-            },
-            'priority': {
-                'id': ticket.priority.pk,
-                'icon': ticket.priority.icon,
-                'internalKey': ticket.priority.internalKey
-            }
-        }
 
         response = {
             'success': True,
-            'data': data
         }
         return JsonResponse(response, status=HTTPStatus.OK)
 

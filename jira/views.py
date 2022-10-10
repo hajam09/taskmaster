@@ -161,6 +161,7 @@ def ticketDetailView(request, internalKey):
     TODO: Fix the style for right divs.
     TODO: Optimise the post request.
     TODO: Allow users to change EPIC colour on the ticket page.
+    TODO: Show link to the board where the ticket resides.
     """
 
     try:
