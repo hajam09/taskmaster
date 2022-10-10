@@ -1323,10 +1323,13 @@
                         'ticketSummary': this.refs.summaryInput.value,
                         'issueType': this.refs.issueTypeInput.value,
                     })
-                }).then((response) => {
-                    this.props.fetchEpicTasks()
-                    this.props.switchCreateMode()
-                })
+                }).then((response) => response.json())
+                    .then((response) => {
+                        if (response.success) {
+                            this.props.fetchEpicTasks()
+                            this.props.switchCreateMode()
+                        }
+                    })
             }
 
             createSubTask = () => {
@@ -1360,6 +1363,7 @@
                                     <select id="issueType" data-show-content="true" className="form-control"
                                             ref="issueTypeInput">
                                         {this.state.issueTypes.map((type) => <option key={type.id}
+                                                                                     value={type.id}
                                                                                      defaultValue={type.code}> {type.internalKey}</option>)}
 {#                                       {% for ji in ticketIssueTypes %}#}
 {#                                            {% if ji.code == "STORY" %}#}
