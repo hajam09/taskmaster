@@ -295,7 +295,10 @@
                 let element = null;
 
                 if (field.elementType === "TEXT") {
-                    element = `<input class="form-control col" type="text" placeholder="${field.internalKey}" name="${field.id}" value="${field.defaultValue}" required="${field.isRequired}">`;
+                    if (field.isRequired)
+                        element = `<input class="form-control col" type="text" placeholder="${field.internalKey}" name="${field.id}" value="${field.defaultValue}" required=>`;
+                    else
+                        element = `<input class="form-control col" type="text" placeholder="${field.internalKey}" name="${field.id}" value="${field.defaultValue}"=>`;
                 } else if (field.elementType === "NUMBER") {
                     element = `<input class="form-control col" type="number" placeholder="${field.internalKey}" name="${field.id}" value="${field.defaultValue}">`;
                 }
@@ -690,7 +693,7 @@
                                               {
                                                   this.props.ticket.components.map((component, i) =>
                                                       <a key={i} title="core Jenkins core"
-                                                         href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.code + "&component=" + component.code}>
+                                                         href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.internalKey + "&component=" + component.internalKey}>
                                                           {component.internalKey}&nbsp;&nbsp;
                                                       </a>
                                                   )
@@ -717,7 +720,7 @@
                                         // TODO: ticket filtering based on label is not Implemented.
                                         this.props.ticket.labels.map((label, i) =>
                                             <div className="labels-wrap value" key={i}>
-                                                <a href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.code + "&label=" + label.code}
+                                                <a href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.internalKey + "&label=" + label.internalKey}
                                                    className="aui-lozenge"
                                                    style={style2}
                                                    title={label.internalKey}>

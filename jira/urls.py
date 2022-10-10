@@ -29,11 +29,6 @@ urlpatterns += [
         name='boardSettingsViewGeneralDetailsApiEventVersion1Component'
     ),
     path(
-        'api/v1/boardSettingsViewBoardColumnsApiEventVersion1Component/<slug:url>',
-        BoardSettingsViewBoardColumnsApiEventVersion1Component.as_view(),
-        name='boardSettingsViewBoardColumnsApiEventVersion1Component'
-    ),
-    path(
         'api/v1/boardColumnsBulkOrderChangeApiEventVersion1Component/<slug:url>',
         BoardColumnsBulkOrderChangeApiEventVersion1Component.as_view(),
         name='boardColumnsBulkOrderChangeApiEventVersion1Component'

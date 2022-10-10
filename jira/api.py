@@ -61,161 +61,6 @@ class BoardSettingsViewGeneralDetailsApiEventVersion1Component(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class BoardSettingsViewBoardColumnsApiEventVersion1Component(View):
-
-    def get(self, *args, **kwargs):
-        # NOT_IN_USE
-        url = self.kwargs.get("url", None)
-
-        try:
-            board = Board.objects.get(url=url)
-        except Board.DoesNotExist:
-            response = {
-                "success": False,
-                "message": "Could not find a board with url/id: {}".format(url)
-            }
-            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-
-        def canDeleteOrEdit(columnName):
-            return columnName not in ["BACKLOG", "TO DO", "IN PROGRESS", "DONE"]
-
-        response = {
-            "success": True,
-            "data": {
-                "columns": [
-                    {
-                        "id": column.id,
-                        "internalKey": column.internalKey,
-                        "canDelete": canDeleteOrEdit(column.internalKey),
-                        "canEdit": canDeleteOrEdit(column.internalKey),
-                    }
-                    for column in board.boardColumns.all()
-                ]
-            }
-        }
-        return JsonResponse(response, status=HTTPStatus.OK)
-
-    def post(self, *args, **kwargs):
-        # MANUAL_TESTED
-        url = self.kwargs.get("url", None)
-
-        try:
-            board = Board.objects.get(url=url)
-        except Board.DoesNotExist:
-            response = {
-                "success": False,
-                "message": "Could not find a board with url/id: {}".format(url)
-            }
-            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-
-        newColumnName = self.request.POST.get("column-name", None)
-
-        if newColumnName is not None:
-            boardColumns = board.boardColumns.all()
-
-            existingColumn = [i for i in boardColumns if i.internalKey.lower() == newColumnName.lower()]
-            if len(existingColumn) == 0:
-                newColumn = Column.objects.create(
-                    board=board,
-                    internalKey=newColumnName,
-                    orderNo=board.boardColumns.count() + 1
-                )
-                response = {
-                    "success": True,
-                    "data": {
-                        "id": newColumn.id,
-                        "internalKey": newColumn.internalKey,
-                        "orderNo": newColumn.orderNo
-                    }
-                }
-                return JsonResponse(response, status=HTTPStatus.OK)
-        return JsonResponse({}, status=HTTPStatus.ACCEPTED)
-
-    def put(self, *args, **kwargs):
-        # MANUAL_TESTED
-        url = self.kwargs.get("url", None)
-        put = QueryDict(self.request.body)
-
-        try:
-            board = Board.objects.get(url=url)
-        except Board.DoesNotExist:
-            response = {
-                "success": False,
-                "message": "Could not find a board with url/id: {}".format(url)
-            }
-            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-
-        columnId = put.get("column-id", None)
-        column = databaseOperations.getObjectByIdOrNone(board.boardColumns.all(), columnId)
-        if column is None:
-            response = {
-                "success": False,
-                "message": "Could not update the column name."
-            }
-            return JsonResponse(response, status=HTTPStatus.BAD_REQUEST)
-
-        def canDeleteOrEdit(columnName):
-            return columnName not in ["BACKLOG", "TO DO", "IN PROGRESS", "DONE"]
-
-        if not canDeleteOrEdit(column.internalKey):
-            response = {
-                "success": False,
-                "message": "Sorry, you cannot change this column name."
-            }
-            return JsonResponse(response)
-
-        columnName = put.get("column-name", column.internalKey)
-        column.internalKey = columnName
-        column.save(update_fields=["internalKey"])
-
-        response = {
-            "success": True
-        }
-        return JsonResponse(response, status=HTTPStatus.OK)
-
-    def delete(self, *args, **kwargs):
-        # MANUAL_TESTED
-        url = self.kwargs.get("url", None)
-
-        try:
-            Board.objects.get(url=url)
-        except Board.DoesNotExist:
-            response = {
-                "success": False,
-                "message": "Could not find a board with url/id: {}".format(url)
-            }
-            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
-
-        put = QueryDict(self.request.body)
-        columnId = put.get("column-id", None)
-        column = Column.objects.filter(id=columnId).first()
-
-        def canDeleteOrEdit(columnName):
-            return columnName not in ["BACKLOG", "TO DO", "IN PROGRESS", "DONE"]
-
-        if not canDeleteOrEdit(column.internalKey):
-            response = {
-                "success": False,
-                "message": "Sorry, you cannot delete this column."
-            }
-            return JsonResponse(response)
-
-        if column is not None and column.columnTickets.count() > 0:
-            response = {
-                "success": False,
-                "message": "There's still some tickets in this column."
-            }
-            return JsonResponse(response)
-
-        column.delete()
-
-        response = {
-            "success": True
-        }
-        return JsonResponse(response, status=HTTPStatus.OK)
-
-
-@method_decorator(csrf_exempt, name='dispatch')
 class TicketBulkOrderChangeApiEventVersion1Component(View):
 
     def put(self, *args, **kwargs):
@@ -1684,7 +1529,7 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
 
         if function == "CREATE_BOARD_COLUMN" and name != "":
             boardColumns = board.boardColumns.all()
-            existingColumn = [i for i in boardColumns if compare(i.internalKey.lower(), name.lower())]
+            existingColumn = [i for i in boardColumns if i.internalKey.casefold() == name.casefold()]
 
             if len(existingColumn) == 0:
                 Column.objects.create(
@@ -1696,7 +1541,7 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
                 )
         elif function == "CREATE_COLUMN_STATUS" and name != "":
             boardColumnStatus = board.boardColumnStatus.all()
-            existingColumnStatus = [i for i in boardColumnStatus if compare(i.internalKey.lower(), name.lower())]
+            existingColumnStatus = [i for i in boardColumnStatus if i.internalKey.casefold() == name.casefold()]
 
             if len(existingColumnStatus) == 0:
                 newColumnStatus = ColumnStatus(
@@ -1708,7 +1553,7 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
 
                 # if the status name matches with any of the column name, then add it to that column.
                 boardColumns = board.boardColumns.all()
-                existingColumn = [i for i in boardColumns if compare(i.internalKey.lower(), name.lower())]
+                existingColumn = [i for i in boardColumns if i.internalKey.casefold() == name.casefold()]
 
                 if len(existingColumn) != 0:
                     newColumnStatus.column = existingColumn[0]

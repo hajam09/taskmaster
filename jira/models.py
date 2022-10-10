@@ -44,7 +44,7 @@ class Project(BaseModel):
         return self.internalKey
 
     def getUrl(self):
-        return reverse('jira:issuesListView') + f'?project={self.code}'
+        return reverse('jira:issuesListView') + f'?project={self.internalKey}'
 
     def serializeProjectVersion1(self):
         return {

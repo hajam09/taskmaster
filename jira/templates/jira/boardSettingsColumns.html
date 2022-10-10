@@ -189,6 +189,7 @@
                             method: 'DELETE',
                             headers: {
                                 'Content-type': 'application/json',
+                                'X-CSRFToken': getCookie("csrftoken")
                             },
                             body: JSON.stringify({
                                 'function': 'DELETE_COLUMN',
@@ -362,32 +363,29 @@
                             checkedBoxes.push(statusIds[i]);
                     }
 
-                    boardUpdate.push(
-                        {
-                            columnId: item,
-                            statusIds: statusIds
-                        }
-                    );
+                    boardUpdate.push({
+                        columnId: item,
+                        statusIds: statusIds
+                    });
                 }
 
-                $.ajax(
-                    {
-                        url: "{% url 'jira:agileBoardColumnOperationApiEventVersion1Component' boardId=board.id%}",
-                        data: {
-                            columnAndStatus: JSON.stringify(boardUpdate),
-                            checkedBoxes: checkedBoxes,
-                        },
-                        headers: {
-                            "X-CSRFToken": getCookie("csrftoken")
-                        },
-                        type: 'PUT',
-                        dataType: 'json',
-                        success: function (response) {
-                            if (response.success) {
-                                //window.location.reload();
-                            }
+                $.ajax({
+                    url: "{% url 'jira:agileBoardColumnOperationApiEventVersion1Component' boardId=board.id%}",
+                    data: {
+                        columnAndStatus: JSON.stringify(boardUpdate),
+                        checkedBoxes: checkedBoxes,
+                    },
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    type: 'PUT',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            //window.location.reload();
                         }
-                    });
+                    }
+                });
             }
 
             render() {
@@ -401,10 +399,6 @@
                 }
                 const style3 = {
                     marginRight: "40px",
-                }
-
-                const style4 = {
-                    maxWidth: "300px",
                 }
 
                 const style5 = {
