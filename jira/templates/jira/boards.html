@@ -333,10 +333,11 @@
                                 <td>
                                     {% if b.isPrivate %}
                                         <span class="badge"
-                                              style="color: #403294;background-color: #eae6ff">All Users</span>
+                                              style="color: #bf2600;background-color: #ffebe6">Restricted</span>
+
                                     {% else %}
                                         <span class="badge"
-                                              style="color: #bf2600;background-color: #ffebe6">Restricted</span>
+                                              style="color: #403294;background-color: #eae6ff">All Users</span>
                                     {% endif %}
                                 </td>
                                 {% if b.projects.count == 1 %}

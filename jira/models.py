@@ -32,6 +32,7 @@ class Project(BaseModel):
     icon = models.ImageField(upload_to='project-icons/', default=getRandomProjectIcon)
     isPrivate = models.BooleanField(default=False)
     # TODO: Consider status and resolution foreign key.
+    # TODO: remove components and PROJECT_COMPONENTS.
 
     class Meta:
         verbose_name = "Project"
@@ -54,6 +55,50 @@ class Project(BaseModel):
             "icon": self.icon.url,
             "link": self.getUrl(),
         }
+
+
+class ProjectComponent(BaseModel):
+    class Status(models.TextChoices):
+        ACTIVE = 'ACTIVE', _('Active')
+        ARCHIVED = 'ARCHIVED', _('Archived')
+        DRAFT = 'DRAFT', _('Draft')
+        IN_ACTIVE = 'IN_ACTIVE', _('In Active')
+
+    internalKey = models.CharField(max_length=2048, blank=True, null=True, unique=True)
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, null=True, related_name='projectComponents')
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE)
+    lead = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name='projectComponentLead')
+    description = models.TextField()
+
+    class Meta:
+        verbose_name = "ProjectComponent"
+        verbose_name_plural = "ProjectComponents"
+        index_together = [
+            ("internalKey", "project"),
+        ]
+
+    def getBadgeColour(self):
+        if self.Status.ACTIVE == self.status:
+            return "#deebff"
+        elif self.Status.ARCHIVED == self.status:
+            return "#dfe1e6"
+        elif self.Status.DRAFT == self.status:
+            return "#fff0b3"
+        elif self.Status.IN_ACTIVE == self.status:
+            return "#ffebe6"
+
+    def getFontColour(self):
+        if self.Status.ACTIVE == self.status:
+            return "#0747a6"
+        elif self.Status.ARCHIVED == self.status:
+            return "#42526e"
+        elif self.Status.DRAFT == self.status:
+            return "#172b4d"
+        elif self.Status.IN_ACTIVE == self.status:
+            return "#bf2600"
+
+    def __str__(self):
+        return self.internalKey
 
 
 class Board(BaseModel):
@@ -197,6 +242,7 @@ class Ticket(BaseModel):
     reporter = models.ForeignKey(User, on_delete=models.PROTECT, related_name="ticketReporter")
     subTask = models.ManyToManyField('Ticket', blank=True, related_name='ticketSubTask')
     component = models.ManyToManyField(Component, blank=True, related_name="ticketComponents", limit_choices_to={'componentGroup__code': 'PROJECT_COMPONENTS'})
+    projectComponent = models.ManyToManyField(ProjectComponent, blank=True, related_name="ticketProjectComponent")
     resolution = models.ForeignKey(Component, on_delete=models.SET_NULL, null=True, related_name="ticketResolutions" , limit_choices_to={'componentGroup__code': 'TICKET_RESOLUTIONS'})
     issueType = models.ForeignKey(Component, on_delete=models.PROTECT, related_name='ticketIssueType', limit_choices_to={'componentGroup__code': 'TICKET_ISSUE_TYPE'})
     priority = models.ForeignKey(Component, on_delete=models.PROTECT, related_name='ticketPriority', limit_choices_to={'componentGroup__code': 'TICKET_PRIORITY'})

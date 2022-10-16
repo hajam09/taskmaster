@@ -234,7 +234,6 @@ class TeamsViewApiEventVersion1Component(View):
 
 
 class TeamsObjectApiEventVersion1Component(View):
-    # TeamsObjectApiEventVersion1ComponentTest
 
     def delete(self, *args, **kwargs):
         # MANUAL_TESTED
@@ -567,11 +566,11 @@ class SubTaskTicketObjectForTicketApiEventVersion1Component(View):
         ticket = Ticket()
         ticket.internalKey = parentTicket.project.code + "-" + str(newTicketNumber)
         ticket.summary = summary
-        ticket.resolution_id = next((i.id for i in cache.get('TICKET_RESOLUTIONS') if i.code == 'UNRESOLVED'))
+        ticket.resolution_id = databaseOperations.getObjectByCode(cache.get('TICKET_RESOLUTIONS'), 'UNRESOLVED').id
         ticket.project_id = parentTicket.project_id
         ticket.reporter_id = self.request.user.id
-        ticket.issueType_id = next((i.id for i in cache.get('TICKET_ISSUE_TYPE') if i.code == 'SUB_TASK'))
-        ticket.priority_id = next((i.id for i in cache.get('TICKET_PRIORITY') if i.code == 'MEDIUM'))
+        ticket.issueType_id = databaseOperations.getObjectByCode(cache.get('TICKET_ISSUE_TYPE'), 'SUB_TASK').id
+        ticket.priority_id = databaseOperations.getObjectByCode(cache.get('TICKET_PRIORITY'), 'MEDIUM').id
         ticket.columnStatus_id = parentTicket.columnStatus_id
         ticket.orderNo = newTicketNumber
         ticket.save()
@@ -1662,11 +1661,26 @@ class SprintObjectApiEventVersion1Component(View):
         recentSprint = board.boardSprints.last()
         sprintCount = 1 if recentSprint is None else board.boardSprints.count() + 1
 
-        Sprint.objects.create(
+        newSprint = Sprint.objects.create(
             board=board,
             internalKey=f'{board.internalKey} Sprint {sprintCount}',
             orderNo=sprintCount,
         )
+        backlogTickets = Ticket.objects.filter(
+            columnStatus__internalKey='OPEN',
+            columnStatus__board_id=boardId,
+            columnStatus__category=ColumnStatus.Category.TODO,
+        )
+
+        todoCs = ColumnStatus.objects.get(internalKey="TO DO", board_id=boardId, category=ColumnStatus.Category.TODO)
+        ticketIds = []
+        for i in backlogTickets:
+            ticketIds.append(i.id)
+            i.columnStatus = todoCs
+
+        Ticket.objects.bulk_update(backlogTickets, ['columnStatus'])
+        newSprint.addTicketsToSprint(ticketIds)
+
         response = {
             "success": True,
         }
@@ -1696,7 +1710,6 @@ class SprintObjectApiEventVersion1Component(View):
             return JsonResponse(response, status=HTTPStatus.OK)
 
         if function == 'COMPLETE_SPRINT':
-            # TODO: OPTIMISE THIS!!!
             """
                 get all the tickets which are not in DONE. move them to next sprint if available else create one.
                 set the current sprint to complete.
@@ -1713,13 +1726,13 @@ class SprintObjectApiEventVersion1Component(View):
                     orderNo=sprintCount,
                 )
 
-            currentSprint = databaseOperations.getObjectByIdOrNone(openSprints, sprintId)
+            currentSprint = databaseOperations.getObjectById(openSprints, sprintId)
+            onGoingResolutions = ["UNRESOLVED", "INCOMPLETE", "POSTPONED", "REOPENED"]
 
-            unDoneTicketIds = [
-                ticket.id
-                for ticket in currentSprint.tickets.all()
-                if (ticket.resolution.code in ["UNRESOLVED", "REOPENED"] or ticket.columnStatus.category != ColumnStatus.Category.DONE) and ticket.issueType.code != "EPIC"
-            ]
+            unDoneTicketIds = currentSprint.tickets.filter(
+                Q(resolution__code__in=onGoingResolutions),
+                ~Q(issueType__code="EPIC") | ~Q(columnStatus__category=ColumnStatus.Category.DONE)
+            ).values_list('id', flat=True)
 
             currentSprint.removeTicketsFromSprint(unDoneTicketIds)
             currentSprint.isComplete = True
@@ -1727,13 +1740,20 @@ class SprintObjectApiEventVersion1Component(View):
             nextSprint.addTicketsToSprint(unDoneTicketIds)
 
         elif function == 'DELETE_SPRINT':
-            # TODO: Bug: when sprint is deleted the remaining tickets are not showing up in the backlog
             sprint = Sprint.objects.get(id=sprintId, board__id=boardId, isComplete=False)
             sprintTicketsId = sprint.tickets.values_list('id', flat=True)
             sprint.removeTicketsFromSprint(sprintTicketsId)
             sprint.delete()
-            backLogColumn = databaseOperations.getObjectByInternalKey(board.boardColumns.all(), 'BACKLOG')
-            Ticket.objects.filter(id__in=list(sprintTicketsId)).update(board_id=boardId, column_id=backLogColumn.id)
+            columnStatus = ColumnStatus.objects.get(
+                board_id=boardId,
+                column__internalKey='BACKLOG',
+                category=ColumnStatus.Category.TODO
+            )
+            Ticket.objects.filter(id__in=list(sprintTicketsId)).update(columnStatus=columnStatus)
+
+        elif function == 'START_SPRINT':
+            # TODO: Implement
+            pass
 
         response = {
             "success": True,
@@ -2012,6 +2032,7 @@ class TicketObjectBulkCreateApiEventVersion1Component(View):
 
 
 def serializeTickets(tickets, data, skipOldCompletedTickets=True):
+    # TODO: Remove column from the data.
     newData = [
         {
             "id": ticket.id,

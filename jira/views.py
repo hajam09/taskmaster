@@ -12,7 +12,7 @@ from django.shortcuts import render, redirect
 
 from accounts.models import Profile, Component, Team
 from jira.forms import ProjectSettingsForm, TeamForm
-from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label, ColumnStatus, Sprint
+from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label, ColumnStatus, Sprint, ProjectComponent
 from taskmaster.operations import emailOperations, generalOperations
 
 generalOperations.setCaches()
@@ -158,7 +158,6 @@ def ticketDetailView(request, internalKey):
     """
     TODO: remove unused css on the ticket css files
     TODO: Fix linked issue component.
-    TODO: Fix the style for right divs.
     TODO: Allow users to change EPIC colour on the ticket page.
     TODO: Show link to the board where the ticket resides.
     """
@@ -413,6 +412,61 @@ def projectSettings(request, url):
         'component': project.components.values_list('internalKey', flat=True)
     }
     return render(request, 'jira/projectSettings.html', context)
+
+
+def projectComponents(request, url):
+    try:
+        project = Project.objects.get(url=url)
+    except Project.DoesNotExist:
+        raise Http404
+
+    if request.method == "POST":
+        if "addProjectComponent" in request.POST:
+            keyAlreadyExists = ProjectComponent.objects.filter(internalKey__iexact=request.POST['internalKey']).exists()
+            if not keyAlreadyExists:
+                ProjectComponent.objects.create(
+                    internalKey=request.POST['internalKey'],
+                    project_id=project.id,
+                    lead_id=request.user.id,
+                    description=request.POST['description'],
+                )
+
+        elif "editProjectComponent" in request.POST:
+            ProjectComponent.objects.filter(internalKey__iexact=request.POST['internalKey']).update(
+                description=request.POST['description']
+            )
+
+        elif "archiveProjectComponent" in request.POST:
+            ProjectComponent.objects.filter(id=request.POST['archiveProjectComponentId']).update(
+                status=ProjectComponent.Status.ARCHIVED
+            )
+
+        elif "deleteProjectComponent" in request.POST:
+            ProjectComponent.objects.filter(id=request.POST['deleteProjectComponentId']).delete()
+        return redirect('jira:project-components', url=url)
+
+    componentsList = ProjectComponent.objects.filter(project__url=url).select_related('lead__profile').prefetch_related(
+        'ticketProjectComponent'
+    )
+    componentsData = [
+        {
+            'id': i.id,
+            'internalKey': i.internalKey,
+            'description': i.description,
+            'issues': i.ticketProjectComponent.count(),
+            'lead': generalOperations.serializeUserVersion2(i.lead),
+            'status': {
+                'internalKey': i.status,
+                'fontColour': i.getFontColour(),
+                'badgeColour': i.getBadgeColour()
+            }
+        } for i in componentsList
+    ]
+
+    context = {
+        'projectComponents': componentsData
+    }
+    return render(request, 'jira/projectComponents.html', context)
 
 
 def issuesListView(request):

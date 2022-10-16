@@ -18,9 +18,13 @@ def getObjectByIdOrNone(A, k):
     return None
 
 
+def getObjectById(A, k):
+    return next((o for o in A if int(o.id) == int(k)))
+
+
 def getObjectByInternalKey(A, k):
-    return next((o for o in A if o.internalKey == k), None)
+    return next((o for o in A if o.internalKey == k))
 
 
 def getObjectByCode(A, k):
-    return next((o for o in A if o.code == k), None)
+    return next((o for o in A if o.code == k))

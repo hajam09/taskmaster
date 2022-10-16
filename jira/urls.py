@@ -12,6 +12,7 @@ urlpatterns = [
     path('ticket/<slug:internalKey>/', views.ticketDetailView, name='ticket-detail-view'),
     path('projects/', views.projects, name='projects-page'),
     path('projects/<slug:url>/settings', views.projectSettings, name='project-settings'),
+    path('projects/<slug:url>/components', views.projectComponents, name='project-components'),
     path('boards/', views.boards, name='boards-page'),
     path('boards/<slug:url>/', views.board, name='board-page'),
     path('boards/<slug:url>/settings/', views.boardSettings, name='board-settings'),

@@ -1,7 +1,5 @@
-import os
 from http import HTTPStatus
 
-from django.conf import settings
 from django.contrib import auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
