@@ -47,6 +47,15 @@
             return cookieValue;
         }
 
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            let regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
         class StatusComponent extends React.Component {
             constructor(props) {
                 super(props);
@@ -233,7 +242,12 @@
             }
 
             fetchProjectComponents = () => {
-                fetch('{% url 'jira:projectComponentObjectApiEventVersion1Component' %}?project__id={{ project.id }}', {
+                let searchQuery = getParameterByName('internalKey');
+                let url = '{% url 'jira:projectComponentObjectApiEventVersion1Component' %}?project__id={{ project.id }}';
+                if (searchQuery !== null)
+                    url += '&internalKey__icontains='+searchQuery;
+
+                fetch(url, {
                     method: 'GET',
                 }).then((response) => response.json())
                     .then((json) => {
@@ -244,6 +258,7 @@
             }
 
             componentDidMount = () => {
+                this.refs.searchInput.value = getParameterByName('internalKey');
                 this.fetchProjectComponents();
             }
 
@@ -305,6 +320,17 @@
                         </tbody>
                     </table>
                 )
+            }
+
+            updateSearchQuery = () => {
+                let search = this.refs.searchInput.value.trim();
+                let basePath = "{% url 'jira:project-components' url=project.url %}";
+
+                if (search)
+                    basePath += "?internalKey=" + search;
+
+                window.history.pushState("", "", basePath);
+                this.fetchProjectComponents();
             }
 
             render() {
@@ -374,6 +400,15 @@
                               </span>
                             </h1>
                           </div>
+                            <br></br>
+                            <div className="row">
+                                <div className="col-2">
+                                    <input className="form-control" type="text" placeholder="Search" ref="searchInput"></input>
+                                </div>
+                                <div className="col-10">
+                                    <button type="button" className="btn btn-primary" onClick={this.updateSearchQuery}><i className="fa fa-search"></i></button>
+                                </div>
+                            </div>
                         </div>
 
                         <div id="ghx-content-main" className="ghx-content-main">
