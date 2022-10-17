@@ -68,7 +68,7 @@ class ProjectComponent(BaseModel):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, null=True, related_name='projectComponents')
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE)
     lead = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name='projectComponentLead')
-    description = models.TextField()
+    description = models.CharField(max_length=2048, blank=True, null=True)
 
     class Meta:
         verbose_name = "ProjectComponent"

@@ -25,6 +25,11 @@ urlpatterns = [
 # api
 urlpatterns += [
     path(
+        'api/v1/projectComponentObjectApiEventVersion1Component/',
+        ProjectComponentObjectApiEventVersion1Component.as_view(),
+        name='projectComponentObjectApiEventVersion1Component'
+    ),
+    path(
         'api/v1/boardSettingsViewGeneralDetailsApiEventVersion1Component/<slug:url>',
         BoardSettingsViewGeneralDetailsApiEventVersion1Component.as_view(),
         name='boardSettingsViewGeneralDetailsApiEventVersion1Component'

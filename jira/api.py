@@ -13,9 +13,8 @@ from django.http import QueryDict, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-
 from accounts.models import Team, Component, TeamChatMessage, Profile
-from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment, TicketAttachment, ColumnStatus
+from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment, TicketAttachment, ColumnStatus, ProjectComponent
 from taskmaster.operations import databaseOperations, generalOperations
 
 
@@ -23,6 +22,69 @@ def compare(s1, s2):
     remove = string.punctuation + string.whitespace
     mapping = {ord(c): None for c in remove}
     return s1.translate(mapping) == s2.translate(mapping)
+
+
+class ProjectComponentObjectApiEventVersion1Component(View):
+
+    def get(self, *args, **kwargs):
+        componentsList = ProjectComponent.objects.filter(
+            **self.request.GET.dict()
+        ).select_related('lead__profile').prefetch_related('ticketProjectComponent')
+
+        componentsData = [
+            {
+                'id': i.id,
+                'internalKey': i.internalKey,
+                'description': i.description,
+                'issues': i.ticketProjectComponent.count(),
+                'lead': generalOperations.serializeUserVersion2(i.lead),
+                'status': {
+                    'internalKey': i.status,
+                    'fontColour': i.getFontColour(),
+                    'badgeColour': i.getBadgeColour()
+                }
+            } for i in componentsList
+        ]
+
+        response = {
+            "success": True,
+            "data": {
+                "components": componentsData
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def post(self, *args, **kwargs):
+        body = json.loads(self.request.body.decode())
+        keyAlreadyExists = ProjectComponent.objects.filter(internalKey__iexact=body['internalKey']).exists()
+        response = {}
+
+        if not keyAlreadyExists:
+            ProjectComponent.objects.create(**body)
+            response["success"] = True
+        else:
+            response["success"] = False
+            response["message"] = "Component with this name already exists."
+
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def put(self, *args, **kwargs):
+        put = json.loads(self.request.body)
+        ProjectComponent.objects.filter(**put['filter']).update(**put['update'])
+
+        response = {
+            "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def delete(self, *args, **kwargs):
+        put = json.loads(self.request.body)
+        ProjectComponent.objects.filter(**put['filter']).delete()
+
+        response = {
+            "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
 
 
 class BoardSettingsViewGeneralDetailsApiEventVersion1Component(View):

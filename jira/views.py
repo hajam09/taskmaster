@@ -420,51 +420,8 @@ def projectComponents(request, url):
     except Project.DoesNotExist:
         raise Http404
 
-    if request.method == "POST":
-        if "addProjectComponent" in request.POST:
-            keyAlreadyExists = ProjectComponent.objects.filter(internalKey__iexact=request.POST['internalKey']).exists()
-            if not keyAlreadyExists:
-                ProjectComponent.objects.create(
-                    internalKey=request.POST['internalKey'],
-                    project_id=project.id,
-                    lead_id=request.user.id,
-                    description=request.POST['description'],
-                )
-
-        elif "editProjectComponent" in request.POST:
-            ProjectComponent.objects.filter(internalKey__iexact=request.POST['internalKey']).update(
-                description=request.POST['description']
-            )
-
-        elif "archiveProjectComponent" in request.POST:
-            ProjectComponent.objects.filter(id=request.POST['archiveProjectComponentId']).update(
-                status=ProjectComponent.Status.ARCHIVED
-            )
-
-        elif "deleteProjectComponent" in request.POST:
-            ProjectComponent.objects.filter(id=request.POST['deleteProjectComponentId']).delete()
-        return redirect('jira:project-components', url=url)
-
-    componentsList = ProjectComponent.objects.filter(project__url=url).select_related('lead__profile').prefetch_related(
-        'ticketProjectComponent'
-    )
-    componentsData = [
-        {
-            'id': i.id,
-            'internalKey': i.internalKey,
-            'description': i.description,
-            'issues': i.ticketProjectComponent.count(),
-            'lead': generalOperations.serializeUserVersion2(i.lead),
-            'status': {
-                'internalKey': i.status,
-                'fontColour': i.getFontColour(),
-                'badgeColour': i.getBadgeColour()
-            }
-        } for i in componentsList
-    ]
-
     context = {
-        'projectComponents': componentsData
+        'project': project
     }
     return render(request, 'jira/projectComponents.html', context)
 
