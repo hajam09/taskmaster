@@ -29,14 +29,14 @@ class ProjectComponentObjectApiEventVersion1Component(View):
     def get(self, *args, **kwargs):
         componentsList = ProjectComponent.objects.filter(
             **self.request.GET.dict()
-        ).select_related('lead__profile').prefetch_related('ticketProjectComponent')
+        ).select_related('lead__profile').prefetch_related('ticketProjectComponents')
 
         componentsData = [
             {
                 'id': i.id,
                 'internalKey': i.internalKey,
                 'description': i.description,
-                'issues': i.ticketProjectComponent.count(),
+                'issues': i.ticketProjectComponents.count(),
                 'lead': generalOperations.serializeUserVersion2(i.lead),
                 'status': {
                     'internalKey': i.status,
@@ -1865,7 +1865,7 @@ class TicketObjectDetailApiEventVersion1Component(View):
             ],
             "assignee": generalOperations.serializeUserVersion2(ticket.assignee),
             "reporter": generalOperations.serializeUserVersion2(ticket.reporter),
-            "components": [component.serializeComponentVersion1() for component in ticket.component.all()],
+            "components": [component.serializeProjectComponentVersion1() for component in ticket.component.all()],
             "labels": [label.serializeLabelVersion1() for label in ticket.label.all()],
             'watchers': {
                 'counter': ticket.watchers.count(),
@@ -2058,7 +2058,7 @@ class ProfileObjectApiEventVersion1Component(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class TicketObjectBulkCreateApiEventVersion1Component(View):
+class TicketObjectBulkApiEventVersion1Component(View):
 
     def post(self, *args, **kwargs):
         body = json.loads(self.request.body)
@@ -2066,9 +2066,10 @@ class TicketObjectBulkCreateApiEventVersion1Component(View):
         priority = Component.objects.get(componentGroup__code='TICKET_PRIORITY', code="MEDIUM")
         reporter = User.objects.get(username="admin")
         board = Board.objects.first()
+        columnStatus = board.boardColumnStatus.first()
 
         for ticket in body['data']['tickets']:
-            project = Project.objects.filter(code__icontains=ticket['projectCode']).first()
+            project = Project.objects.filter(code__icontains=ticket['project']).first()
 
             if project is None:
                 continue
@@ -2079,18 +2080,50 @@ class TicketObjectBulkCreateApiEventVersion1Component(View):
             newTicket.internalKey = project.code + "-" + str(newTicketNumber)
             newTicket.summary = ticket["summary"]
             newTicket.description = ticket["description"]
-            newTicket.resolution = resolution
+            newTicket.storyPoints = ticket["storyPoints"]
             newTicket.project = project
             newTicket.reporter = reporter
-            newTicket.storyPoints = ticket["storyPoints"]
+            newTicket.resolution = resolution
             newTicket.issueType = Component.objects.get(componentGroup__code='TICKET_ISSUE_TYPE',
-                                                        internalKey=ticket["issueType"])
+                                                        code=ticket["issueType"])
             newTicket.priority = priority
-            newTicket.board = board
-            newTicket.column = Column.objects.get(board=board, internalKey='TO DO')
+            newTicket.columnStatus = columnStatus
+
             newTicket.orderNo = newTicketNumber
             newTicket.save()
-        return JsonResponse({}, status=HTTPStatus.OK)
+
+        response = {
+            "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+    def get(self, *args, **kwargs):
+
+        ticketList = Ticket.objects.all().select_related('project', 'priority', 'issueType', 'resolution')
+
+        data = [
+            {
+                'id': i.id,
+                'internalKey': i.internalKey,
+                'summary': i.summary,
+                'description': i.description,
+                'storyPoints': i.storyPoints,
+                'project': i.project.code,
+                'resolution': i.resolution.code,
+                'issueType': i.issueType.code,
+                'priority': i.priority.code,
+                'epic': i.epic.internalKey if i.epic is not None else None,
+            }
+            for i in ticketList
+        ]
+
+        response = {
+            "success": True,
+            "data": {
+                "tickets": data
+            },
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
 
 
 def serializeTickets(tickets, data, skipOldCompletedTickets=True):

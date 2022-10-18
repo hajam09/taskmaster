@@ -26,13 +26,10 @@ class Project(BaseModel):
     startDate = models.DateField(default=timezone.now)
     endDate = models.DateField(default=timezone.datetime.max)
     status = models.ForeignKey(Component, null=True, on_delete=models.SET_NULL, limit_choices_to={'componentGroup__code': 'PROJECT_STATUS'}, related_name='projectStatus')
-    components = models.ManyToManyField(Component, null=True, limit_choices_to={'componentGroup__code': 'PROJECT_COMPONENTS'}, related_name='projectComponents')
     members = models.ManyToManyField(User, blank=True, related_name='projectMembers')
     watchers = models.ManyToManyField(User, blank=True, related_name='projectWatchers')
     icon = models.ImageField(upload_to='project-icons/', default=getRandomProjectIcon)
     isPrivate = models.BooleanField(default=False)
-    # TODO: Consider status and resolution foreign key.
-    # TODO: remove components and PROJECT_COMPONENTS.
 
     class Meta:
         verbose_name = "Project"
@@ -99,6 +96,14 @@ class ProjectComponent(BaseModel):
 
     def __str__(self):
         return self.internalKey
+
+    def serializeProjectComponentVersion1(self):
+        return {
+            "id": self.id or None,
+            "internalKey": self.internalKey,
+            "status": self.status,
+            "description": self.description,
+        }
 
 
 class Board(BaseModel):
@@ -176,6 +181,7 @@ class Column(BaseModel):
     internalKey = models.CharField(max_length=2048)
     category = models.CharField(max_length=16, choices=Category.choices, default=Category.IN_PROGRESS)
     colour = ColorField(default='#FF0000')
+    # TODO: Consider computing the colours on code.
 
     class Meta:
         verbose_name = "Column"
@@ -212,6 +218,7 @@ class ColumnStatus(BaseModel):
     setResolution = models.BooleanField(default=False)
     category = models.CharField(max_length=16, choices=Category.choices, default=Category.IN_PROGRESS)
     colour = ColorField(default='#FF0000')
+    # TODO: Consider computing the colours on code.
 
     class Meta:
         verbose_name = "ColumnStatus"
@@ -241,8 +248,7 @@ class Ticket(BaseModel):
     assignee = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="ticketAssignee")
     reporter = models.ForeignKey(User, on_delete=models.PROTECT, related_name="ticketReporter")
     subTask = models.ManyToManyField('Ticket', blank=True, related_name='ticketSubTask')
-    component = models.ManyToManyField(Component, blank=True, related_name="ticketComponents", limit_choices_to={'componentGroup__code': 'PROJECT_COMPONENTS'})
-    projectComponent = models.ManyToManyField(ProjectComponent, blank=True, related_name="ticketProjectComponent")
+    component = models.ManyToManyField(ProjectComponent, blank=True, related_name="ticketProjectComponents")
     resolution = models.ForeignKey(Component, on_delete=models.SET_NULL, null=True, related_name="ticketResolutions" , limit_choices_to={'componentGroup__code': 'TICKET_RESOLUTIONS'})
     issueType = models.ForeignKey(Component, on_delete=models.PROTECT, related_name='ticketIssueType', limit_choices_to={'componentGroup__code': 'TICKET_ISSUE_TYPE'})
     priority = models.ForeignKey(Component, on_delete=models.PROTECT, related_name='ticketPriority', limit_choices_to={'componentGroup__code': 'TICKET_PRIORITY'})
@@ -256,16 +262,12 @@ class Ticket(BaseModel):
     fixVersion = models.CharField(max_length=2048, blank=True, null=True)
     manDays = models.PositiveSmallIntegerField(blank=True, null=True)
 
-    # board and column attributes should be deprecated
-    column = models.ForeignKey(Column, null=True, on_delete=models.SET_NULL, related_name='columnTickets')
-    board = models.ForeignKey(Board, blank=True, null=True, on_delete=models.SET_NULL)
-
     class Meta:
         verbose_name = "Ticket"
         verbose_name_plural = "Tickets"
 
     def __str__(self):
-        return self.internalKey
+        return self.summary
 
     def getTicketUrl(self):
         return reverse('jira:ticket-detail-view', kwargs={'internalKey': self.internalKey})
@@ -293,7 +295,6 @@ class TicketComment(BaseModel):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ticketCommentCreator')
     comment = models.TextField()
     edited = models.BooleanField(default=False)
-    reply = models.ForeignKey('TicketComment', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
     likes = models.ManyToManyField(User, related_name='ticketCommentLikes')
     dislikes = models.ManyToManyField(User, related_name='ticketCommentDislikes')
 

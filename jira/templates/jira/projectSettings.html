@@ -425,18 +425,12 @@
     });
 
     let projectMembers = [];
-    let projectComponents = [];
 
     {% for member in project.members.all %}
         projectMembers.push({{member.id}});
     {% endfor %}
 
-    {% for component in component %}
-        projectComponents.push('{{component}}');
-    {% endfor %}
-
     $('.project-members').select2().val(projectMembers).trigger("change")
-    $('.project-components').select2().val(projectComponents).trigger("change")
 
 </script>
 {% endblock %}

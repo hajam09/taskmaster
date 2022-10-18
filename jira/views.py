@@ -24,6 +24,10 @@ def index(request):
 
 
 def dashboard(request):
+    """
+    TODO: Refactor / Redesign
+
+    """
     # 6 queries
     projectComponents = Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS').prefetch_related(
         'ticketComponents__issueType', 'ticketComponents__priority'
@@ -223,17 +227,14 @@ def ticketDetailView(request, internalKey):
         "issueType": ticket.issueType.serializeComponentVersion1(),
         "priority": ticket.priority.serializeComponentVersion1(),
         "assignee": generalOperations.serializeUserVersion2(ticket.assignee),
-        "components": [component.serializeComponentVersion1() for component in ticket.component.all()],
+        "components": [component.serializeProjectComponentVersion1() for component in ticket.component.all()],
         "labels": [label.serializeLabelVersion1() for label in ticket.label.all()]
     }
 
-    projectComponents = Component.objects.filter(
-        componentGroup__code='PROJECT_COMPONENTS', reference__exact=ticket.project.code
-    )
     context = {
         'ticket': ticketDetails,
         'profiles': Profile.objects.all().select_related('user'),
-        'projectComponents': projectComponents,
+        'projectComponents': ProjectComponent.objects.filter(project_id=ticket.project.id),
     }
     return render(request, "jira/ticketDetailViewPage.html", context)
 
@@ -409,7 +410,6 @@ def projectSettings(request, url):
     context = {
         'form': form,
         'project': project,
-        'component': project.components.values_list('internalKey', flat=True)
     }
     return render(request, 'jira/projectSettings.html', context)
 
@@ -519,8 +519,6 @@ def newTicketObject(request):
     newTicket.storyPoints = request.POST["storyPoints"] or None
     newTicket.issueType_id = request.POST["issueType"] or None
     newTicket.priority_id = request.POST["priority"] or None
-    # newTicket.board_id = boardId
-    # newTicket.column = Column.objects.get(board_id=boardId, internalKey='TO DO')
     newTicket.columnStatus = columnStatus
     newTicket.orderNo = newTicketNumber
     newTicket.save()

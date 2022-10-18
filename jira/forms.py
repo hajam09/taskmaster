@@ -262,16 +262,6 @@ class ProjectSettingsForm(forms.Form):
             }
         ),
     )
-
-    components = forms.MultipleChoiceField(
-        label='Project components',
-        widget=forms.Select(
-            attrs={
-                'class': 'form-control select2bs4Tags project-components',
-                'multiple': 'multiple'
-            }
-        ),
-    )
     visibility = forms.ChoiceField(
         label='Project visibility',
         choices=[('EVERYONE', 'Everyone'), ('MEMBERS', 'Members')],
@@ -304,21 +294,6 @@ class ProjectSettingsForm(forms.Form):
 
         self.base_fields['members'].choices = leadChoices
 
-        componentsChoices = [
-            (str(i.internalKey), i.internalKey)
-            for i in Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS')
-            if i.reference == self.project.code
-        ]
-        """
-        # WIP
-        componentsChoices = [
-            (i[0], i[0])
-            for i in Component.objects.filter(componentGroup__code='PROJECT_COMPONENTS').values_list('internalKey', 'reference')
-            if i[1] == self.project.code
-        ]        
-        """
-
-        self.base_fields['components'].choices = componentsChoices
         self.base_fields['visibility'].initial = 'MEMBERS' if self.project.isPrivate else 'EVERYONE'
 
     def save(self):
@@ -332,36 +307,6 @@ class ProjectSettingsForm(forms.Form):
 
         self.project.members.clear()
         self.project.members.add(*self.request.POST.getlist('members'))
-
-        componentGroup = ComponentGroup.objects.get(code='PROJECT_COMPONENTS')
-        updatedComponents = self.data.getlist('components')
-
-        componentsList = list(Component.objects.filter(
-            componentGroup__code='PROJECT_COMPONENTS',
-            internalKey__in=updatedComponents,
-            reference__exact=self.project.code
-        ).values_list('internalKey', flat=True))
-
-        Component.objects.bulk_create(
-            [
-                Component(
-                    componentGroup=componentGroup,
-                    internalKey=i,
-                    code=i.upper(),
-                    reference=self.project.code
-                )
-                for i in updatedComponents if i not in componentsList
-            ]
-        )
-
-        ids = list(Component.objects.filter(
-            componentGroup__code='PROJECT_COMPONENTS',
-            internalKey__in=updatedComponents,
-            reference__exact=self.project.code
-        ).values_list('id', flat=True))
-
-        self.project.components.clear()
-        self.project.components.add(*ids)
 
         if self.request.FILES.get('project-icon'):
             generalOperations.deleteImage(self.project.icon)

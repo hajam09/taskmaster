@@ -160,9 +160,9 @@ urlpatterns += [
         name='teamChatMessagesApiEventVersion1Component'
     ),
     path(
-        'api/v1/ticketObjectBulkCreateApiEventVersion1Component',
-        TicketObjectBulkCreateApiEventVersion1Component.as_view(),
-        name='ticketObjectBulkCreateApiEventVersion1Component'
+        'api/v1/ticketObjectBulkApiEventVersion1Component',
+        TicketObjectBulkApiEventVersion1Component.as_view(),
+        name='ticketObjectBulkApiEventVersion1Component'
     ),
     path(
         'api/v1/projectObjectApiEventVersion1Component/<int:projectId>',
