@@ -98,7 +98,7 @@
                     icon: "{{ item.icon }}",
                     internalKey: "{{ item.internalKey }}",
                     code: "{{ item.code }}",
-                    isCurrent: "{{ item.code }}" === "{{ ticket.issueType.code }}",
+                    isCurrent: "{{ item.code }}" === "{{ ticket.priority.code }}",
                 })
             {% endfor %}
             return items;
@@ -171,6 +171,44 @@
             return items;
         }
 
+        function getLinkTypeOptions() {
+            let items = [{
+                id: 0,
+                internalKey: 'None',
+                code: 'NONE',
+                isCurrent: false,
+            }];
+            {% for item in ticketLinkType %}
+                items.push({
+                    id: '{{ item.id }}',
+                    internalKey: "{{ item.internalKey }}",
+                    code: "{{ item.code }}",
+                    isCurrent: "{{ item.code }}" === "{{ ticket.linkType.code }}",
+                })
+            {% endfor %}
+            return items;
+        }
+
+        function getLinkableIssues() {
+            let items = [];
+
+            {% for item in ticketList %}
+                items.push({
+                    id: '{{ item.id }}',
+                    internalKey: "{{ item.internalKey }}",
+                })
+            {% endfor %}
+            return items;
+        }
+
+        function getDefaultLinkedIssues(){
+            let items = [];
+            {% for linkedIssue in ticket.linkedIssues %}
+                items.push('{{ linkedIssue.id }}');
+            {% endfor %}
+            return items;
+        }
+
         const ticketEditFields = [
             {
                 id: "summary",
@@ -201,8 +239,8 @@
                 isRequired: true,
                 elementType: "SELECT",
                 options: getPriorityOptions(),
-                enableSelectPicker: true,
                 isMultiple: false,
+                enableSelectPicker: true,
                 enabled: true,
             },
             {
@@ -212,8 +250,8 @@
                 isRequired: false,
                 elementType: "SELECT",
                 options: getComponentOptions(),
-                enableSelectPicker: false,
                 isMultiple: true,
+                enableSelectPicker: false,
                 enabled: true,
             },
             {
@@ -223,8 +261,8 @@
                 isRequired: false,
                 elementType: "SELECT",
                 options: getLabelsOptions(),
-                enableSelectPicker: false,
                 isMultiple: true,
+                enableSelectPicker: false,
                 enabled: true,
             },
             {
@@ -234,8 +272,8 @@
                 isRequired: false,
                 elementType: "NUMBER",
                 options: null,
-                enableSelectPicker: false,
                 isMultiple: false,
+                enableSelectPicker: false,
                 enabled: true,
             },
             {
@@ -245,8 +283,8 @@
                 isRequired: false,
                 elementType: "TEXT",
                 options: null,
-                enableSelectPicker: false,
                 isMultiple: false,
+                enableSelectPicker: false,
                 enabled: true,
             },
             {
@@ -256,8 +294,8 @@
                 isRequired: false,
                 elementType: "ATTACHMENT",
                 options: null,
-                enableSelectPicker: false,
                 isMultiple: true,
+                enableSelectPicker: false,
                 enabled: true,
             },
             {
@@ -267,8 +305,8 @@
                 isRequired: false,
                 elementType: "TEXTAREA",
                 options: null,
-                enableSelectPicker: false,
                 isMultiple: false,
+                enableSelectPicker: false,
                 enabled: true,
             },
             {
@@ -278,9 +316,31 @@
                 isRequired: false,
                 elementType: "SELECT",
                 options: getUsersOptions(),
-                enableSelectPicker: true,
                 isMultiple: false,
+                enableSelectPicker: true,
                 enabled: true,
+            },
+            {
+                id: "linkType",
+                internalKey: "Linked Issues",
+                defaultValue: "{{ ticket.linkType.id }}",
+                isRequired: false,
+                elementType: "SELECT",
+                options: getLinkTypeOptions(),
+                isMultiple: false,
+                enableSelectPicker: true,
+                enabled: false,
+            },
+            {
+                id: "linkedIssuesList",
+                internalKey: "Issues",
+                defaultValue: getDefaultLinkedIssues(),
+                isRequired: false,
+                elementType: "SELECT",
+                options: getLinkableIssues(),
+                isMultiple: false,
+                enableSelectPicker: true,
+                enabled: false,
             },
         ]
 
@@ -717,7 +777,6 @@
                                     <strong className="name" title="Labels"> <label
                                         htmlFor="labels-textarea">Labels:</label> </strong>
                                     {
-                                        // TODO: ticket filtering based on label is not Implemented.
                                         this.props.ticket.labels.map((label, i) =>
                                             <div className="labels-wrap value" key={i}>
                                                 <a href={"{% url 'jira:issuesListView' %}?project=" + this.props.ticket.project.internalKey + "&label=" + label.internalKey}

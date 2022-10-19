@@ -1507,7 +1507,7 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
             columnData = {
                 "id": column.id,
                 "internalKey": column.internalKey,
-                "colour": column.colour,
+                "colour": column.getColour(),
                 "category": column.category,
                 "columnStatusGroups": columnStatusGroups,
                 "canDelete": self.canDeleteOrEdit(column.internalKey),
@@ -1579,15 +1579,6 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
                 return obj.DONE
             raise NotImplemented
 
-        def getColour(obj, value):
-            if value == "TODO":
-                return obj.TODO
-            if value == "IN_PROGRESS":
-                return obj.IN_PROGRESS
-            if value == "DONE":
-                return obj.DONE
-            raise NotImplemented
-
         if function == "CREATE_BOARD_COLUMN" and name != "":
             boardColumns = board.boardColumns.all()
             existingColumn = [i for i in boardColumns if i.internalKey.casefold() == name.casefold()]
@@ -1597,7 +1588,6 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
                     board_id=boardId,
                     internalKey=name,
                     category=getCategory(Column.Category, category),
-                    colour=getColour(Column.Colour, category),
                     orderNo=board.boardColumns.count() + 1
                 )
         elif function == "CREATE_COLUMN_STATUS" and name != "":
@@ -1608,8 +1598,7 @@ class AgileBoardColumnOperationApiEventVersion1Component(View):
                 newColumnStatus = ColumnStatus(
                     internalKey=name,
                     board_id=boardId,
-                    category=getCategory(ColumnStatus.Category, category),
-                    colour=getColour(ColumnStatus.Colour, category),
+                    category=getCategory(ColumnStatus.Category, category)
                 )
 
                 # if the status name matches with any of the column name, then add it to that column.

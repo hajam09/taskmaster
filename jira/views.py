@@ -250,10 +250,10 @@ def boards(request):
                 isPrivate=request.POST['boardVisibility'] == 'visibility-members'
             )
 
-            c1 = Column(board=newBoard, internalKey='BACKLOG', category=Column.Category.TODO, colour='#42526E', orderNo=1)
-            c2 = Column(board=newBoard, internalKey='TO DO', category=Column.Category.TODO, colour='#42526E', orderNo=2)
-            c3 = Column(board=newBoard, internalKey='IN PROGRESS', category=Column.Category.IN_PROGRESS, colour='#0052CC', orderNo=3)
-            c4 = Column(board=newBoard, internalKey='DONE', category=Column.Category.DONE, colour='#00875A', orderNo=4)
+            c1 = Column(board=newBoard, internalKey='BACKLOG', category=Column.Category.TODO, orderNo=1)
+            c2 = Column(board=newBoard, internalKey='TO DO', category=Column.Category.TODO, orderNo=2)
+            c3 = Column(board=newBoard, internalKey='IN PROGRESS', category=Column.Category.IN_PROGRESS, orderNo=3)
+            c4 = Column(board=newBoard, internalKey='DONE', category=Column.Category.DONE, orderNo=4)
 
             c1.save()
             c2.save()
@@ -263,10 +263,10 @@ def boards(request):
             # mandatory ColumnStatus for a board
             ColumnStatus.objects.bulk_create(
                 [
-                    ColumnStatus(internalKey="OPEN", board=newBoard, column=c1, category=ColumnStatus.Category.TODO, colour=ColumnStatus.Colour.TODO),
-                    ColumnStatus(internalKey="TO DO", board=newBoard, column=c2, category=ColumnStatus.Category.TODO, colour=ColumnStatus.Colour.TODO),
-                    ColumnStatus(internalKey="IN PROGRESS", board=newBoard, column=c3, category=ColumnStatus.Category.IN_PROGRESS, colour=ColumnStatus.Colour.IN_PROGRESS),
-                    ColumnStatus(internalKey="DONE", board=newBoard, column=c4, setResolution=True, category=ColumnStatus.Category.DONE, colour=ColumnStatus.Colour.DONE)
+                    ColumnStatus(internalKey="OPEN", board=newBoard, column=c1, category=ColumnStatus.Category.TODO),
+                    ColumnStatus(internalKey="TO DO", board=newBoard, column=c2, category=ColumnStatus.Category.TODO),
+                    ColumnStatus(internalKey="IN PROGRESS", board=newBoard, column=c3, category=ColumnStatus.Category.IN_PROGRESS),
+                    ColumnStatus(internalKey="DONE", board=newBoard, column=c4, setResolution=True, category=ColumnStatus.Category.DONE)
                 ]
             )
 
@@ -455,7 +455,7 @@ def issuesListView(request):
         filterDict[f'{key}__internalKey__in'] = value.split(',')
 
     try:
-        ticketQuerySet = Ticket.objects.filter(reduce(operator.and_, qFilterSet))
+        ticketQuerySet = Ticket.objects.filter(reduce(operator.and_, qFilterSet)).distinct()
     except TypeError:
         # Ticket.objects.filter(**filterDict)
         ticketQuerySet = Ticket.objects.filter(**{})

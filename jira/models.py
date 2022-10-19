@@ -173,15 +173,15 @@ class Column(BaseModel):
         DONE = 'DONE', _('Done')
 
     class Colour(models.TextChoices):
-        TODO = '#42526e', _('#42526e')
-        IN_PROGRESS = '#0052cc', _('#0052cc')
-        DONE = '#00875a', _('#00875a')
+        TODO = '#42526E', _('#42526E')
+        IN_PROGRESS = '#0052CC', _('#0052CC')
+        DONE = '#00875A', _('#00875A')
 
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='boardColumns')
     internalKey = models.CharField(max_length=2048)
     category = models.CharField(max_length=16, choices=Category.choices, default=Category.IN_PROGRESS)
     colour = ColorField(default='#FF0000')
-    # TODO: Consider computing the colours on code.
+    # TODO: Remove colour field after testing.
 
     class Meta:
         verbose_name = "Column"
@@ -200,6 +200,15 @@ class Column(BaseModel):
                 code='unique_together',
             )
 
+    def getColour(self):
+        if self.category == self.Category.TODO:
+            return self.Colour.TODO
+        elif self.category == self.Category.IN_PROGRESS:
+            return self.Colour.IN_PROGRESS
+        elif self.category == self.Category.DONE:
+            return self.Colour.DONE
+        raise NotImplemented
+
 
 class ColumnStatus(BaseModel):
     class Category(models.TextChoices):
@@ -208,9 +217,9 @@ class ColumnStatus(BaseModel):
         DONE = 'DONE', _('Done')
 
     class Colour(models.TextChoices):
-        TODO = '#42526e', _('#dfe1e5')
-        IN_PROGRESS = '#0052cc', _('#deebff')
-        DONE = '#00875a', _('#e3fcef')
+        TODO = '#42526E', _('#42526E')  # dfe1e5
+        IN_PROGRESS = '#0052CC', _('#0052CC')  # deebff
+        DONE = '#00875A', _('#00875A')  # e3fcef
 
     internalKey = models.CharField(max_length=2048)
     board = models.ForeignKey(Board, blank=True, null=True, on_delete=models.CASCADE, related_name="boardColumnStatus")
@@ -224,13 +233,22 @@ class ColumnStatus(BaseModel):
         verbose_name = "ColumnStatus"
         verbose_name_plural = "ColumnStatus"
 
+    def getColour(self):
+        if self.category == self.Category.TODO:
+            return self.Colour.TODO
+        elif self.category == self.Category.IN_PROGRESS:
+            return self.Colour.IN_PROGRESS
+        elif self.category == self.Category.DONE:
+            return self.Colour.DONE
+        raise NotImplemented
+
     def serializeColumnStatusVersion1(self, **kwargs):
         data = {
             "id": self.id or None,
             "internalKey": self.internalKey,
             "setResolution": self.setResolution,
             "category": self.category,
-            "colour": self.colour,
+            "colour": self.getColour(),
         }
         try:
             mergedData = data | kwargs
@@ -254,6 +272,8 @@ class Ticket(BaseModel):
     priority = models.ForeignKey(Component, on_delete=models.PROTECT, related_name='ticketPriority', limit_choices_to={'componentGroup__code': 'TICKET_PRIORITY'})
     columnStatus = models.ForeignKey(ColumnStatus, blank=True, null=True, on_delete=models.SET_NULL, related_name='columnStatusTickets')
     epic = models.ForeignKey('Ticket', null=True, blank=True, on_delete=models.SET_NULL, related_name='epicTickets', limit_choices_to={'issueType__code': 'EPIC'})
+    linkType = models.ForeignKey(Component, null=True, blank=True, on_delete=models.SET_NULL, related_name='ticketLinkType', limit_choices_to={'componentGroup__code': 'TICKET_LINK_TYPE'})
+    linkedIssues = models.ManyToManyField('Ticket', blank=True, related_name='ticketLinkedIssues')
 
     # advanced columns
     label = models.ManyToManyField(Label, blank=True, related_name='ticketLabels')
@@ -265,6 +285,12 @@ class Ticket(BaseModel):
     class Meta:
         verbose_name = "Ticket"
         verbose_name_plural = "Tickets"
+
+    def serializeTicketVersion1(self):
+        return {
+            'id': self.id or None,
+            'internalKey': self.internalKey,
+        }
 
     def __str__(self):
         return self.summary
