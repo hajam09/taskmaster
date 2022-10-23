@@ -4,6 +4,7 @@ import threading
 from datetime import datetime
 from http import HTTPStatus
 import string
+from json import JSONDecodeError
 
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -55,7 +56,11 @@ class ProjectComponentObjectApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
     def post(self, *args, **kwargs):
-        body = json.loads(self.request.body.decode())
+        try:
+            body = json.loads(self.request.body.decode())
+        except JSONDecodeError:
+            body = self.request.POST.dict()
+
         keyAlreadyExists = ProjectComponent.objects.filter(internalKey__iexact=body['internalKey']).exists()
         response = {}
 
@@ -69,7 +74,11 @@ class ProjectComponentObjectApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
     def put(self, *args, **kwargs):
-        put = json.loads(self.request.body)
+        try:
+            put = json.loads(self.request.body)
+        except JSONDecodeError:
+            put = json.loads(self.request.body.decode().replace('"', "'").replace("'", '"'))
+
         ProjectComponent.objects.filter(**put['filter']).update(**put['update'])
 
         response = {
@@ -78,7 +87,11 @@ class ProjectComponentObjectApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
     def delete(self, *args, **kwargs):
-        put = json.loads(self.request.body)
+        try:
+            put = json.loads(self.request.body)
+        except JSONDecodeError:
+            put = json.loads(self.request.body.decode().replace('"', "'").replace("'", '"'))
+
         ProjectComponent.objects.filter(**put['filter']).delete()
 
         response = {
@@ -275,7 +288,7 @@ class BoardSettingsViewBoardLabelsApiEventVersion1Component(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class TeamsViewApiEventVersion1Component(View):
     def put(self, *args, **kwargs):
-        teamId = self.kwargs.get("teamId", None)
+        teamId = self.kwargs.get("teamId")
 
         try:
             thisTeam = Team.objects.get(id=teamId)
@@ -332,7 +345,11 @@ class TeamsObjectApiEventVersion1Component(View):
 class TicketCommentObjectApiEventVersion1Component(View):
 
     def post(self, *args, **kwargs):
-        body = json.loads(self.request.body.decode())
+        try:
+            body = json.loads(self.request.body.decode())
+        except JSONDecodeError:
+            body = self.request.POST.dict()
+
         ticketId = body.get("ticketId")
         comment = body.get("comment")
 
@@ -361,6 +378,7 @@ class TicketCommentObjectApiEventVersion1Component(View):
         ticketComment.orderNo = newCommentNumber + 1
         ticketComment.save()
 
+        # TODO: check if this data is needed.
         data = {
             'id': ticketComment.pk,
             'comment': ticketComment.comment,
@@ -383,7 +401,11 @@ class TicketCommentObjectApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
     def delete(self, *args, **kwargs):
-        body = json.loads(self.request.body)
+        try:
+            body = json.loads(self.request.body)
+        except JSONDecodeError:
+            body = json.loads(self.request.body.decode().replace('"', "'").replace("'", '"'))
+
         TicketComment.objects.filter(id=body['id']).delete()
         response = {
             'success': True,
@@ -391,7 +413,11 @@ class TicketCommentObjectApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
     def put(self, *args, **kwargs):
-        body = json.loads(self.request.body)
+        try:
+            body = json.loads(self.request.body)
+        except JSONDecodeError:
+            body = json.loads(self.request.body.decode().replace('"', "'").replace("'", '"'))
+
         TicketComment.objects.filter(id=body['id']).update(comment=body['comment'], edited=True)
         response = {
             'success': True,
@@ -733,11 +759,11 @@ class AgileBoardTicketColumnUpdateApiEventVersion2Component(View):
         column = Column.objects.get(id=columnId)
         columnStatus = ColumnStatus.objects.filter(column_id=column).first()
 
-        resolvedComponent = Component.objects.get(componentGroup__code="TICKET_RESOLUTIONS", code="RESOLVED")
+        resolvedComponent = databaseOperations.getObjectByCode(cache.get('TICKET_RESOLUTIONS'), 'RESOLVED')
         if columnStatus.setResolution:
             ticket.resolution = resolvedComponent
         elif ticket.resolution == resolvedComponent:
-            ticket.resolution = Component.objects.get(componentGroup__code="TICKET_RESOLUTIONS", code="REOPENED")
+            ticket.resolution = databaseOperations.getObjectByCode(cache.get('TICKET_RESOLUTIONS'), 'REOPENED')
 
         ticket.columnStatus = columnStatus
         ticket.save()
@@ -846,10 +872,9 @@ class AgileBoardDetailsApiEventVersion2Component(View):
                 ).select_related("issueType", "columnStatus", "assignee__profile", "epic", "priority", "resolution")
 
                 for column in boardColumns:
-                    tickets = []
                     columnStatuses = [i for i in columnStatusList if i.column == column]
                     columnTickets = [t for t in sprintTickets if t.columnStatus in columnStatuses]
-                    serializeTickets(columnTickets, tickets, False)
+                    tickets = serializeTicketsVersion2(columnTickets)
 
                     data = {
                         "id": column.id,
@@ -916,15 +941,14 @@ class BacklogDetailsEpicLessTicketsApiEventVersion1Component(View):
         if board.type == Board.Types.SCRUM:
             openSprints = Sprint.objects.filter(board__id=boardId, isComplete=False).order_by('orderNo')
             for sprint in openSprints:
-                serializedTickets = []
+
                 sprintTickets = sprint.tickets.filter(~Q(issueType__code="EPIC"), epic=None).select_related(
                     'assignee__profile',
-                    'column',
                     'epic', 'issueType',
                     'priority',
                     'resolution')
 
-                serializeTickets(sprintTickets, serializedTickets, False)
+                serializedTickets = serializeTicketsVersion2(sprintTickets)
                 sprintData = {
                     'id': sprint.id,
                     'internalKey': sprint.internalKey,
@@ -935,16 +959,14 @@ class BacklogDetailsEpicLessTicketsApiEventVersion1Component(View):
 
             # Get backlog group and its tickets.
             backlogTickets = Ticket.objects.filter(
-                ~Q(issueType__code="EPIC"), board__id=boardId, column__internalKey="BACKLOG", epic=None
+                ~Q(issueType__code="EPIC"), columnStatus__board__id=boardId, columnStatus__internalKey="OPEN", epic=None
             ).select_related(
                 'assignee__profile',
-                'column',
                 'epic', 'issueType',
                 'priority',
                 'resolution')
 
-            serializedTickets = []
-            serializeTickets(backlogTickets, serializedTickets, False)
+            serializedTickets = serializeTicketsVersion2(backlogTickets)
             backlogGroups.append(
                 {
                     'id': 0,
@@ -1176,13 +1198,11 @@ class BacklogDetailsApiEventVersion2Component(View):
         if board.type == Board.Types.SCRUM:
             openSprints = Sprint.objects.filter(board__id=boardId, isComplete=False).order_by('orderNo')
             for sprint in openSprints:
-                serializedTickets = []
-                sprintTickets = sprint.tickets.filter(~Q(issueType__code="EPIC")).select_related('assignee__profile',
-                                                                                                 'column',
-                                                                                                 'epic', 'issueType',
-                                                                                                 'priority',
-                                                                                                 'resolution')
-                serializeTickets(sprintTickets, serializedTickets, False)
+                sprintTickets = sprint.tickets.filter(
+                    ~Q(issueType__code="EPIC")
+                ).select_related('assignee__profile', 'epic', 'issueType', 'priority', 'resolution')
+
+                serializedTickets = serializeTicketsVersion2(sprintTickets)
                 sprintData = {
                     'id': sprint.id,
                     'internalKey': sprint.internalKey,
@@ -1190,19 +1210,14 @@ class BacklogDetailsApiEventVersion2Component(View):
                     'tickets': serializedTickets,
                 }
                 backlogGroups.append(sprintData)
+                #
 
             # Get backlog group and its tickets.
             backlogTickets = Ticket.objects.filter(
                 ~Q(issueType__code="EPIC"), columnStatus__board__id=boardId, columnStatus__internalKey="OPEN"
-            ).select_related(
-                'assignee__profile',
-                'column',
-                'epic', 'issueType',
-                'priority',
-                'resolution')
+            ).select_related('assignee__profile', 'epic', 'issueType', 'priority', 'resolution')
 
-            serializedTickets = []
-            serializeTickets(backlogTickets, serializedTickets, False)
+            serializedTickets = serializeTicketsVersion2(backlogTickets)
             backlogGroups.append(
                 {
                     'id': 0,
@@ -1212,12 +1227,9 @@ class BacklogDetailsApiEventVersion2Component(View):
                 }
             )
         else:
-            boardTickets = Ticket.objects.filter(~Q(issueType__code="EPIC"), columnStatus__board__id=boardId).select_related(
-                'assignee__profile',
-                'column',
-                'epic', 'issueType',
-                'priority',
-                'resolution')
+            boardTickets = Ticket.objects.filter(
+                ~Q(issueType__code="EPIC"), columnStatus__board__id=boardId
+            ).select_related('assignee__profile', 'epic', 'issueType', 'priority', 'resolution', 'columnStatus')
 
             """
             Remove old tickets from DONE column
@@ -1233,11 +1245,8 @@ class BacklogDetailsApiEventVersion2Component(View):
             developmentTickets = [i for i in boardTickets if i.columnStatus.internalKey != "OPEN"]
             backlogTickets = [i for i in boardTickets if i.columnStatus.internalKey == "OPEN"]
 
-            emptyDevelopmentTickets = []
-            emptyBacklogTickets = []
-
-            serializeTickets(developmentTickets, emptyDevelopmentTickets, False)
-            serializeTickets(backlogTickets, emptyBacklogTickets, False)
+            emptyDevelopmentTickets = serializeTicketsVersion2(developmentTickets)
+            emptyBacklogTickets = serializeTicketsVersion2(backlogTickets)
 
             backlogGroups.append(
                 {
@@ -2113,6 +2122,33 @@ class TicketObjectBulkApiEventVersion1Component(View):
             },
         }
         return JsonResponse(response, status=HTTPStatus.OK)
+
+
+def serializeTicketsVersion2(tickets):
+    serializedTickets = [
+        {
+            "id": ticket.id,
+            "summary": ticket.summary,
+            "internalKey": ticket.internalKey,
+            "fixVersion": ticket.fixVersion if ticket.fixVersion else None,
+            "link": ticket.getTicketUrl(),
+            "storyPoints": ticket.storyPoints if ticket.storyPoints is not None else "-",
+            "modifiedDttm": str(ticket.modifiedDttm.date()),
+            "issueType": ticket.issueType.serializeComponentVersion1(),
+            "priority": ticket.priority.serializeComponentVersion1(),
+            "resolution": ticket.resolution.serializeComponentVersion1(),
+            "assignee": generalOperations.serializeUserVersion1(ticket.assignee),
+            "epic": {
+                "id": ticket.epic.id,
+                "internalKey": ticket.epic.internalKey,
+                "summary": ticket.epic.summary,
+                "colour": ticket.epic.colour,
+                "link": f"/jira/ticket/{ticket.epic.internalKey}",
+            } if ticket.epic is not None else None,
+        }
+        for ticket in tickets
+    ]
+    return serializedTickets
 
 
 def serializeTickets(tickets, data, skipOldCompletedTickets=True):

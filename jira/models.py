@@ -31,6 +31,8 @@ class Project(BaseModel):
     icon = models.ImageField(upload_to='project-icons/', default=getRandomProjectIcon)
     isPrivate = models.BooleanField(default=False)
 
+    # TODO: Consider creating ProjectStatus rather than using PROJECT_STATUS component
+
     class Meta:
         verbose_name = "Project"
         verbose_name_plural = "Projects"
