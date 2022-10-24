@@ -58,10 +58,9 @@ def createUserObjects(limit=20, maxLimit=20):
         firstName = fake.unique.first_name()
         lastName = fake.unique.last_name()
         email = firstName.lower() + '.' + lastName.lower() + random.choice(EMAIL_DOMAINS) + random.choice(DOMAINS)
-        password = settings.TEST_PASSWORD
 
         BULK_USERS.append(
-            User(username=email, email=email, password=password, first_name=firstName, last_name=lastName)
+            User(username=email, email=email, password=settings.TEST_PASSWORD, first_name=firstName, last_name=lastName)
         )
         uniqueEmails.append(email)
 
@@ -72,10 +71,11 @@ def createUserObjects(limit=20, maxLimit=20):
 def createProfileObjects(users=None):
     if users is None or len(users) == 0:
         createUserObjects()
+        users = User.objects.all().prefetch_related('profile')
 
     BULK_PROFILES = []
 
-    for user in User.objects.all():
+    for user in users:
         try:
             user.profile
         except Profile.DoesNotExist:
@@ -183,9 +183,12 @@ def createProject():
     return newProject
 
 
-def createTicket(columnStatus, project=None):
+def createTicket(columnStatus, project=None, issueType=None):
     if project is None:
         project = createProject()
+
+    if issueType is None:
+        issueType = next((i.id for i in cache.get('TICKET_ISSUE_TYPE') if i.code == 'BUG'))
 
     ticket = Ticket()
     ticket.internalKey = project.code + "-" + "1"
@@ -195,7 +198,7 @@ def createTicket(columnStatus, project=None):
     ticket.project = project
     ticket.assignee_id = project.lead.id
     ticket.reporter_id = project.lead.id
-    ticket.issueType_id = next((i.id for i in cache.get('TICKET_ISSUE_TYPE') if i.code == 'BUG'))
+    ticket.issueType_id = issueType
     ticket.priority_id = next((i.id for i in cache.get('TICKET_PRIORITY') if i.code == 'MEDIUM'))
     ticket.columnStatus = columnStatus
     ticket.orderNo = 1

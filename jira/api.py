@@ -1,19 +1,21 @@
 import imghdr
 import json
+import string
 import threading
 from datetime import datetime
 from http import HTTPStatus
-import string
 from json import JSONDecodeError
 
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.db.models import F
 from django.db.models import Q
 from django.http import QueryDict, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+
 from accounts.models import Team, Component, TeamChatMessage, Profile
 from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment, TicketAttachment, ColumnStatus, ProjectComponent
 from taskmaster.operations import databaseOperations, generalOperations
@@ -429,13 +431,17 @@ class TicketCommentObjectApiEventVersion1Component(View):
 class TicketObjectForEpicTicketApiEventVersion1Component(View):
 
     def post(self, *args, **kwargs):
-        body = json.loads(self.request.body.decode())
+        try:
+            body = json.loads(self.request.body.decode())
+        except JSONDecodeError:
+            body = self.request.POST.dict()
+
         epicTicketId = body.get("ticketId")
         summary = body.get("ticketSummary")
         issueType = body.get("issueType")
 
         try:
-            epicTicket = Ticket.objects.get(id=epicTicketId)
+            epicTicket = Ticket.objects.get(id=epicTicketId, issueType__code="EPIC")
         except Ticket.DoesNotExist:
             response = {
                 "success": False,
@@ -1155,7 +1161,7 @@ class BacklogDetailsApiEventVersion1Component(View):
                 draggedToSprint = databaseOperations.getObjectByIdOrNone(openSprints, columnId)
                 ticketList.filter(column__internalKey='BACKLOG').update(column_id=toDoColumn.id, board_id=board.id)
 
-                draggedTicket = list(set(ticketList)-set(draggedToSprint.tickets.all()))
+                draggedTicket = list(set(ticketList) - set(draggedToSprint.tickets.all()))
                 if len(draggedTicket) > 0:
                     draggedTicket[0].board_id = board.id
                     draggedTicket[0].column_id = toDoColumn.id
@@ -1308,7 +1314,7 @@ class BacklogDetailsApiEventVersion2Component(View):
                 # Add all the tickets to this sprint, but remove from other sprints.
                 # Set the new ticket column to TO DO column.
                 draggedToSprint = databaseOperations.getObjectByIdOrNone(openSprints, columnId)
-                draggedTickets = list(set(ticketList)-set(draggedToSprint.tickets.all()))
+                draggedTickets = list(set(ticketList) - set(draggedToSprint.tickets.all()))
 
                 for i in draggedTickets:
                     i.columnStatus = toDoColumn
@@ -2050,6 +2056,22 @@ class ProfileObjectApiEventVersion1Component(View):
                     }
                     for profile in profiles
                 ]
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class ProfileObjectApiEventVersion2Component(View):
+
+    def get(self, *args, **kwargs):
+        profiles = Profile.objects.filter(**self.request.GET.dict()).select_related('user').annotate(
+            pk=F('id'), firstName=F('user__first_name'), lastName=F('user__last_name')
+        ).values('id', 'firstName', 'lastName')
+
+        response = {
+            "success": True,
+            "data": {
+                "profiles": list(profiles)
             }
         }
         return JsonResponse(response, status=HTTPStatus.OK)

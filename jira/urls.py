@@ -199,4 +199,9 @@ urlpatterns += [
         ProfileObjectApiEventVersion1Component.as_view(),
         name='profileObjectApiEventVersion1Component'
     ),
+    path(
+        'api/v2/profileObjectApiEventVersion2Component',
+        ProfileObjectApiEventVersion2Component.as_view(),
+        name='profileObjectApiEventVersion2Component'
+    ),
 ]

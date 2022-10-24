@@ -19,7 +19,7 @@ class TeamsViewApiEventVersion1ComponentTest(BaseTestAjax):
         ajaxResponse = json.loads(response.content)
 
         self.assertFalse(ajaxResponse["success"])
-        self.assertEquals(ajaxResponse["message"], "Could not find a team with url/id: {}".format(0))
+        self.assertEqual(ajaxResponse["message"], "Could not find a team with url/id: {}".format(0))
 
     def testLeaveTeam(self):
         self.testParams.team.members.add(self.user)
@@ -29,7 +29,7 @@ class TeamsViewApiEventVersion1ComponentTest(BaseTestAjax):
         response = self.put(path=path)
 
         self.assertFalse(self.user in self.testParams.team.members.all())
-        self.assertFalse(self.user in self.testParams.team.members.all())
+        self.assertFalse(self.user in self.testParams.team.admins.all())
 
     class TestParams:
 

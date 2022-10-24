@@ -69,7 +69,7 @@ class ProjectComponentObjectApiEventVersion1ComponentTest(BaseTestAjax):
         response = self.post(payload, self.basePath)
         ajaxResponse = json.loads(response.content)
         self.assertFalse(ajaxResponse["success"])
-        self.assertEquals(ajaxResponse["message"], "Component with this name already exists.")
+        self.assertEqual(ajaxResponse["message"], "Component with this name already exists.")
 
     def testUpdateExistingProjectComponent(self):
         self.testParams.createProjectComponents(1)

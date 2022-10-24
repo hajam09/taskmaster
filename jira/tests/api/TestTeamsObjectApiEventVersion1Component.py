@@ -16,9 +16,9 @@ class TeamsObjectApiEventVersion1ComponentTest(BaseTestAjax):
         response = self.delete()
         ajaxResponse = json.loads(response.content)
 
-        self.assertEquals(response.status_code, HTTPStatus.NOT_FOUND)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         self.assertFalse(ajaxResponse["success"])
-        self.assertEquals("Could not find a team with url/id: {}".format(0), ajaxResponse["message"])
+        self.assertEqual("Could not find a team with url/id: {}".format(0), ajaxResponse["message"])
 
     def testDeleteTeamSuccessfully(self):
         testParams = self.TestParams().createTeam()

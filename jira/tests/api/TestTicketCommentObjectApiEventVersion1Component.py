@@ -27,7 +27,7 @@ class TicketCommentObjectApiEventVersion1ComponentTest(BaseTestAjax):
         ajaxResponse = json.loads(response.content)
 
         self.assertFalse(ajaxResponse["success"])
-        self.assertEquals(ajaxResponse["message"], "Please login to add a comment")
+        self.assertEqual(ajaxResponse["message"], "Please login to add a comment")
 
     def testCreateTicketCommentTicketDoesNotExist(self):
         payload = {
@@ -39,7 +39,7 @@ class TicketCommentObjectApiEventVersion1ComponentTest(BaseTestAjax):
         ajaxResponse = json.loads(response.content)
 
         self.assertFalse(ajaxResponse["success"])
-        self.assertEquals(ajaxResponse["message"], "Could not find a ticket with id: {}".format(payload['ticketId']))
+        self.assertEqual(ajaxResponse["message"], "Could not find a ticket with id: {}".format(payload['ticketId']))
 
     def testCreateTicketCommentSuccessfully(self):
         payload = {
@@ -84,8 +84,6 @@ class TicketCommentObjectApiEventVersion1ComponentTest(BaseTestAjax):
         self.assertTrue(ajaxResponse["success"])
         self.assertEqual(payload['comment'], self.testParams.ticketComment.comment)
         self.assertTrue(self.testParams.ticketComment.edited)
-
-
 
     class TestParams:
 

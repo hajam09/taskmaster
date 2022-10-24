@@ -7,10 +7,13 @@ class BaseTestAjax(BaseTest):
         super(BaseTestAjax, self).setUp(path)
         self.path = path
 
-    def get(self, data=None):
+    def get(self, data=None, path=None):
         if data is None:
             data = {}
-        return self.client.get(self.path, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        if path is None:
+            path = self.path
+        return self.client.get(path, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
 
     def post(self, data=None, path=None):
         if data is None:

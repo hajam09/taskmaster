@@ -257,10 +257,7 @@
             if (isAdminOptionsEmtpy || isMembersOptionsEmtpy) {
                 $.ajax(
                     {
-                        url: "{% url 'jira:profileObjectApiEventVersion1Component'%}",
-                        data: {
-                            id: 0
-                        },
+                        url: "{% url 'jira:profileObjectApiEventVersion2Component'%}",
                         type: 'get',
                         dataType: 'json',
                         success: function (response) {
