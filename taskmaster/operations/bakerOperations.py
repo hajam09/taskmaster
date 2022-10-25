@@ -112,9 +112,9 @@ def createTeamObjects(users=None):
     return teams
 
 
-def createBoard(boardType=Board.Types.SCRUM):
+def createBoard(boardType=Board.Types.SCRUM, internalKey="Test board"):
     board = Board.objects.create(
-        internalKey="Test board",
+        internalKey=internalKey,
         type=boardType,
     )
     # board.refresh_from_db()

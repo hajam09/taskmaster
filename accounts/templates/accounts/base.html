@@ -268,7 +268,7 @@
 
             if ($('#id_board > option').length === 0) {
 
-                fetch('{% url 'jira:boardObjectApiEventVersion1Component' boardId=0 %}', {
+                fetch('{% url 'jira:boardObjectApiEventVersion2Component' %}', {
                     method: 'GET',
                 }).then((response) => response.json())
                     .then((response) => {
@@ -285,7 +285,7 @@
 
             if ($('#id_assignee > option').length === 0) {
 
-                fetch('{% url 'jira:userObjectApiEventVersion1Component' userId=0 %}', {
+                fetch('{% url 'jira:userObjectApiEventVersion2Component' %}', {
                     method: 'GET',
                 }).then((response) => response.json())
                     .then((response) => {

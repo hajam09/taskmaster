@@ -1,11 +1,9 @@
 from django.contrib.messages import get_messages
 from django.contrib.messages.storage.fallback import FallbackStorage
-from django.core.cache import cache
 from django.test import Client
 from django.test import RequestFactory
 from django.test import TestCase
 
-from accounts.models import Component
 from taskmaster.operations import seedDataOperations, generalOperations
 from taskmaster.settings import TEST_PASSWORD
 from taskmaster.tests import userDataHelper

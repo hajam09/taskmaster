@@ -185,9 +185,19 @@ urlpatterns += [
         name='boardObjectApiEventVersion1Component'
     ),
     path(
+        'api/v2/boardObjectApiEventVersion2Component/',
+        BoardObjectApiEventVersion2Component.as_view(),
+        name='boardObjectApiEventVersion2Component'
+    ),
+    path(
         'api/v1/userObjectApiEventVersion1Component/<int:userId>',
         UserObjectApiEventVersion1Component.as_view(),
         name='userObjectApiEventVersion1Component'
+    ),
+    path(
+        'api/v2/userObjectApiEventVersion2Component/',
+        UserObjectApiEventVersion2Component.as_view(),
+        name='userObjectApiEventVersion2Component'
     ),
     path(
         'api/v1/ticketAttachmentObjectApiEventVersion1Component',

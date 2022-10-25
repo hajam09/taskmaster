@@ -43,11 +43,13 @@ class ProfileObjectApiEventVersion2ComponentTest(BaseTestAjax):
         bakerOperations.createUserObjects(6, 3)
         bakerOperations.createProfileObjects()
         profiles = Profile.objects.annotate(
-            aa=F('id'), firstName=F('user__first_name'), lastName=F('user__last_name')
+            pk=F('id'), firstName=F('user__first_name'), lastName=F('user__last_name')
         ).values('id', 'firstName', 'lastName')
 
         response = self.get()
         ajaxResponse = json.loads(response.content)
+
+        self.assertTrue(ajaxResponse["success"])
         self.assertEqual(profiles.count(), len(ajaxResponse["data"]["profiles"]))
         self.assertEqual(list(profiles), ajaxResponse["data"]["profiles"])
 

@@ -1998,6 +1998,23 @@ class BoardObjectApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
+class BoardObjectApiEventVersion2Component(View):
+
+    def get(self, *args, **kwargs):
+        boards = Board.objects.filter(**self.request.GET.dict())
+
+        response = {
+            "success": True,
+            "data": {
+                "boards": [
+                    board.serializeBoardVersion1()
+                    for board in boards
+                ]
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
 class UserObjectApiEventVersion1Component(View):
 
     def get(self, *args, **kwargs):
@@ -2019,6 +2036,22 @@ class UserObjectApiEventVersion1Component(View):
                     }
                     for user in users
                 ]
+            }
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class UserObjectApiEventVersion2Component(View):
+
+    def get(self, *args, **kwargs):
+        users = User.objects.all(**self.request.GET.dict()).annotate(
+            pk=F('id'), firstName=F('first_name'), lastName=F('last_name')
+        ).values('id', 'firstName', 'lastName')
+
+        response = {
+            "success": True,
+            "data": {
+                "users": list(users)
             }
         }
         return JsonResponse(response, status=HTTPStatus.OK)
