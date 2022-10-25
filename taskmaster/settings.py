@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'channels',
     'crispy_forms',
     'colorfield',
+    'coverage',
     'debug_toolbar',
     'jira',
 ]

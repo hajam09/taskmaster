@@ -20,6 +20,12 @@ DOMAINS = [".co.uk", ".com", ".co.in", ".net", ".us"]
 BOOLEAN = [True, False]
 JOB_TITLE = ['Software Engineer', 'Project Owner', 'Project Manager', 'UX/UI Designer', 'Solutions Architect']
 PROJECT_APPS = ['accounts', 'jira']
+DEPARTMENT = ['Marketing & Proposals Department', 'Sales Department', 'Project Department', 'Designing Department',
+              'Production Department', 'Maintenance Department', 'Store Department', 'Procurement Department',
+              'Quality Department', 'Inspection department', 'Packaging Department', 'Finance Department',
+              'Dispatch Department', 'Account Department', 'Research & Development Department',
+              'Information Technology Department', 'Human Resource Department', 'Security Department',
+              'Administration department']
 
 
 def generateString():
@@ -84,6 +90,7 @@ def createProfileObjects(users=None):
                     user=user,
                     publicName=user.get_full_name(),
                     jobTitle=random.choice(JOB_TITLE),
+                    department=random.choice(DEPARTMENT)
                 )
             )
 

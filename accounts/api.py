@@ -1,13 +1,13 @@
 import json
-import os
 from http import HTTPStatus
+from json import JSONDecodeError
 
-from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
+from django.db.models import Q
 from django.http import JsonResponse
 from django.views import View
-from django.db.models import Q
+
 from accounts.models import Profile, Component
 from taskmaster.operations import generalOperations
 
@@ -15,7 +15,10 @@ from taskmaster.operations import generalOperations
 class AccountSettingsSecurityPasswordUpdateApiEventVersion1Component(View):
 
     def put(self, *args, **kwargs):
-        put = json.loads(self.request.body)
+        try:
+            put = json.loads(self.request.body)
+        except JSONDecodeError:
+            put = json.loads(self.request.body.decode().replace('"', "'").replace("'", '"'))
 
         currentPassword = put.get('currentPassword')
         newPassword = put.get('newPassword')
@@ -70,7 +73,10 @@ class UserDetailsApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
     def put(self, *args, **kwargs):
-        put = json.loads(self.request.body)
+        try:
+            put = json.loads(self.request.body)
+        except JSONDecodeError:
+            put = json.loads(self.request.body.decode().replace('"', "'").replace("'", '"'))
 
         self.request.user.first_name = put.get("firstName")
         self.request.user.last_name = put.get("lastName")
