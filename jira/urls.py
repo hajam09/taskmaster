@@ -75,9 +75,9 @@ urlpatterns += [
         name='ticketCommentsApiEventVersion1Component'
     ),
     path(
-        'api/v1/ticketObjectApiEventVersion1Component/<int:ticketId>',
-        TicketObjectApiEventVersion1Component.as_view(),
-        name='ticketObjectApiEventVersion1Component'
+        'api/v1/ticketObjectColumnStatusAndResolutionApiEventVersion1Component/<int:ticketId>',
+        TicketObjectColumnStatusAndResolutionApiEventVersion1Component.as_view(),
+        name='ticketObjectColumnStatusAndResolutionApiEventVersion1Component'
     ),
     path(
         'api/v1/ticketObjectForEpicTicketApiEventVersion1Component/',

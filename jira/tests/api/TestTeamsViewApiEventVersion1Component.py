@@ -27,7 +27,9 @@ class TeamsViewApiEventVersion1ComponentTest(BaseTestAjax):
 
         path = reverse('jira:teamsViewApiEventVersion1Component', kwargs={'teamId': self.testParams.team.id})
         response = self.put(path=path)
+        ajaxResponse = json.loads(response.content)
 
+        self.assertTrue(ajaxResponse["success"])
         self.assertFalse(self.user in self.testParams.team.members.all())
         self.assertFalse(self.user in self.testParams.team.admins.all())
 

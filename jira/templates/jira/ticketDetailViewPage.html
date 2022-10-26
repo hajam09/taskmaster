@@ -493,7 +493,7 @@
 
             updateColumnStatus = (columnStatusId) => {
 
-                fetch('{% url 'jira:ticketObjectApiEventVersion1Component' ticketId=ticket.id %}', {
+                fetch('{% url 'jira:ticketObjectColumnStatusAndResolutionApiEventVersion1Component' ticketId=ticket.id %}', {
                     method: 'PUT',
                     body: JSON.stringify({
                         'columnStatus': columnStatusId,

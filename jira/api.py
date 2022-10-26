@@ -600,7 +600,7 @@ class TicketsForEpicTicketApiEventVersion1Component(View):
         return JsonResponse(response, status=HTTPStatus.OK)
 
 
-class TicketObjectApiEventVersion1Component(View):
+class TicketObjectColumnStatusAndResolutionApiEventVersion1Component(View):
 
     def put(self, *args, **kwargs):
         ticketId = self.kwargs.get("ticketId", None)
@@ -613,9 +613,12 @@ class TicketObjectApiEventVersion1Component(View):
                 "message": "Could not find a ticket with id: {}".format(ticketId)
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+        try:
+            put = json.loads(self.request.body)
+        except JSONDecodeError:
+            put = json.loads(self.request.body.decode().replace('"', "'").replace("'", '"'))
 
-        body = json.loads(self.request.body.decode())
-        for key, value in body.items():
+        for key, value in put.items():
             setattr(ticket, f"{key}_id", int(value))
 
         resolutionList = cache.get('TICKET_RESOLUTIONS')
