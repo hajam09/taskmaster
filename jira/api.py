@@ -1941,8 +1941,7 @@ class ProjectObjectApiEventVersion1Component(View):
 class LabelObjectApiEventVersion1Component(View):
 
     def get(self, *args, **kwargs):
-        labelId = None
-        labels = Label.objects.all() if labelId is None else Label.objects.filter(id=labelId)
+        labels = Label.objects.filter(**self.request.GET.dict())
 
         response = {
             "success": True,
