@@ -645,9 +645,13 @@ class TicketObjectColumnStatusAndResolutionApiEventVersion1Component(View):
 class SubTaskTicketObjectForTicketApiEventVersion1Component(View):
 
     def post(self, *args, **kwargs):
-        body = json.loads(self.request.body.decode())
-        parentTicketId = body.get("ticketId")
-        summary = body.get("ticketSummary")
+        try:
+            body = json.loads(self.request.body.decode())
+        except JSONDecodeError:
+            body = self.request.POST.dict()
+
+        parentTicketId = body.get("parentTicketId")
+        summary = body.get("summary")
 
         try:
             parentTicket = Ticket.objects.get(id=parentTicketId)

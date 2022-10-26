@@ -1401,8 +1401,8 @@
                         'Content-type': 'application/json',
                     },
                     body: JSON.stringify({
-                        'ticketId': this.props.ticket.id,
-                        'ticketSummary': this.refs.summaryInput.value,
+                        'parentTicketId': this.props.ticket.id,
+                        'summary': this.refs.summaryInput.value,
                     })
                 }).then((response) => response.json())
                     .then((response) => {

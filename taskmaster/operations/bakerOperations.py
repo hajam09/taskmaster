@@ -190,7 +190,7 @@ def createProject():
     return newProject
 
 
-def createTicket(columnStatus, project=None, issueType=None):
+def createTicket(columnStatus=None, project=None, issueType=None):
     if project is None:
         project = createProject()
 
