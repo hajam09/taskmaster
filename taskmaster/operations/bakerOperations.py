@@ -64,10 +64,9 @@ def createUserObjects(limit=20, maxLimit=20):
         firstName = fake.unique.first_name()
         lastName = fake.unique.last_name()
         email = firstName.lower() + '.' + lastName.lower() + random.choice(EMAIL_DOMAINS) + random.choice(DOMAINS)
-
-        BULK_USERS.append(
-            User(username=email, email=email, password=settings.TEST_PASSWORD, first_name=firstName, last_name=lastName)
-        )
+        user = User(username=email, email=email, first_name=firstName, last_name=lastName)
+        user.set_password(settings.TEST_PASSWORD)
+        BULK_USERS.append(user)
         uniqueEmails.append(email)
 
     User.objects.bulk_create(BULK_USERS)
