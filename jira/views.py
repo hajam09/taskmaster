@@ -250,22 +250,7 @@ def boards(request):
                 isPrivate=request.POST['boardVisibility'] == 'visibility-members'
             )
             columnList = bakerOperations.createColumns(newBoard)
-
-            c1 = databaseOperations.getObjectByInternalKey(columnList, 'BACKLOG')
-            c2 = databaseOperations.getObjectByInternalKey(columnList, 'TO DO')
-            c3 = databaseOperations.getObjectByInternalKey(columnList, 'IN PROGRESS')
-            c4 = databaseOperations.getObjectByInternalKey(columnList, 'DONE')
-
-            # mandatory ColumnStatus for a board
-            ColumnStatus.objects.bulk_create(
-                [
-                    ColumnStatus(internalKey="OPEN", board=newBoard, column=c1, category=ColumnStatus.Category.TODO),
-                    ColumnStatus(internalKey="TO DO", board=newBoard, column=c2, category=ColumnStatus.Category.TODO),
-                    ColumnStatus(internalKey="IN PROGRESS", board=newBoard, column=c3, category=ColumnStatus.Category.IN_PROGRESS),
-                    ColumnStatus(internalKey="DONE", board=newBoard, column=c4, setResolution=True, category=ColumnStatus.Category.DONE)
-                ]
-            )
-
+            bakerOperations.createColumnStatus(board=newBoard, columns=columnList)
             if request.POST['boardType'] == Board.Types.SCRUM:
                 Sprint.objects.create(
                     board=newBoard,

@@ -187,7 +187,7 @@ def createProject(lead=None):
     return newProject
 
 
-def createTicket(columnStatus=None, project=None, issueType=None):
+def createTicket(columnStatus=None, project=None, issueType=None, save=True):
     if project is None:
         project = createProject()
 
@@ -206,5 +206,6 @@ def createTicket(columnStatus=None, project=None, issueType=None):
     ticket.priority_id = next((i.id for i in cache.get('TICKET_PRIORITY') if i.code == 'MEDIUM'))
     ticket.columnStatus = columnStatus
     ticket.orderNo = 1
-    ticket.save()
+    if save:
+        ticket.save()
     return ticket

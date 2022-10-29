@@ -6,7 +6,6 @@ from datetime import datetime
 from http import HTTPStatus
 from json import JSONDecodeError
 
-import requests
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -1204,7 +1203,7 @@ class BacklogDetailsApiEventVersion2Component(View):
         except Board.DoesNotExist:
             response = {
                 "success": False,
-                "message": "Could not find a board for id: " + str(boardId)
+                "message": f"Could not find a board for id: {boardId}"
             }
             return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
 
@@ -1259,15 +1258,15 @@ class BacklogDetailsApiEventVersion2Component(View):
             developmentTickets = [i for i in boardTickets if i.columnStatus.internalKey != "OPEN"]
             backlogTickets = [i for i in boardTickets if i.columnStatus.internalKey == "OPEN"]
 
-            emptyDevelopmentTickets = serializeTicketsVersion2(developmentTickets)
-            emptyBacklogTickets = serializeTicketsVersion2(backlogTickets)
+            serializedDevelopmentTickets = serializeTicketsVersion2(developmentTickets)
+            serializedBacklogTickets = serializeTicketsVersion2(backlogTickets)
 
             backlogGroups.append(
                 {
                     "id": 1,
                     "internalKey": "In development",
                     "isActive": True,
-                    "tickets": emptyDevelopmentTickets
+                    "tickets": serializedDevelopmentTickets
                 }
             )
             backlogGroups.append(
@@ -1275,7 +1274,7 @@ class BacklogDetailsApiEventVersion2Component(View):
                     "id": 0,
                     "internalKey": "Backlog",
                     "isActive": False,
-                    "tickets": emptyBacklogTickets
+                    "tickets": serializedBacklogTickets
                 }
             )
 
