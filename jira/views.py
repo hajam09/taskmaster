@@ -13,7 +13,7 @@ from django.shortcuts import render, redirect
 from accounts.models import Profile, Component, Team
 from jira.forms import ProjectSettingsForm, TeamForm
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label, ColumnStatus, Sprint, ProjectComponent
-from taskmaster.operations import emailOperations, generalOperations
+from taskmaster.operations import emailOperations, generalOperations, bakerOperations, databaseOperations
 
 generalOperations.setCaches()
 
@@ -249,16 +249,12 @@ def boards(request):
                 type=request.POST['boardType'],
                 isPrivate=request.POST['boardVisibility'] == 'visibility-members'
             )
+            columnList = bakerOperations.createColumns(newBoard)
 
-            c1 = Column(board=newBoard, internalKey='BACKLOG', category=Column.Category.TODO, orderNo=1)
-            c2 = Column(board=newBoard, internalKey='TO DO', category=Column.Category.TODO, orderNo=2)
-            c3 = Column(board=newBoard, internalKey='IN PROGRESS', category=Column.Category.IN_PROGRESS, orderNo=3)
-            c4 = Column(board=newBoard, internalKey='DONE', category=Column.Category.DONE, orderNo=4)
-
-            c1.save()
-            c2.save()
-            c3.save()
-            c4.save()
+            c1 = databaseOperations.getObjectByInternalKey(columnList, 'BACKLOG')
+            c2 = databaseOperations.getObjectByInternalKey(columnList, 'TO DO')
+            c3 = databaseOperations.getObjectByInternalKey(columnList, 'IN PROGRESS')
+            c4 = databaseOperations.getObjectByInternalKey(columnList, 'DONE')
 
             # mandatory ColumnStatus for a board
             ColumnStatus.objects.bulk_create(

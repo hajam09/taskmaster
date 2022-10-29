@@ -129,9 +129,7 @@ def createBoard(boardType=Board.Types.SCRUM, internalKey="Test board"):
 
 
 def createColumns(board=None):
-    if board is None:
-        board = createBoard()
-
+    board = board or createBoard()
     c1 = Column(board=board, internalKey='BACKLOG', category=Column.Category.TODO, orderNo=1)
     c2 = Column(board=board, internalKey='TO DO', category=Column.Category.TODO, orderNo=2)
     c3 = Column(board=board, internalKey='IN PROGRESS', category=Column.Category.IN_PROGRESS, orderNo=3)
@@ -179,12 +177,12 @@ def createUser():
     return createUserObjects(1, 2).first()
 
 
-def createProject():
+def createProject(lead=None):
     newProject = Project()
     newProject.internalKey = "Test project"
     newProject.code = "TESTPROJECT"
     newProject.description = "Test Description"
-    newProject.lead = createUser()
+    newProject.lead = lead or createUser()
     newProject.status = None
     newProject.save()
     return newProject
