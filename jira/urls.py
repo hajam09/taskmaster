@@ -150,6 +150,11 @@ urlpatterns += [
         name='backlogDetailsApiEventVersion2Component'
     ),
     path(
+        'api/v3/backlogDetailsApiEventVersion3Component/<int:boardId>',
+        BacklogDetailsApiEventVersion3Component.as_view(),
+        name='backlogDetailsApiEventVersion3Component'
+    ),
+    path(
         'api/v1/epicDetailsForBoardApiEventVersion1Component/<int:boardId>',
         EpicDetailsForBoardApiEventVersion1Component.as_view(),
         name='epicDetailsForBoardApiEventVersion1Component'

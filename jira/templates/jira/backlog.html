@@ -898,7 +898,7 @@
 
 
             showAllBacklogGroupsAllTicketsComponent = () => {
-                fetch('{% url 'jira:backlogDetailsApiEventVersion2Component' boardId=board.id%}', {
+                fetch('{% url 'jira:backlogDetailsApiEventVersion3Component' boardId=board.id%}', {
                     method: 'GET',
                 }).then((response) => response.json())
                     .then((json) => {

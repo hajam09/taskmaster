@@ -6,6 +6,7 @@ from datetime import datetime
 from http import HTTPStatus
 from json import JSONDecodeError
 
+import requests
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -1196,7 +1197,7 @@ class BacklogDetailsApiEventVersion1Component(View):
 class BacklogDetailsApiEventVersion2Component(View):
 
     def get(self, *args, **kwargs):
-        boardId = self.kwargs.get("boardId", None)
+        boardId = kwargs.get("boardId", None)
 
         try:
             board = Board.objects.prefetch_related('boardSprints').get(id=boardId)
@@ -1346,6 +1347,70 @@ class BacklogDetailsApiEventVersion2Component(View):
 
         response = {
             "success": True,
+        }
+        return JsonResponse(response, status=HTTPStatus.OK)
+
+
+class BacklogDetailsApiEventVersion3Component(View):
+
+    def get(self, *args, **kwargs):
+        boardId = kwargs.get("boardId", None)
+
+        try:
+            board = Board.objects.prefetch_related('boardSprints').get(id=boardId)
+        except Board.DoesNotExist:
+            response = {
+                "success": False,
+                "message": "Could not find a board for id: " + str(boardId)
+            }
+            return JsonResponse(response, status=HTTPStatus.NOT_FOUND)
+
+        backlogGroups = []
+        if board.type == Board.Types.SCRUM:
+            openSprints = Sprint.objects.filter(board__id=boardId, isComplete=False).prefetch_related(
+                'tickets').order_by('orderNo')
+            ticketsForAllOpenSprints = Ticket.objects.filter(
+                Q(sprintTickets__in=openSprints), ~Q(issueType__code="EPIC")).select_related(
+                'assignee__profile', 'epic', 'issueType', 'priority', 'resolution'
+            )
+
+            for sprint in openSprints:
+                thisSprintTickets = sprint.tickets.all()
+                requiredSprintTickets = [ticket for ticket in ticketsForAllOpenSprints if ticket in thisSprintTickets]
+                serializedTickets = serializeTicketsVersion2(requiredSprintTickets)
+                sprintData = {
+                    'id': sprint.id,
+                    'internalKey': sprint.internalKey,
+                    'isActive': openSprints[0].id == sprint.id,
+                    'tickets': serializedTickets,
+                }
+                backlogGroups.append(sprintData)
+                #
+
+            # Get backlog group and its tickets.
+            backlogTickets = Ticket.objects.filter(
+                ~Q(issueType__code="EPIC"), columnStatus__board__id=boardId, columnStatus__internalKey="OPEN"
+            ).select_related('assignee__profile', 'epic', 'issueType', 'priority', 'resolution')
+
+            serializedTickets = serializeTicketsVersion2(backlogTickets)
+            backlogGroups.append(
+                {
+                    'id': 0,
+                    'internalKey': 'Backlog',
+                    'isActive': False,
+                    'tickets': serializedTickets,
+                }
+            )
+        else:
+            version2Response = BacklogDetailsApiEventVersion2Component().get(boardId=boardId)
+            if version2Response.status_code == HTTPStatus.OK:
+                return JsonResponse(json.loads(version2Response.content), status=HTTPStatus.OK)
+
+        response = {
+            "success": True,
+            "data": {
+                "backlogGroups": backlogGroups,
+            }
         }
         return JsonResponse(response, status=HTTPStatus.OK)
 
