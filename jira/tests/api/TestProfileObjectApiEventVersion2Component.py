@@ -6,7 +6,6 @@ from django.urls import reverse
 
 from accounts.models import Profile
 from taskmaster.operations import databaseOperations, bakerOperations
-from taskmaster.tests import userDataHelper
 from taskmaster.tests.BaseTestAjax import BaseTestAjax
 
 
@@ -52,9 +51,3 @@ class ProfileObjectApiEventVersion2ComponentTest(BaseTestAjax):
         self.assertTrue(ajaxResponse["success"])
         self.assertEqual(profiles.count(), len(ajaxResponse["data"]["profiles"]))
         self.assertEqual(list(profiles), ajaxResponse["data"]["profiles"])
-
-    class TestParams:
-        def __init__(self):
-            self.ticket = bakerOperations.createTicket(columnStatus=None, project=None)
-            self.ticketComment = None
-            self.user = userDataHelper.createNewUser()

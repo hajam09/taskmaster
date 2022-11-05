@@ -10,6 +10,7 @@ from taskmaster.tests import userDataHelper
 
 
 class BaseTest(TestCase):
+    # coverage run --source='.' manage.py test && coverage html
 
     def setUp(self, url='') -> None:
         """

@@ -110,6 +110,7 @@ def createTeamObjects(users=None):
         team.isPrivate = random.choice(BOOLEAN)
         team.description = generateString()
         team.save()
+        team.refresh_from_db()
 
         team.admins.add(userGroup[0])
         team.members.add(*userGroup[1:])

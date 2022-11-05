@@ -2,12 +2,10 @@ from datetime import datetime
 
 from django import forms
 from django.contrib import messages
-from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 
-from accounts.models import Profile, ComponentGroup, Component, Team
-from jira.models import Project, Board
+from accounts.models import Profile, Team
 from taskmaster.operations import generalOperations
 
 
@@ -71,7 +69,6 @@ class TeamForm(forms.Form):
         self.base_fields['visibility'].initial = 'EVERYONE'
 
     def clean(self):
-        super(TeamForm, self).clean()
         name = self.cleaned_data.get("name")
         if Team.objects.filter(internalKey=name).exists():
             messages.error(

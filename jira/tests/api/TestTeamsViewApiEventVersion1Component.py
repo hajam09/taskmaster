@@ -47,15 +47,15 @@ class TeamsViewApiEventVersion1ComponentTest(BaseTestAjax):
             self.team = team
             return self
 
-        def getData(self):
-            data = {
-                "teamId": self.team.id,
-            }
-            return data
-
-        def getPayloadAsPutFormat(self):
-            putData = [
-                f"{k}={v}"
-                for k, v in self.getData().items()
-            ]
-            return "&".join(putData)
+        # def getData(self):
+        #     data = {
+        #         "teamId": self.team.id,
+        #     }
+        #     return data
+        #
+        # def getPayloadAsPutFormat(self):
+        #     putData = [
+        #         f"{k}={v}"
+        #         for k, v in self.getData().items()
+        #     ]
+        #     return "&".join(putData)
