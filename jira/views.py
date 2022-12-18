@@ -13,7 +13,7 @@ from django.shortcuts import render, redirect
 from accounts.models import Profile, Component, Team
 from jira.forms import ProjectSettingsForm, TeamForm
 from jira.models import Board, Project, Column, Ticket, TicketAttachment, Label, ColumnStatus, Sprint, ProjectComponent
-from taskmaster.operations import emailOperations, generalOperations, bakerOperations, databaseOperations
+from taskmaster.operations import emailOperations, generalOperations, bakerOperations
 
 generalOperations.setCaches()
 

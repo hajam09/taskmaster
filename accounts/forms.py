@@ -241,19 +241,19 @@ class PasswordUpdateForm(forms.Form):
         self.user.set_password(newPassword)
         self.user.save()
 
-    def reAuthenticate(self):
-        newPassword = self.cleaned_data.get('newPassword')
-        user = authenticate(username=self.user.username, password=newPassword)
-        if user:
-            messages.success(
-                self.request,
-                'Your password has been updated.'
-            )
-            login(self.request, user)
-            return True
-        else:
-            messages.warning(
-                self.request,
-                'Something happened. Try to login to the system again.'
-            )
-            return False
+    # def reAuthenticate(self):
+    #     newPassword = self.cleaned_data.get('newPassword')
+    #     user = authenticate(username=self.user.username, password=newPassword)
+    #     if user:
+    #         messages.success(
+    #             self.request,
+    #             'Your password has been updated.'
+    #         )
+    #         login(self.request, user)
+    #         return True
+    #     else:
+    #         messages.warning(
+    #             self.request,
+    #             'Something happened. Try to login to the system again.'
+    #         )
+    #         return False

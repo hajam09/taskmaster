@@ -11,14 +11,28 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db.models import F
 from django.db.models import Q
-from django.http import QueryDict, JsonResponse
+from django.http import JsonResponse
+from django.http import QueryDict
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from accounts.models import Team, Component, TeamChatMessage, Profile
-from jira.models import Board, Column, Label, Ticket, Project, Sprint, TicketComment, TicketAttachment, ColumnStatus, ProjectComponent
-from taskmaster.operations import databaseOperations, generalOperations
+from accounts.models import Component
+from accounts.models import Profile
+from accounts.models import Team
+from accounts.models import TeamChatMessage
+from jira.models import Board
+from jira.models import Column
+from jira.models import ColumnStatus
+from jira.models import Label
+from jira.models import Project
+from jira.models import ProjectComponent
+from jira.models import Sprint
+from jira.models import Ticket
+from jira.models import TicketAttachment
+from jira.models import TicketComment
+from taskmaster.operations import databaseOperations
+from taskmaster.operations import generalOperations
 
 
 def compare(s1, s2):

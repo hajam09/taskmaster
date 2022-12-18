@@ -47,11 +47,12 @@ def serializeUserVersion2(user: User):
 
 
 def setCaches():
-    cache.set('TICKET_ISSUE_TYPE', Component.objects.filter(componentGroup__code='TICKET_ISSUE_TYPE'), None)
-    cache.set('PROJECT_STATUS', Component.objects.filter(componentGroup__code='PROJECT_STATUS'), None)
-    cache.set('TICKET_PRIORITY', Component.objects.filter(componentGroup__code='TICKET_PRIORITY'), None)
-    cache.set('TICKET_RESOLUTIONS', Component.objects.filter(componentGroup__code='TICKET_RESOLUTIONS'), None)
-    cache.set('FILE_ICONS', Component.objects.filter(componentGroup__code='FILE_ICONS'), None)
+    componentList = Component.objects.all().select_related('componentGroup')
+    cache.set('TICKET_ISSUE_TYPE', [i for i in componentList if i.componentGroup.code == 'TICKET_ISSUE_TYPE'], None)
+    cache.set('PROJECT_STATUS', [i for i in componentList if i.componentGroup.code == 'PROJECT_STATUS'], None)
+    cache.set('TICKET_PRIORITY', [i for i in componentList if i.componentGroup.code == 'TICKET_PRIORITY'], None)
+    cache.set('TICKET_RESOLUTIONS', [i for i in componentList if i.componentGroup.code == 'TICKET_RESOLUTIONS'], None)
+    cache.set('FILE_ICONS', [i for i in componentList if i.componentGroup.code == 'FILE_ICONS'], None)
 
 
 def getRandomAvatar():
