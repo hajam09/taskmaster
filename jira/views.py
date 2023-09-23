@@ -140,7 +140,7 @@ def team(request, url):
 
     teamTickets = Ticket.objects.filter(
         Q(assignee_id__in=uniqueAssociateIds) | Q(reporter_id__in=uniqueAssociateIds)
-    ).select_related('priority', 'issueType', 'assignee__profile').order_by('-modifiedDttm')[:5]
+    ).select_related('priority', 'issueType', 'assignee__profile').order_by('-modifiedDateTime')[:5]
 
     uniqueAssociates = set(
         thisTeam.admins.prefetch_related('profile') | thisTeam.members.prefetch_related('profile')
@@ -450,8 +450,8 @@ def issuesListView(request):
             'id': ticket.id,
             'internalKey': ticket.internalKey,
             'summary': ticket.summary,
-            'created': ticket.createdDttm.date(),
-            'modified': ticket.modifiedDttm.date(),
+            'created': ticket.createdDateTime.date(),
+            'modified': ticket.modifiedDateTime.date(),
             'link': ticket.getTicketUrl(),
             'resolution': ticket.resolution.serializeComponentVersion1(),
             'issueType': ticket.issueType.serializeComponentVersion1(),

@@ -24,12 +24,10 @@ class BaseModelManager(models.Manager):
 
 
 class BaseModel(models.Model):
-    createdDttm = models.DateTimeField(default=timezone.now)
-    modifiedDttm = models.DateTimeField(auto_now=True)
+    createdDateTime = models.DateTimeField(default=timezone.now)
+    modifiedDateTime = models.DateTimeField(auto_now=True)
     reference = models.CharField(max_length=2048, blank=True, null=True)
-    deleteFl = models.BooleanField(default=False)
     orderNo = models.IntegerField(default=1, blank=True, null=True)
-    versionNo = models.IntegerField(default=1, blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -139,8 +137,8 @@ class TeamChatMessage(BaseModel):
         return profile.profilePicture.url
 
     def getChatTime(self):
-        hour = self.createdDttm.hour
-        minute = self.createdDttm.minute
+        hour = self.createdDateTime.hour
+        minute = self.createdDateTime.minute
         if len(str(minute)) == 1:
             minute = f'0{minute}'
         meridiem = "am" if hour < 12 else "pm"

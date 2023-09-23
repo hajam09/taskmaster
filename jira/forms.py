@@ -15,8 +15,6 @@ class TeamForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 'class': 'form-control col',
-                'placeholder': 'Team name',
-
             }
         ),
     )
@@ -25,7 +23,6 @@ class TeamForm(forms.Form):
         widget=forms.Textarea(
             attrs={
                 'class': 'form-control col',
-                'placeholder': 'Team description',
                 'rows': 5,
             }
         )
