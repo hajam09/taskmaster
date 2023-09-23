@@ -1,0 +1,93 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load templateTags %}
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
+    <div class="container d-flex justify-content-center mt-5" style="color: black;">
+        <div class="card" id="idCardWideComponent">
+            <legend>
+                <h2 class="heading-h2 text-center">Teams</h2>
+                <button type="button" class="btn btn-sm float-right mr-2" id="add-team-btn">Add Team</button>
+            </legend>
+            <form method="post" class="p-4" id="form-id-new-team"
+                  style="display: {% if form.errors %}block{% else %}none{% endif %}">
+                {% csrf_token %}
+                {% for field in form %}
+                    {% renderFormFields field %}
+                    {% for error in field.errors %}
+                        <p class="text-center" style="color: red;"><small>{{ error }}</small></p>
+                    {% endfor %}
+                    <br>
+                {% endfor %}
+
+                <div class="text-right">
+                    <input type="button" class="btn btn-sm btn-cancel" id="close-team-btn" value="Cancel">
+                    <input type="submit" class="btn btn-sm btn-submit" value="Submit">
+                </div>
+            </form>
+            <table id="teamTable" class="table table-sm table-bordered table-hover" style="color: black;">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Admin</th>
+                    <th>Members</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for team in teams %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'core:team-view' url=team.url %}">{{ team.name }}</a>
+                        </td>
+                        <td>
+                            {% renderSingleOrGroupUserAvatars team.admins.all %}
+                        </td>
+                        <td>
+                            {% renderSingleOrGroupUserAvatars team.members.all %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+        const newTeamBtn = document.getElementById('add-team-btn');
+        const closeTeamBtn = document.getElementById('close-team-btn');
+        const newTeamForm = document.getElementById('form-id-new-team');
+
+        newTeamBtn.addEventListener('click', function () {
+            if (newTeamForm.style.display === 'none') {
+                newTeamForm.style.display = 'block';
+            } else {
+                newTeamForm.style.display = 'none';
+            }
+        });
+
+        closeTeamBtn.addEventListener('click', function () {
+            newTeamForm.style.display = 'none';
+        });
+
+        $(document).ready(function () {
+            $('.select2bs4').select2();
+        });
+
+        $(function () {
+            $("#teamTable").DataTable(
+                {
+                    "responsive": true,
+                    "autoWidth": false,
+                    "paging": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": false,
+                    "pageLength": 18,
+                }
+            );
+            $('#teamTable_length').remove();
+        });
+    </script>
+{% endblock %}

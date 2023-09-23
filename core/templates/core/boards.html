@@ -1,0 +1,109 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load templateTags %}
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
+    <div class="container d-flex justify-content-center mt-5" style="color: black;">
+        <div class="card" id="idCardWideComponent">
+            <legend>
+                <h2 class="heading-h2 text-center">Boards</h2>
+                <button type="button" class="btn btn-sm float-right mr-2" id="add-board-btn">Add Board</button>
+            </legend>
+            <form method="post" class="p-4" id="form-id-new-board"
+                  style="display: {% if form.errors %}block{% else %}none{% endif %}">
+                {% csrf_token %}
+                {% for field in form %}
+                    {% renderFormFields field %}
+                    {% for error in field.errors %}
+                        <p class="text-center" style="color: red;"><small>{{ error }}</small></p>
+                    {% endfor %}
+                    <br>
+                {% endfor %}
+
+                <div class="text-right">
+                    <input type="button" class="btn btn-sm btn-cancel" id="close-board-btn" value="Cancel">
+                    <input type="submit" class="btn btn-sm btn-submit" value="Submit">
+                </div>
+            </form>
+            <table id="boardTable" class="table table-sm table-bordered table-hover" style="color: black;">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Admins</th>
+                    <th>Members</th>
+                    <th>Type</th>
+                    <th>Visibility</th>
+                    <th>Project</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for board in boards %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'core:board-view' url=board.url %}">{{ board.name }}</a>
+                        </td>
+                        <td>
+                            {% renderSingleOrGroupUserAvatars board.admins.all %}
+                        </td>
+                        <td>
+                            {% renderSingleOrGroupUserAvatars board.members.all %}
+                        </td>
+                        <td>
+                                <span class="badge badge-{% if board.type == 'KANBAN' %}primary{% else %}secondary{% endif %}">
+                                    {{ board.get_type_display }}
+                                </span>
+                        </td>
+                        <td>
+                                <span class="badge badge-{% if board.isPrivate %}danger{% else %}success{% endif %}">
+                                    {% if board.isPrivate %}Private{% else %}Public{% endif %}
+                                </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'core:project-view' url=board.project.url %}">{{ board.project.name }}</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+        const newBoardBtn = document.getElementById('add-board-btn');
+        const closeBoardBtn = document.getElementById('close-board-btn');
+        const newBoardForm = document.getElementById('form-id-new-board');
+
+        newBoardBtn.addEventListener('click', function () {
+            if (newBoardForm.style.display === 'none') {
+                newBoardForm.style.display = 'block';
+            } else {
+                newBoardForm.style.display = 'none';
+            }
+        });
+
+        closeBoardBtn.addEventListener('click', function () {
+            newBoardForm.style.display = 'none';
+        });
+
+        $(document).ready(function () {
+            $('.select2bs4').select2();
+        });
+
+        $(function () {
+            $("#boardTable").DataTable(
+                {
+                    "responsive": true,
+                    "autoWidth": false,
+                    "paging": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": false,
+                    "pageLength": 18,
+                }
+            );
+            $('#boardTable_length').remove();
+        });
+    </script>
+{% endblock %}
