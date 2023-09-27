@@ -19,7 +19,7 @@ class Command(BaseCommand):
     help = 'Seed data installer'
 
     NUMBER_OF_PROFILES = 10
-    NUMBER_OF_PROJECTS = 50
+    NUMBER_OF_PROJECTS = 20
     NUMBER_OF_PROJECT_COMPONENT = 10
     NUMBER_OF_BOARDS = 5
     NUMBER_OF_LABELS = 40
@@ -28,20 +28,27 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
 
         # self.handler_deleteProjectComponents()
-        self.handler_deleteProject()
+        #
         # self.handler_deleteBoards()
-        self.handler_deleteUsersAndProfiles()
+
         # self.handler_deleteLabels()
         # self.handler_deleteColumns()
         # self.handler_deleteTickets()
         #
-        self.handler_createUsersAndProfiles()
-        self.handler_createProject()
+
+
+        #
         # self.handler_createProjectComponents()
         # self.handler_createBoards()
         # self.handler_createLabels()
         # self.handler_createColumns()
         # self.handler_createTickets()
+
+        self.handler_deleteProject()
+        self.handler_deleteUsersAndProfiles()
+        #
+        self.handler_createUsersAndProfiles()
+        self.handler_createProject()
 
         self.stdout.write("Seed data installed successfully")
 

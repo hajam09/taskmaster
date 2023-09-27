@@ -25,7 +25,7 @@ class Project(BaseModel):
     lead = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     startDate = models.DateField(default=timezone.now)
     endDate = models.DateField(default=timezone.datetime.max)
-    status = models.ForeignKey(Component, null=True, on_delete=models.SET_NULL, related_name="projectStatus")
+    status = models.ForeignKey(Component, null=True, on_delete=models.SET_NULL, limit_choices_to={"componentGroup__code": "PROJECT_STATUS"}, related_name="projectStatus")
     members = models.ManyToManyField(User, blank=True, related_name="projectMembers")
     watchers = models.ManyToManyField(User, blank=True, related_name="projectWatchers")
     icon = models.ImageField(upload_to="project-icons/", default=getRandomProjectIcon)
@@ -44,7 +44,7 @@ class Project(BaseModel):
         return self.internalKey
 
     def getUrl(self):
-        return reverse('jira:issuesListView') + f'?project={self.internalKey}'
+        return reverse("jira:issuesListView") + f"?project={self.internalKey}"
 
     def serializeProjectVersion1(self):
         return {
@@ -58,10 +58,10 @@ class Project(BaseModel):
 
 class ProjectComponent(BaseModel):
     class Status(models.TextChoices):
-        ACTIVE = 'ACTIVE', _('Active')
-        ARCHIVED = 'ARCHIVED', _('Archived')
-        DRAFT = 'DRAFT', _('Draft')
-        IN_ACTIVE = 'IN_ACTIVE', _('In Active')
+        ACTIVE = "ACTIVE", _("Active")
+        ARCHIVED = "ARCHIVED", _("Archived")
+        DRAFT = "DRAFT", _("Draft")
+        IN_ACTIVE = "IN_ACTIVE", _("In Active")
 
     internalKey = models.CharField(max_length=2048, blank=True, null=True, unique=True)
     project = models.ForeignKey(Project, on_delete=models.PROTECT, null=True, related_name="projectComponents")
@@ -110,8 +110,8 @@ class ProjectComponent(BaseModel):
 
 class Board(BaseModel):
     class Types(models.TextChoices):
-        SCRUM = 'SCRUM', _('Scrum')
-        KANBAN = 'KANBAN', _('Kanban')
+        SCRUM = "SCRUM", _("Scrum")
+        KANBAN = "KANBAN", _("Kanban")
 
     internalKey = models.CharField(max_length=2048, blank=True, null=True, unique=True)
     url = models.SlugField(max_length=10, editable=settings.DEBUG, unique=True, default=generateString, db_index=True)
@@ -124,13 +124,13 @@ class Board(BaseModel):
     class Meta:
         verbose_name = "Board"
         verbose_name_plural = "Boards"
-        ordering = ['orderNo']
+        ordering = ["orderNo"]
 
     def __str__(self):
         return self.internalKey
 
     def getUrl(self):
-        return reverse('jira:board-page', kwargs={'url': self.url})
+        return reverse("jira:board-page", kwargs={"url": self.url})
 
     def hasAccessPermission(self, user):
         if not self.isPrivate:
@@ -170,23 +170,23 @@ class Label(BaseModel):
 
 class Column(BaseModel):
     class Category(models.TextChoices):
-        TODO = 'TODO', _('To Do')
-        IN_PROGRESS = 'IN_PROGRESS', _('In Progress')
-        DONE = 'DONE', _('Done')
+        TODO = "TODO", _("To Do")
+        IN_PROGRESS = "IN_PROGRESS", _("In Progress")
+        DONE = "DONE", _("Done")
 
     class Colour(models.TextChoices):
-        TODO = '#42526E', _('#42526E')
-        IN_PROGRESS = '#0052CC', _('#0052CC')
-        DONE = '#00875A', _('#00875A')
+        TODO = "#42526E", _("#42526E")
+        IN_PROGRESS = "#0052CC", _("#0052CC")
+        DONE = "#00875A", _("#00875A")
 
-    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='boardColumns')
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name="boardColumns")
     internalKey = models.CharField(max_length=2048)
     category = models.CharField(max_length=16, choices=Category.choices, default=Category.IN_PROGRESS)
 
     class Meta:
         verbose_name = "Column"
         verbose_name_plural = "Columns"
-        ordering = ['orderNo']
+        ordering = ["orderNo"]
 
     def __str__(self):
         return self.internalKey
@@ -196,8 +196,8 @@ class Column(BaseModel):
         super().validate_unique(*args, **kwargs)
         if self.__class__.objects.filter(id=None, board=self.board, internalKey=self.internalKey).exists():
             raise ValidationError(
-                message='Column name for this board already exists.',
-                code='unique_together',
+                message="Column name for this board already exists.",
+                code="unique_together",
             )
 
     def getColour(self):
@@ -212,14 +212,14 @@ class Column(BaseModel):
 
 class ColumnStatus(BaseModel):
     class Category(models.TextChoices):
-        TODO = 'TODO', _('To Do')
-        IN_PROGRESS = 'IN_PROGRESS', _('In Progress')
-        DONE = 'DONE', _('Done')
+        TODO = "TODO", _("To Do")
+        IN_PROGRESS = "IN_PROGRESS", _("In Progress")
+        DONE = "DONE", _("Done")
 
     class Colour(models.TextChoices):
-        TODO = '#42526E', _('#42526E')  # dfe1e5
-        IN_PROGRESS = '#0052CC', _('#0052CC')  # deebff
-        DONE = '#00875A', _('#00875A')  # e3fcef
+        TODO = "#42526E", _("#42526E")  # dfe1e5
+        IN_PROGRESS = "#0052CC", _("#0052CC")  # deebff
+        DONE = "#00875A", _("#00875A")  # e3fcef
 
     internalKey = models.CharField(max_length=2048)
     board = models.ForeignKey(Board, blank=True, null=True, on_delete=models.CASCADE, related_name="boardColumnStatus")
@@ -265,15 +265,15 @@ class Ticket(BaseModel):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, null=True, related_name="projectTickets")
     assignee = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="ticketAssignee")
     reporter = models.ForeignKey(User, on_delete=models.PROTECT, related_name="ticketReporter")
-    subTask = models.ManyToManyField('Ticket', blank=True, related_name="ticketSubTask")
+    subTask = models.ManyToManyField("Ticket", blank=True, related_name="ticketSubTask")
     component = models.ManyToManyField(ProjectComponent, blank=True, related_name="ticketProjectComponents")
-    resolution = models.ForeignKey(Component, on_delete=models.SET_NULL, null=True, related_name="ticketResolutions", limit_choices_to={'componentGroup__code': 'TICKET_RESOLUTIONS'})
-    issueType = models.ForeignKey(Component, on_delete=models.PROTECT, related_name="ticketIssueType", limit_choices_to={'componentGroup__code': 'TICKET_ISSUE_TYPE'})
-    priority = models.ForeignKey(Component, on_delete=models.PROTECT, related_name="ticketPriority", limit_choices_to={'componentGroup__code': 'TICKET_PRIORITY'})
-    columnStatus = models.ForeignKey(ColumnStatus, blank=True, null=True, on_delete=models.SET_NULL, related_name='columnStatusTickets')
-    epic = models.ForeignKey('Ticket', null=True, blank=True, on_delete=models.SET_NULL, related_name="epicTickets", limit_choices_to={'issueType__code': 'EPIC'})
-    linkType = models.ForeignKey(Component, null=True, blank=True, on_delete=models.SET_NULL, related_name="ticketLinkType", limit_choices_to={'componentGroup__code': 'TICKET_LINK_TYPE'})
-    linkedIssues = models.ManyToManyField('Ticket', blank=True, related_name="ticketLinkedIssues")
+    resolution = models.ForeignKey(Component, on_delete=models.SET_NULL, null=True, related_name="ticketResolutions", limit_choices_to={"componentGroup__code": "TICKET_RESOLUTIONS"})
+    issueType = models.ForeignKey(Component, on_delete=models.PROTECT, related_name="ticketIssueType", limit_choices_to={"componentGroup__code": "TICKET_ISSUE_TYPE"})
+    priority = models.ForeignKey(Component, on_delete=models.PROTECT, related_name="ticketPriority", limit_choices_to={"componentGroup__code": "TICKET_PRIORITY"})
+    columnStatus = models.ForeignKey(ColumnStatus, blank=True, null=True, on_delete=models.SET_NULL, related_name="columnStatusTickets")
+    epic = models.ForeignKey("Ticket", null=True, blank=True, on_delete=models.SET_NULL, related_name="epicTickets", limit_choices_to={"issueType__code": "EPIC"})
+    linkType = models.ForeignKey(Component, null=True, blank=True, on_delete=models.SET_NULL, related_name="ticketLinkType", limit_choices_to={"componentGroup__code": "TICKET_LINK_TYPE"})
+    linkedIssues = models.ManyToManyField("Ticket", blank=True, related_name="ticketLinkedIssues")
 
     # advanced columns
     label = models.ManyToManyField(Label, blank=True, related_name="ticketLabels")
@@ -294,18 +294,18 @@ class Ticket(BaseModel):
 
     def serializeTicketVersion1(self):
         return {
-            'id': self.id or None,
-            'internalKey': self.internalKey,
+            "id": self.id or None,
+            "internalKey": self.internalKey,
         }
 
     def __str__(self):
         return self.summary
 
     def getTicketUrl(self):
-        return reverse('jira:ticket-detail-view', kwargs={'internalKey': self.internalKey})
+        return reverse("jira:ticket-detail-view", kwargs={"internalKey": self.internalKey})
 
     def getEpicUrl(self):
-        return reverse('jira:ticket-detail-view', kwargs={'internalKey': self.epic.internalKey})
+        return reverse("jira:ticket-detail-view", kwargs={"internalKey": self.epic.internalKey})
 
 
 class TicketAttachment(BaseModel):
@@ -319,7 +319,7 @@ class TicketAttachment(BaseModel):
         verbose_name_plural = "TicketAttachments"
 
     def __str__(self):
-        return self.internalKey  # f'{self.ticket} {self.internalKey}'
+        return self.internalKey  # f"{self.ticket} {self.internalKey}"
 
 
 class TicketComment(BaseModel):
