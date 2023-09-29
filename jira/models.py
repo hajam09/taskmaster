@@ -299,7 +299,7 @@ class Ticket(BaseModel):
         }
 
     def __str__(self):
-        return self.summary
+        return self.internalKey
 
     def getTicketUrl(self):
         return reverse("jira:ticket-detail-view", kwargs={"internalKey": self.internalKey})

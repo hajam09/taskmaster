@@ -129,7 +129,8 @@
                         <h4>{{ team.internalKey }}</h4>
 
                         {% if team.isPrivate %}
-                            <p class="text-secondary">&nbsp;<i class="fas fa-unlock-alt"></i>&nbsp;&nbsp;Private team</p>
+                            <p class="text-secondary">&nbsp;<i class="fas fa-unlock-alt"></i>&nbsp;&nbsp;Private team
+                            </p>
                         {% else %}
                             <p class="text-secondary">&nbsp;<i class="fas fa-unlock"></i>&nbsp;&nbsp;Open team</p>
                         {% endif %}
@@ -185,29 +186,29 @@
                     <div class="col-md-7" id="div-id-forum-list-container">
                         <h5>Team activity</h5>
                         <div class="card">
-                                {% for ticket in teamTickets %}
-                                    <div class="card" id={{ ticket.id }}>
-                                        <div class="card-body" style="height: 10px;">
-                                            <div class="row">
-                                                <div class="col-auto" style="margin-top: -13px; margin-left: -10px;">
-                                                    <img src={{ ticket.issueType.icon }} width="20" height="20"
-                                                         data-toggle="tooltip"
-                                                         data-placement="top"
-                                                         title={{ ticket.issueType.internalKey }}/>
-                                                </div>
-                                                <div class="col-auto" style="margin-top: -11px; margin-left: -13px;">
-                                                    <a href={{ ticket.getTicketUrl }}>{{ ticket.internalKey }}</a>
-                                                </div>
-                                                <div class="col" style="margin-top: -11px; margin-left: -13px;">
-                                                    <span>{{ ticket.summary }}</span>
-                                                </div>
-                                                <div class="col-auto" style="margin-top: -13px; margin-left: -13px;">
-                                                    <img src={{ ticket.priority.icon }} width="20" height="20"
-                                                         data-toggle="tooltip"
-                                                         data-placement="top"
-                                                         title={{ ticket.priority.internalKey }}>
-                                                </div>
-                                                <div class="col-auto" style="margin-top: -12px; margin-left: -25px;">
+                            {% for ticket in teamTickets %}
+                                <div class="card" id={{ ticket.id }}>
+                                    <div class="card-body" style="height: 10px;">
+                                        <div class="row">
+                                            <div class="col-auto" style="margin-top: -13px; margin-left: -10px;">
+                                                <img src={{ ticket.issueType.icon }} width="20" height="20"
+                                                     data-toggle="tooltip"
+                                                     data-placement="top"
+                                                     title={{ ticket.issueType.internalKey }}/>
+                                            </div>
+                                            <div class="col-auto" style="margin-top: -11px; margin-left: -13px;">
+                                                <a href={{ ticket.getTicketUrl }}>{{ ticket.internalKey }}</a>
+                                            </div>
+                                            <div class="col" style="margin-top: -11px; margin-left: -13px;">
+                                                <span>{{ ticket.summary }}</span>
+                                            </div>
+                                            <div class="col-auto" style="margin-top: -13px; margin-left: -13px;">
+                                                <img src={{ ticket.priority.icon }} width="20" height="20"
+                                                     data-toggle="tooltip"
+                                                     data-placement="top"
+                                                     title={{ ticket.priority.internalKey }}>
+                                            </div>
+                                            <div class="col-auto" style="margin-top: -12px; margin-left: -25px;">
                                                     <span class="badge badge-pill badge-secondary">
                                                         {% if ticket.storyPoints %}
                                                             {{ ticket.storyPoints }}
@@ -215,29 +216,29 @@
                                                             -
                                                         {% endif %}
                                                     </span>
-                                                </div>
-                                                <div class="col-auto" style="margin-top: -15px; margin-left: -25px;">
-                                                    {% if ticket.assignee %}
-                                                        <img src="{{ ticket.assignee.profile.profilePicture.url }}"
-                                                             class="ghx-avatar-img"
-                                                             data-toggle="tooltip"
-                                                             data-placement="top"
-                                                             title={{ ticket.assignee.get_full_name }}
-                                                             loading="lazy">
-                                                    {% else %}
-                                                        <img src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
-                                                             class="ghx-avatar-img"
-                                                             data-toggle="tooltip"
-                                                             data-placement="top"
-                                                             title="Unassigned"
-                                                             loading="lazy">
-                                                    {% endif %}
-                                                </div>
+                                            </div>
+                                            <div class="col-auto" style="margin-top: -15px; margin-left: -25px;">
+                                                {% if ticket.assignee %}
+                                                    <img src="{{ ticket.assignee.profile.profilePicture.url }}"
+                                                         class="ghx-avatar-img"
+                                                         data-toggle="tooltip"
+                                                         data-placement="top"
+                                                         title={{ ticket.assignee.get_full_name }}
+                                                                 loading="lazy">
+                                                {% else %}
+                                                    <img src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
+                                                         class="ghx-avatar-img"
+                                                         data-toggle="tooltip"
+                                                         data-placement="top"
+                                                         title="Unassigned"
+                                                         loading="lazy">
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
-                                {% endfor %}
-                            </div>
+                                </div>
+                            {% endfor %}
+                        </div>
 
                         <!--  -->
                         <div style="height:30px;"></div>
@@ -250,7 +251,8 @@
                                         <div class="d-flex align-items-center py-1">
                                             <div class="position-relative">
                                                 <img src="{{ user.profile.profilePicture.url }}"
-                                                     class="rounded-circle mr-1" alt="{{ user.get_full_name }}" width="40"
+                                                     class="rounded-circle mr-1" alt="{{ user.get_full_name }}"
+                                                     width="40"
                                                      height="40">
                                             </div>
                                             <div class="flex-grow-1 pl-3">

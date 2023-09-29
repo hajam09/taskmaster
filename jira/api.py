@@ -1571,7 +1571,7 @@ class TeamChatMessagesApiEventVersion1Component(View):
 
         return JsonResponse(response, status=HTTPStatus.OK)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class AgileBoardColumnOperationApiEventVersion1Component(View):
 
     def canDeleteOrEdit(self, columnName):
