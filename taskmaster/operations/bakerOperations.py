@@ -204,6 +204,7 @@ def createTicket(columnStatus=None, project=None, issueType=None, save=True):
     ticket.assignee_id = project.lead.id
     ticket.reporter_id = project.lead.id
     ticket.issueType_id = issueType
+    ticket.storyPoints = random.choice([None, 1, 2, 3, 5, 8, 13])
     ticket.priority_id = next((i.id for i in cache.get('TICKET_PRIORITY') if i.code == 'MEDIUM'))
     ticket.columnStatus = columnStatus
     ticket.orderNo = 1
