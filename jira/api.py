@@ -496,7 +496,7 @@ class TicketCommentsApiEventVersion1Component(View):
                 'id': comment.id,
                 'comment': comment.comment,
                 'edited': comment.edited,
-                'createdDttm': datetime.strftime(comment.createdDttm, '%d %B %Y, %I:%M %p'),
+                'createdDateTime': datetime.strftime(comment.createdDateTime, '%d %B %Y, %I:%M %p'),
                 'likes': {
                     'count': comment.likes.count(),
                     'liked': self.request in comment.likes.all()
@@ -551,7 +551,7 @@ class TicketAttachmentsApiEventVersion1Component(View):
                 'canDelete': i.uploadedBy.id == self.request.user.id,
                 'name': i.attachment.name.split("/")[1],
                 'size': f'{ticketAttachments.first().attachment.size} bytes',
-                'createdDttm': i.createdDttm.strftime('%Y-%m-%d %H:%M')
+                'createdDateTime': i.createdDateTime.strftime('%Y-%m-%d %H:%M')
             }
             for i in ticketAttachments
         ]
@@ -928,7 +928,7 @@ class AgileBoardDetailsApiEventVersion2Component(View):
                 if column.category == Column.Category.DONE:
                     columnTickets = [
                         ticket for ticket in columnTickets
-                        if (today - datetime.strptime(str(ticket.modifiedDttm.date()), '%Y-%m-%d').date()).days <= 14
+                        if (today - datetime.strptime(str(ticket.modifiedDateTime.date()), '%Y-%m-%d').date()).days <= 14
                     ]
 
                 serializeTickets(columnTickets, tickets, False)
@@ -1261,12 +1261,12 @@ class BacklogDetailsApiEventVersion2Component(View):
             """
             Remove old tickets from DONE column
             show: Not done tickets
-            show: Done tickets and modifiedDttm <= 14
+            show: Done tickets and modifiedDateTime <= 14
             """
             today = datetime.now().date()
             boardTickets = [
                 i for i in boardTickets
-                if i.columnStatus.category != ColumnStatus.Category.DONE or (i.columnStatus.category == ColumnStatus.Category.DONE and (today - datetime.strptime(str(i.modifiedDttm.date()), '%Y-%m-%d').date()).days <= 14)
+                if i.columnStatus.category != ColumnStatus.Category.DONE or (i.columnStatus.category == ColumnStatus.Category.DONE and (today - datetime.strptime(str(i.modifiedDateTime.date()), '%Y-%m-%d').date()).days <= 14)
             ]
 
             developmentTickets = [i for i in boardTickets if i.columnStatus.internalKey != "OPEN"]
@@ -1528,7 +1528,7 @@ class TeamChatMessagesApiEventVersion1Component(View):
         # lst2 = []
         #
         # for i in teamChatMessageList:
-        #     createdDate = i.createdDttm.date()
+        #     createdDate = i.createdDateTime.date()
         #
         #     if lst2 != [] and lst2[-1]['createdDate'] != createdDate:
         #         lst.append(lst2)
@@ -1571,7 +1571,7 @@ class TeamChatMessagesApiEventVersion1Component(View):
 
         return JsonResponse(response, status=HTTPStatus.OK)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class AgileBoardColumnOperationApiEventVersion1Component(View):
 
     def canDeleteOrEdit(self, columnName):
@@ -1938,8 +1938,8 @@ class TicketObjectDetailApiEventVersion1Component(View):
             "internalKey": ticket.internalKey,
             "summary": ticket.summary,
             "description": ticket.description,
-            "createdDate": datetime.strftime(ticket.createdDttm, '%d %B %Y, %I:%M %p'),
-            "modifiedDate": datetime.strftime(ticket.modifiedDttm, '%d %B %Y, %I:%M %p'),
+            "createdDate": datetime.strftime(ticket.createdDateTime, '%d %B %Y, %I:%M %p'),
+            "modifiedDate": datetime.strftime(ticket.modifiedDateTime, '%d %B %Y, %I:%M %p'),
             "link": ticket.getTicketUrl(),
             "storyPoints": ticket.storyPoints,
             "fixVersion": ticket.fixVersion,
@@ -2272,7 +2272,7 @@ def serializeTicketsVersion2(tickets):
             "fixVersion": ticket.fixVersion if ticket.fixVersion else None,
             "link": ticket.getTicketUrl(),
             "storyPoints": ticket.storyPoints if ticket.storyPoints is not None else "-",
-            "modifiedDttm": str(ticket.modifiedDttm.date()),
+            "modifiedDateTime": str(ticket.modifiedDateTime.date()),
             "issueType": ticket.issueType.serializeComponentVersion1(),
             "priority": ticket.priority.serializeComponentVersion1(),
             "resolution": ticket.resolution.serializeComponentVersion1(),
@@ -2301,7 +2301,7 @@ def serializeTickets(tickets, data, skipOldCompletedTickets=True):
             "link": f"/jira/ticket/{ticket.internalKey}",
             "storyPoints": ticket.storyPoints if ticket.storyPoints is not None else "-",
             "column": ticket.column.internalKey if ticket.column is not None else None,
-            "modifiedDttm": str(ticket.modifiedDttm.date()),
+            "modifiedDateTime": str(ticket.modifiedDateTime.date()),
             "issueType": ticket.issueType.serializeComponentVersion1(),
             "priority": ticket.priority.serializeComponentVersion1(),
             "resolution": ticket.resolution.serializeComponentVersion1(),
@@ -2321,7 +2321,7 @@ def serializeTickets(tickets, data, skipOldCompletedTickets=True):
     today = datetime.now().date()
     for i in newData:
         if skipOldCompletedTickets:
-            modifiedDate = datetime.strptime(i['modifiedDttm'], '%Y-%m-%d').date()
+            modifiedDate = datetime.strptime(i['modifiedDateTime'], '%Y-%m-%d').date()
             if (today - modifiedDate).days <= 14:
                 data.append(i)
             continue

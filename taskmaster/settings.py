@@ -44,6 +44,9 @@ INSTALLED_APPS = [
     'colorfield',
     'debug_toolbar',
     'jira',
+    'api',
+    'rest_framework',
+    'frontend',
 ]
 
 MIDDLEWARE = [

@@ -1091,7 +1091,7 @@
                             <dd className="attachment-size">{this.props.attachment.size}</dd>
                             <dd className="attachment-date">
                                 <time className="livestamp"
-                                      dateTime={this.props.attachment.createdDttm}>{this.props.attachment.createdDttm}
+                                      dateTime={this.props.attachment.createdDateTime}>{this.props.attachment.createdDateTime}
                                 </time>
                             </dd>
                         </dl>
@@ -1735,9 +1735,9 @@
                                     &nbsp;added a comment at <a
                                     href="/browse/JSDCLOUD-9247?focusedCommentId=2600002&amp;page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-2600002"
                                     className="commentdate_2600002_verbose subText comment-created-date-link"><span
-                                    className="date user-tz" title={this.props.comment.createdDttm}>
+                                    className="date user-tz" title={this.props.comment.createdDateTime}>
                                     <time className="livestamp"
-                                          dateTime={this.props.comment.createdDttm}>{this.props.comment.createdDttm}</time></span></a>
+                                          dateTime={this.props.comment.createdDateTime}>{this.props.comment.createdDateTime}</time></span></a>
                                     &nbsp;&nbsp;{this.props.comment.edited ?
                                     <span className="text-secondary">(edited)</span> : <span></span>}
                                     &nbsp;
