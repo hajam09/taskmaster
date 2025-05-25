@@ -1,10 +1,6 @@
-*.log
 *.pyc
-*.log
-*.coverage
-coverage.xml
+*.sqlite3
 media/
-htmlcov
-.scannerwork
 .idea/
 **/migrations/
+/static/

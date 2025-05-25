@@ -1,0 +1,145 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load templateTags %}
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
+    <div class="container-fluid d-flex justify-content-center mt-5" style="color: black;">
+        <div class="card" id="idCardWideComponent">
+            <legend>
+                <h2 class="heading-h2 text-center">Tickets</h2>
+                <br>
+                <div class="row">
+                    <div class="col">
+                        <input class="form-control form-control-sm" type="text" id="search-input"
+                               placeholder="Search tickets" value="{{ request.GET.query }}">
+                    </div>
+                    <div class="col">
+                        <select class="form-control form-control-sm">
+                            <option value="">All projects</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <select class="form-control form-control-sm">
+                            <option value="">All types</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <select class="form-control form-control-sm">
+                            <option value="">All priorities</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <select class="form-control form-control-sm">
+                            <option value="">All assignee</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <select class="form-control form-control-sm">
+                            <option value="">All reporters</option>
+                        </select>
+                    </div>
+                    <div class="col-md-auto">
+                        <button type="button" class="btn btn-sm float-right btn-submit" id="search-btn">Search</button>
+                    </div>
+                </div>
+
+            </legend>
+            <table id="ticketsTable" class="table table-sm table-bordered table-hover" style="color: black;">
+                <thead>
+                <tr>
+                    <th>T</th>
+                    <th>Key</th>
+                    <th>Summary</th>
+                    <th>Assignee</th>
+                    <th>Reporter</th>
+                    <th>P</th>
+                    <th>Status</th>
+                    <th>Created date</th>
+                    <th>Updated Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for ticket in tickets %}
+                    <tr>
+                        <td>
+                            <img src="{{ ticket.ticketTypeIcon }}" width="20px"
+                                 title={{ ticket.get_type_display }} class="img-rounded" loading="lazy"
+                                 style="margin-left: 10px"/>
+                            <span style="display: none;">{{ ticket.get_type_display }}</span>
+                        </td>
+                        <td>{{ ticket.url }}</td>
+                        <td>
+                            <a href="{{ ticket.getUrl }}">{{ ticket.summary }}</a>
+                        </td>
+                        <td>
+                            {% renderSingleOrGroupUserAvatars ticket.assignee %}
+                        </td>
+                        <td>
+                            {% renderSingleOrGroupUserAvatars ticket.reporter %}
+                        </td>
+                        <td>
+                            <img src="{{ ticket.ticketPriorityIcon }}" width="20px"
+                                 title={{ ticket.get_priority_display }} class="img-rounded" loading="lazy"
+                                 style="margin-left: 10px"/>
+                            <span style="display: none;">{{ ticket.get_priority_display }}</span>
+                        </td>
+                        <td>
+                            <h6>
+                                <span class="badge"
+                                      style="background-color: {{ ticket.columnStatus.column.getColour }}; color: white;">
+                                    {{ ticket.columnStatus.name }}
+                                </span>
+                            </h6>
+                        </td>
+                        <td>{{ ticket.createdDateTime|date:"d M Y" }}</td>
+                        <td>{{ ticket.modifiedDateTime|date:"d M Y" }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+
+        $(function () {
+            $("#ticketsTable").DataTable(
+                {
+                    "responsive": true,
+                    "autoWidth": false,
+                    "paging": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": false,
+                    "pageLength": 18,
+                }
+            );
+            $('#ticketsTable_length').remove();
+        });
+
+        function isEmptyOrSpaces(str) {
+            return str === null || str.match(/^ *$/) !== null;
+        }
+
+        const searchInput = $('#search-input');
+        const searchBtn = $('#search-btn');
+
+        function getTickets() {
+            const ticketsView = '{% url 'core:tickets-view' %}';
+            if (!isEmptyOrSpaces(searchInput.val())) {
+                window.location.href = ticketsView + '?query=' + searchInput.val();
+            }
+        }
+
+        searchInput.on('keyup', function (e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                getTickets();
+            }
+        });
+        searchBtn.click(function () {
+            getTickets();
+        });
+    </script>
+{% endblock %}

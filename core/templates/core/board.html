@@ -1,0 +1,118 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load templateTags %}
+{% block content %}
+    <style>
+        .column-status-style {
+            background-color: rgba(0, 123, 255, 0.1);
+            border: 2px dotted rgba(0, 123, 255, 0.6);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
+    <div class="container-fluid d-flex justify-content-center mt-5" style="color: black;">
+        <div class="card" id="idCardWideComponent">
+            <legend>
+                <h2 class="heading-h2 text-center">Board - {{ board.name }}</h2>
+            </legend>
+            <div class="row">
+                {% for column in columns %}
+                    <div class="col">
+                        <br>
+                        <div class="card" style="width: 105%;background-color: #e7eaee">
+                            <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
+                                <h5 class="card-title text-uppercase">{{ column.name }}</h5>
+                                <div class="ticket-list">
+                                    {% for columnStatus in column.columnStatus.all %}
+                                        <span class="column-status-elm" draggable="false"
+                                              identifier="{{ columnStatus.id }}">
+                                            <p class="card-text column-status-name-element text-center"
+                                               style="display: none;">
+                                                {{ columnStatus.name }}
+                                            </p>
+                                            {% for ticket in columnStatus.columnStatusTickets.all %}
+                                                {% ticketComponent ticket %}
+                                            {% endfor %}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+        $(document).ready(function () {
+            document.querySelectorAll('.column-status-elm').forEach(function (el) {
+                new Sortable(el, {
+                    group: 'shared-status-cards',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+
+                    onMove: function (evt) {
+                        document.querySelectorAll('.column-status-elm').forEach(el => {
+                            el.classList.add('card', 'column-status-style');
+                        });
+
+                        document.querySelectorAll('.column-status-name-element').forEach(el => {
+                            el.style.display = 'block';
+                        });
+
+                        // uncomment below to hide other tickets when changing ticket's column status.
+                        /*const selectedTicket = evt.dragged.getAttribute('identifier');
+                        document.querySelectorAll('.ticket-object-component').forEach(el => {
+                            if (el.getAttribute('identifier')!== selectedTicket)
+                                el.style.display = 'none';
+                        });*/
+                    },
+
+                    onEnd: function (evt) {
+                        document.querySelectorAll('.column-status-elm').forEach(el => {
+                            el.classList.remove('card', 'column-status-style');
+                        });
+
+                        document.querySelectorAll('.ticket-object-component').forEach(el => {
+                            el.style.display = 'block';
+                        });
+
+                        document.querySelectorAll('.column-status-name-element').forEach(el => {
+                            el.style.display = 'none';
+                        });
+
+                        const itemEl = evt.item; // Element that was dragged
+                        const fromList = evt.from; // Original list (before drag)
+                        const toList = evt.to; // New list (where dropped)
+                        const newIndex = evt.newIndex; // Index in the new list
+                        const oldIndex = evt.oldIndex; // Index in the original list
+
+                        const ctx = {
+                            'column-status-id': toList.getAttribute('identifier'),
+                            'ticket-ids': Array.from(toList.querySelectorAll('.ticket-object-component')).map(el => el.getAttribute('identifier'))
+                        };
+
+                        fetch('{% url 'core:ticketColumStatusApiVersion1' %}', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify(ctx)
+                        }).then((response) => response.json())
+                            .then((json) => {
+                                console.log(json);
+                            })
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

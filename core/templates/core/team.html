@@ -1,0 +1,37 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load templateTags %}
+{% block content %}
+    <div class="container d-flex justify-content-center mt-5" style="color: black;">
+        <div class="card" id="idCardWideComponent">
+            <legend>
+                <h2 class="heading-h2 text-center">Team</h2>
+            </legend>
+            <form method="post" class="p-4">
+                {% csrf_token %}
+                {% for field in form %}
+                    {% renderFormFields field %}
+                    {% for error in field.errors %}
+                        <p class="text-center" style="color: red;"><small>{{ error }}</small></p>
+                    {% endfor %}
+                    <br>
+                {% endfor %}
+
+                {% if form.hasEditPermission %}
+                    <div class="text-right">
+                        <input type="button" class="btn btn-sm btn-cancel" value="Cancel">
+                        <input type="submit" class="btn btn-sm btn-submit" value="Submit">
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+        $(document).ready(function () {
+            $('.select2bs4').select2();
+        });
+    </script>
+{% endblock %}
