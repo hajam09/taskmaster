@@ -20,14 +20,14 @@ class Command(BaseCommand):
         faker = Faker()
 
         Ticket.objects.all().delete()
-        # Label.objects.all().delete()
-        # ColumnStatus.objects.all().delete()
-        # Column.objects.all().delete()
-        # Board.objects.all().delete()
-        # Project.objects.all().delete()
-        # Team.objects.all().delete()
-        # Profile.objects.all().delete()
-        # User.objects.all().exclude(is_superuser=True).delete()
+        Label.objects.all().delete()
+        ColumnStatus.objects.all().delete()
+        Column.objects.all().delete()
+        Board.objects.all().delete()
+        Project.objects.all().delete()
+        Team.objects.all().delete()
+        Profile.objects.all().delete()
+        User.objects.all().exclude(is_superuser=True).delete()
 
         newUsers = []
         for _ in range(min(Command.NUMBER_OF_USERS, Command.NUMBER_OF_USERS - User.objects.count())):
@@ -153,5 +153,6 @@ class Command(BaseCommand):
                 ticket.assignee = random.choice(assigneeList)
                 ticket.reporter = random.choice(allUsers)
                 ticket.columnStatus = columnStatus
+                ticket.modifiedDateTime = faker.date_between('-3w', '-1d')
 
                 ticket.save()

@@ -236,3 +236,25 @@ def ticketComponent(ticket):
         </div>
     '''
     return mark_safe(body)
+
+
+@register.simple_tag
+def ticketHorizontalBarComponent(ticket):
+    body = f'''
+        <li class="list-group-item ticket-object-component" id="ticket-{ticket.id}" identifier="{ticket.id}">
+            <img src="{ticket.ticketTypeIcon}" width="20px" title="{ticket.get_type_display()}" class="img-rounded"
+                loading="lazy">
+            &nbsp;
+            <img src="{ticket.ticketPriorityIcon}" width="20px" title="{ticket.get_priority_display()}"
+                class="img-rounded" loading="lazy" style="margin-left: 10px"/>
+            <a class="ml-2" href="{ticket.url}">{ticket.url}</a>
+            &nbsp;
+            <span>{ticket.summary}</span>
+            <span class="float-right ml-2" style="margin-right: 10px;">{getAvatarImage()}</span>
+            <span class="badge badge-pill float-right ml-3" style="background-color: #f0f0f0; margin-top: 4.5px;">
+                {ticket.storyPoints}
+            </span>
+            <span class="badge badge-primary float-right" style="margin-top: 4.5px;">{ticket.columnStatus.name}</span>
+        </li>
+    '''
+    return mark_safe(body)

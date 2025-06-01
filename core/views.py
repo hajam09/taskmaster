@@ -1,5 +1,4 @@
-import operator
-from functools import reduce
+from datetime import timedelta
 from urllib.parse import urlencode
 
 from django.contrib import messages
@@ -13,6 +12,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import DjangoUnicodeDecodeError
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
@@ -343,6 +343,34 @@ def boardView(request, url):
     return render(request, 'core/board.html', context)
 
 
+def backlogView(request, url):
+    board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets', ).get(url=url)
+    context = {}
+
+    if board.type == Board.Types.KANBAN:
+        template = 'backlog-kanban'
+        inProgressColumns = [
+            column for column in board.boardColumns.all()
+            if column.status in [Column.Status.TODO, Column.Status.IN_PROGRESS, Column.Status.DONE]
+        ]
+        backlogColumns = [
+            column for column in board.boardColumns.all()
+            if column.status in [Column.Status.UNMAPPED, Column.Status.BACK_LOG]
+        ]
+        context.update({
+            'board': board,
+            'inProgressColumns': inProgressColumns,
+            'backlogColumns': backlogColumns,
+            'twoWeeksAgo': timezone.localdate() - timedelta(days=14),
+        })
+    else:
+        template = 'backlog-scrum'
+        context.update({
+            'board': board,
+        })
+    return render(request, f'core/{template}.html', context)
+
+
 @login_required
 def boardSettingsView(request, url):
     tab = request.GET.get('tab')
@@ -359,7 +387,7 @@ def boardSettingsView(request, url):
         return HttpResponseForbidden('Forbidden')
 
     context = {}
-    templateName = f'core/board-settings-{tab}.html'
+    template = f'core/board-settings-{tab}.html'
     redirectUrl = f"{settingsUrl}?{urlencode({'tab': tab})}"
 
     if tab == 'general':
@@ -395,7 +423,7 @@ def boardSettingsView(request, url):
             'columnForm': columnForm,
             'columnStatusForm': columnStatusForm
         })
-    return render(request, templateName, context)
+    return render(request, template, context)
 
 
 @login_required
@@ -470,10 +498,6 @@ def ticketsView(request):
 
 
 def ticketView(request, url):
-    pass
-
-
-def backlogView(request, url):
     pass
 
 

@@ -2,7 +2,7 @@ from django.urls import path
 
 from core.api import (
     BoardColumnAndStatusApiVersion1,
-    TicketColumStatusApiVersion1
+    TicketColumStatusApiVersion1,
 )
 from core.views import (
     loginView,
@@ -18,6 +18,7 @@ from core.views import (
     projectView,
     boardsView,
     boardView,
+    backlogView,
     boardSettingsView,
     labelsView,
     labelView,
@@ -41,6 +42,7 @@ urlpatterns = [
     path('projects/<slug:url>/', projectView, name='project-view'),
     path('boards/', boardsView, name='boards-view'),
     path('boards/<slug:url>/', boardView, name='board-view'),
+    path('boards/<slug:url>/backlog', backlogView, name='board-backlog-view'),
     path('boards/<slug:url>/settings', boardSettingsView, name='board-settings-view'),
     path('labels/', labelsView, name='labels-view'),
     path('labels/<slug:url>/', labelView, name='label-view'),

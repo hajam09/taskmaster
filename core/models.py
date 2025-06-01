@@ -337,7 +337,7 @@ class Ticket(BaseModel):
         Priority.LOW: 'https://raw.githubusercontent.com/cglynne/jira-priority-icons/dc505157ab8cdac2adad074ef054da783f9fee70/jira_priority/low.svg',
         Priority.LOWEST: 'https://raw.githubusercontent.com/cglynne/jira-priority-icons/dc505157ab8cdac2adad074ef054da783f9fee70/jira_priority/lowest.svg',
         Priority.MAJOR: 'https://raw.githubusercontent.com/cglynne/jira-priority-icons/dc505157ab8cdac2adad074ef054da783f9fee70/jira_priority/major.svg',
-        Priority.MEDIUM:'https://raw.githubusercontent.com/cglynne/jira-priority-icons/dc505157ab8cdac2adad074ef054da783f9fee70/jira_priority/medium.svg',
+        Priority.MEDIUM: 'https://raw.githubusercontent.com/cglynne/jira-priority-icons/dc505157ab8cdac2adad074ef054da783f9fee70/jira_priority/medium.svg',
         Priority.MINOR: 'https://raw.githubusercontent.com/cglynne/jira-priority-icons/dc505157ab8cdac2adad074ef054da783f9fee70/jira_priority/minor.svg',
         Priority.TRIVIAL: 'https://raw.githubusercontent.com/cglynne/jira-priority-icons/dc505157ab8cdac2adad074ef054da783f9fee70/jira_priority/trivial.svg',
     }
