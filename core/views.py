@@ -26,7 +26,10 @@ from core.forms import (
     TeamForm,
     ProjectForm,
     BoardForm,
-    LabelForm, ColumnForm, ColumnStatusForm
+    LabelForm,
+    ColumnForm,
+    ColumnStatusForm,
+    SprintForm
 )
 from core.models import (
     Profile,
@@ -344,7 +347,7 @@ def boardView(request, url):
 
 
 def backlogView(request, url):
-    board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets', ).get(url=url)
+    board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets').get(url=url)
     context = {}
 
     if board.type == Board.Types.KANBAN:
@@ -365,6 +368,29 @@ def backlogView(request, url):
         })
     else:
         template = 'backlog-scrum'
+        if request.method == 'POST':
+            form = SprintForm(board, request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(
+                    request,
+                    f'Sprint has been successfully created!'
+                )
+                return redirect('core:board-backlog-view', url=url)
+        else:
+            form = SprintForm(board)
+
+        sprints = board.boardSprints.order_by('-startDate', '-createdDateTime').prefetch_related('tickets__columnStatus')
+        backlogColumns = [
+            column for column in board.boardColumns.all()
+            if column.status in [Column.Status.UNMAPPED, Column.Status.BACK_LOG]
+        ]
+        context.update({
+            'sprints': sprints,
+            'backlogColumns': backlogColumns,
+            'form': form,
+        })
+
         context.update({
             'board': board,
         })

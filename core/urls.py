@@ -3,6 +3,7 @@ from django.urls import path
 from core.api import (
     BoardColumnAndStatusApiVersion1,
     TicketColumStatusApiVersion1,
+    ScrumBoardBacklogTicketUpdateApiVersion1,
 )
 from core.views import (
     loginView,
@@ -60,5 +61,10 @@ urlpatterns += [
         'api/v1/ticketColumStatusApiVersion1/',
         TicketColumStatusApiVersion1.as_view(),
         name='ticketColumStatusApiVersion1'
+    ),
+    path(
+        'api/v1/scrumBoardBacklogTicketUpdateApiVersion1/',
+        ScrumBoardBacklogTicketUpdateApiVersion1.as_view(),
+        name='scrumBoardBacklogTicketUpdateApiVersion1'
     )
 ]

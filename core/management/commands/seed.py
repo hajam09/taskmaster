@@ -4,21 +4,22 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from faker import Faker
 
-from core.models import Profile, Team, Project, Board, Label, Column, ColumnStatus, Ticket
+from core.models import Profile, Team, Project, Board, Label, Column, ColumnStatus, Ticket, Sprint
 
 
 class Command(BaseCommand):
     NUMBER_OF_USERS = 10
     NUMBER_OF_TEAMS = 3
-    NUMBER_OF_PROJECTS = 20
+    NUMBER_OF_PROJECTS = 1
     NUMBER_OF_BOARDS_PER_PROJECT = 2
-    NUMBER_OF_LABELS = 20
+    NUMBER_OF_LABELS = 5
     NUMBER_OF_COLUMN_STATUS_PER_COLUMN = 1
     NUMBER_OF_TICKETS_PER_COLUMN_STATUS = 2
 
     def handle(self, *args, **kwargs):
         faker = Faker()
 
+        Sprint.objects.all().delete()
         Ticket.objects.all().delete()
         Label.objects.all().delete()
         ColumnStatus.objects.all().delete()

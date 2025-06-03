@@ -401,14 +401,24 @@ class Ticket(BaseModel):
 #             self.likes.remove(request.user)
 #
 #
-# class Sprint(BaseModel):
-#     board = models.ForeignKey(Board, on_delete=models.DO_NOTHING, related_name='boardSprints')
-#     internalKey = models.CharField(max_length=2048, blank=True, null=True)
-#     tickets = models.ManyToManyField(Ticket, related_name='sprintTickets')
-#     startDate = models.DateField(blank=True, null=True)
-#     endDate = models.DateField(blank=True, null=True)
-#     isComplete = models.BooleanField(default=False)
-#
-#     class Meta:
-#         verbose_name = 'Sprint'
-#         verbose_name_plural = 'Sprints'
+
+
+class Sprint(BaseModel):
+    board = models.ForeignKey(Board, on_delete=models.DO_NOTHING, related_name='boardSprints')
+    name = models.CharField(max_length=128, unique=True)
+    tickets = models.ManyToManyField(Ticket, related_name='sprintTickets', blank=True)
+    goal = models.TextField(blank=True, null=True)
+    startDate = models.DateField(blank=True, null=True)
+    endDate = models.DateField(blank=True, null=True)
+    isComplete = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'Sprint'
+        verbose_name_plural = 'Sprints'
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def isActive(self):
+        return not self.isComplete and self.startDate and self.endDate and self.startDate <= timezone.now().date() <= self.endDate

@@ -6,7 +6,8 @@ from rest_framework.views import APIView
 from core.models import (
     ColumnStatus,
     Column,
-    Ticket
+    Ticket,
+    Sprint
 )
 
 
@@ -61,4 +62,26 @@ class TicketColumStatusApiVersion1(APIView):
             ticket.columnStatus_id = columnStatusId
             ticket.orderNo = ticketIds.index(str(ticket.id)) + 1
         Ticket.objects.bulk_update(tickets, ['columnStatus', 'orderNo'])
+        return Response(status=status.HTTP_200_OK)
+
+
+class ScrumBoardBacklogTicketUpdateApiVersion1(APIView):
+    def put(self, request, *args, **kwargs):
+        ticketId = request.data.get('ticket-id')
+        zone = request.data.get('zone')
+        ticket = Ticket.objects.select_related('columnStatus').get(id=ticketId)
+        Sprint.tickets.through.objects.filter(ticket=ticket).delete()
+
+        if zone == 'sprint':
+            # remove from other sprints, add it to this sprint, update column status to remove from backlog
+            sprint = Sprint.objects.select_related('board').get(id=request.data.get('sprint-id'))
+            sprint.tickets.add(ticket)
+            ticket.columnStatus = ColumnStatus.objects.filter(
+                column__board=sprint.board, column__status=Column.Status.TODO
+            ).order_by('id')[:1].first()
+            ticket.save()
+        elif zone == 'backlog':
+            # remove from all sprints, update column status to backlog
+            ticket.columnStatus_id = request.data.get('column-id')
+            ticket.save()
         return Response(status=status.HTTP_200_OK)

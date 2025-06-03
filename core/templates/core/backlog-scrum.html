@@ -4,4 +4,171 @@
 {% load crispy_forms_tags %}
 {% load templateTags %}
 {% block content %}
+    <style>
+        .column-status-style {
+            background-color: rgba(0, 123, 255, 0.1);
+            border: 2px dotted rgba(0, 123, 255, 0.6);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
+    <div class="container-fluid d-flex justify-content-center mt-5" style="color: black;">
+        <div class="card" id="idCardWideComponent">
+            <legend>
+                <h2 class="heading-h2 text-center">{{ board.name }} Backlog</h2>
+            </legend>
+            {% for sprint in sprints %}
+                <div class="row">
+                    <br>
+                    <div class="card" style="width: 105%; background-color: #e7eaee">
+                        <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
+                            <small class="card-title"><strong>{{ sprint.name }}</strong></small>
+                            <br><br>
+                            <ul class="list-group list-group-flush ticket-group-container in-progress-ticket-container">
+                            <span class="column-status-elm" identifier="{{ sprint.id }}" zone="sprint">
+                                {% for ticket in sprint.tickets.all %}
+                                    {% ticketHorizontalBarComponent ticket %}
+                                {% endfor %}
+                            </span>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            <br>
+            <div>
+                <button type="button" class="btn btn-sm float-right mr-2" id="create-sprint-btn">Create Sprint</button>
+            </div>
+            <form method="post" class="p-4" id="form-id-new-sprint"
+                  style="display: {% if form.errors %}block{% else %}none{% endif %}">
+                {% csrf_token %}
+                {% for field in form %}
+                    {% renderFormFields field %}
+                    {% for error in field.errors %}
+                        <p class="text-center" style="color: red;"><small>{{ error }}</small></p>
+                    {% endfor %}
+                    <br>
+                {% endfor %}
+
+                <div class="text-right">
+                    <input type="button" class="btn btn-sm btn-cancel" id="cancel-sprint-btn" value="Cancel">
+                    <input type="submit" class="btn btn-sm btn-submit" value="Submit">
+                </div>
+            </form>
+            <div class="row">
+                <br>
+                <div class="card" style="width: 105%; background-color: #e7eaee">
+                    <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
+                        <small class="card-title"><strong>Backlog</strong></small>
+                        <br><br>
+                        <ul class="list-group list-group-flush ticket-group-container backlog-ticket-container">
+                            {% for column in backlogColumns %}
+                                {% for columnStatus in column.columnStatus.all %}
+                                    <span class="column-status-elm" draggable="false"
+                                          identifier="{{ columnStatus.id }}" zone="backlog">
+                                            <p class="card-text column-status-name-element text-center"
+                                               style="display: none;">
+                                                {{ columnStatus.name }}
+                                            </p>
+                                        {% for ticket in columnStatus.columnStatusTickets.all %}
+                                            {% ticketHorizontalBarComponent ticket %}
+                                        {% endfor %}
+                                        </span>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+        const createSprintBtn = document.getElementById('create-sprint-btn');
+        const cancelSprintBtn = document.getElementById('cancel-sprint-btn');
+        const newSprintForm = document.getElementById('form-id-new-sprint');
+
+        createSprintBtn.addEventListener('click', function () {
+            if (newSprintForm.style.display === 'none') {
+                newSprintForm.style.display = 'block';
+            } else {
+                newSprintForm.style.display = 'none';
+            }
+        });
+
+        cancelSprintBtn.addEventListener('click', function () {
+            newSprintForm.style.display = 'none';
+        });
+
+
+        $(document).ready(function () {
+            document.querySelectorAll('.column-status-elm').forEach(function (el) {
+                new Sortable(el, {
+                    group: {
+                        name: 'shared',
+                        pull: true,
+                        put: true
+                    },
+                    animation: 150,
+                    draggable: 'li',
+                    sort: true,
+                    onMove: function (evt) {
+                        document.querySelectorAll('.column-status-elm').forEach(el => {
+                            el.classList.add('card', 'column-status-style');
+                        });
+
+                        document.querySelectorAll('.column-status-name-element').forEach(el => {
+                            el.style.display = 'block';
+                        });
+
+                        // below hides other tickets when changing ticket's column status.
+                        const selectedTicket = evt.dragged.getAttribute('identifier');
+                        document.querySelectorAll('.ticket-object-component').forEach(el => {
+                            if (el.getAttribute('identifier') !== selectedTicket)
+                                el.style.display = 'none';
+                        });
+                    },
+                    onEnd: function (evt) {
+                        document.querySelectorAll('.column-status-elm').forEach(el => {
+                            el.classList.remove('card', 'column-status-style');
+                        });
+
+                        document.querySelectorAll('.ticket-object-component').forEach(el => {
+                            el.style.display = 'block';
+                        });
+
+                        document.querySelectorAll('.column-status-name-element').forEach(el => {
+                            el.style.display = 'none';
+                        });
+
+                        const fromColumn = evt.from.getAttribute('identifier');
+                        const toColumn = evt.to.getAttribute('identifier');
+                        const zone = evt.to.getAttribute('zone');
+
+                        if (fromColumn === toColumn)
+                            return;
+
+                        const destinationIdKey = zone === 'sprint' ? 'sprint-id' : 'column-id';
+                        const ctx = {
+                            'ticket-id': evt.item.getAttribute('identifier'),
+                            'zone': zone,
+                            [destinationIdKey]: toColumn,
+                        };
+
+                        fetch('{% url 'core:scrumBoardBacklogTicketUpdateApiVersion1' %}', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify(ctx)
+                        })
+                    }
+                });
+            });
+        });
+
+    </script>
 {% endblock %}

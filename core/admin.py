@@ -8,7 +8,8 @@ from core.models import (
     Label,
     Column,
     ColumnStatus,
-    Ticket
+    Ticket,
+    Sprint
 )
 
 
@@ -49,4 +50,9 @@ class ColumnStatusAdmin(admin.ModelAdmin):
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Sprint)
+class SprintAdmin(admin.ModelAdmin):
     pass

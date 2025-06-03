@@ -18,7 +18,8 @@ from core.models import (
     Board,
     Label,
     Column,
-    ColumnStatus
+    ColumnStatus,
+    Sprint
 )
 
 
@@ -308,9 +309,24 @@ class BoardForm(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         instance.isPrivate = self.cleaned_data.get('visibility') == 'MEMBERS'
+        isBoardNew = getattr(self.instance, 'id') is None
         if commit:
             instance.save()
             self.save_m2m()
+
+        if isBoardNew:
+            unmapped = Column(name='Unmapped', board=instance, status=Column.Status.UNMAPPED)
+            backLog = Column(name='Back Log', board=instance, status=Column.Status.BACK_LOG)
+            todo = Column(name='To Do', board=instance, status=Column.Status.TODO)
+            inProgress = Column(name='In Progress', board=instance, status=Column.Status.IN_PROGRESS)
+            done = Column(name='Done', board=instance, status=Column.Status.DONE)
+            Column.objects.bulk_create([unmapped, backLog, todo, inProgress, done])
+
+            ColumnStatus.objects.bulk_create([
+                ColumnStatus(name='To Do', column=todo),
+                ColumnStatus(name='In Progress', column=inProgress),
+                ColumnStatus(name='Done', column=done)
+            ])
         return instance
 
 
@@ -322,7 +338,7 @@ class LabelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if getattr(self.instance, 'id', None):
+        if getattr(self.instance, 'id'):
             self.fields['colour'].initial = self.instance.colour
 
         for key, value in self.fields.items():
@@ -373,3 +389,25 @@ class ColumnStatusForm(forms.ModelForm):
         for key, value in self.fields.items():
             value.widget.attrs.update({'class': 'form-control form-control-sm col'})
             value.label = mark_safe(f'<strong>{value.label}</strong>')
+
+
+class SprintForm(forms.ModelForm):
+    class Meta:
+        model = Sprint
+        fields = ('name', 'startDate', 'endDate', 'goal')
+
+    def __init__(self, board, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.board = board
+        self.fields['name'].initial = f'{board.name} Sprint {Sprint.objects.filter(board=board).count() + 1}'
+
+        for key, value in self.fields.items():
+            value.widget.attrs.update({'class': 'form-control form-control-sm col'})
+            value.label = mark_safe(f'<strong>{value.label}</strong>')
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.board = self.board
+        if commit:
+            instance.save()
+        return instance
