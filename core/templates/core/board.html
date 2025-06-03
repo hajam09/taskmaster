@@ -28,14 +28,14 @@
                             <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
                                 <h5 class="card-title text-uppercase">{{ column.name }}</h5>
                                 <div class="ticket-list">
-                                    {% for columnStatus in column.columnStatus.all %}
+                                    {% for columnStatus in column.columnStatus %}
                                         <span class="column-status-elm" draggable="false"
                                               identifier="{{ columnStatus.id }}">
                                             <p class="card-text column-status-name-element text-center"
                                                style="display: none;">
                                                 {{ columnStatus.name }}
                                             </p>
-                                            {% for ticket in columnStatus.columnStatusTickets.all %}
+                                            {% for ticket in columnStatus.columnStatusTickets %}
                                                 {% ticketComponent ticket %}
                                             {% endfor %}
                                         </span>

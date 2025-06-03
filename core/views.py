@@ -38,7 +38,8 @@ from core.models import (
     Board,
     Label,
     Column,
-    Ticket
+    Ticket,
+    Sprint
 )
 from taskmaster.operations import emailOperations
 
@@ -338,7 +339,43 @@ def boardsView(request):
 @login_required
 def boardView(request, url):
     board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets').get(url=url)
-    columns = [c for c in board.boardColumns.all() if c.status not in [Column.Status.UNMAPPED, Column.Status.BACK_LOG]]
+    unmappedAndBacklogColumns = [Column.Status.UNMAPPED, Column.Status.BACK_LOG]
+
+    if board.type == Board.Types.KANBAN:
+        columns = [
+            {
+                'name': column.name,
+                'columnStatus': [
+                    {
+                        'id': columnStatus.id,
+                        'name': columnStatus.name,
+                        'columnStatusTickets': columnStatus.columnStatusTickets.all()
+                    }
+                    for columnStatus in column.columnStatus.all()
+                ]
+            }
+            for column in board.boardColumns.all() if column.status not in unmappedAndBacklogColumns
+        ]
+    else:
+        currentSprint = Sprint.objects.filter(board=board, isComplete=False, isActive=True)
+        sprintTickets = set(Ticket.objects.filter(sprintTickets__in=currentSprint).values_list('id', flat=True))
+        columns = [
+            {
+                'name': column.name,
+                'columnStatus': [
+                    {
+                        'id': columnStatus.id,
+                        'name': columnStatus.name,
+                        'columnStatusTickets': [
+                            ticket for ticket in columnStatus.columnStatusTickets.all() if ticket.id in sprintTickets
+                        ]
+                    }
+                    for columnStatus in column.columnStatus.all()
+                ]
+            }
+            for column in board.boardColumns.all() if column.status not in unmappedAndBacklogColumns
+        ]
+
     context = {
         'board': board,
         'columns': columns,
