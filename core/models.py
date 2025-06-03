@@ -354,6 +354,10 @@ class Ticket(BaseModel):
     def getUrl(self):
         return reverse('core:ticket-view', kwargs={'url': self.url})
 
+    def __str__(self):
+        return self.url
+
+
 #
 #
 # class TicketAttachment(BaseModel):
@@ -411,6 +415,7 @@ class Sprint(BaseModel):
     startDate = models.DateField(blank=True, null=True)
     endDate = models.DateField(blank=True, null=True)
     isComplete = models.BooleanField(default=False)
+    isActive = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Sprint'
@@ -418,7 +423,3 @@ class Sprint(BaseModel):
 
     def __str__(self):
         return self.name
-
-    @property
-    def isActive(self):
-        return not self.isComplete and self.startDate and self.endDate and self.startDate <= timezone.now().date() <= self.endDate

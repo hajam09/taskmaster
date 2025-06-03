@@ -20,8 +20,22 @@
                 <h2 class="heading-h2 text-center">{{ board.name }} Backlog</h2>
             </legend>
             {% for sprint in sprints %}
+                <br>
+                <span>
+                {% if sprint.isActive %}
+                    <button type="button" class="btn btn-sm float-right mr-2 complete-sprint-btn btn-submit"
+                            identifier="{{ sprint.id }}">
+                        Complete Sprint
+                    </button>
+                {% else %}
+                    <button type="button" class="btn btn-sm float-right mr-2 start-sprint-btn"
+                            identifier="{{ sprint.id }}">
+                        Start Sprint
+                    </button>
+                {% endif %}
+                </span>
+                <br>
                 <div class="row">
-                    <br>
                     <div class="card" style="width: 105%; background-color: #e7eaee">
                         <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
                             <small class="card-title"><strong>{{ sprint.name }}</strong></small>
@@ -102,6 +116,35 @@
             newSprintForm.style.display = 'none';
         });
 
+        updateSprintStatus = (identifier, event) => {
+            fetch('{% url 'core:scrumBoardBacklogSprintUpdateApiVersion1' %}', {
+                method: 'PUT',
+                headers: {
+                    'Content-type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    'sprint-id': identifier,
+                    'event': event,
+                })
+            }).then(() => {
+                location.reload();
+            })
+        }
+
+        document.querySelectorAll('.start-sprint-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                updateSprintStatus(button.getAttribute('identifier'), 'start-sprint');
+            });
+        });
+
+        document.querySelectorAll('.complete-sprint-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                if (window.confirm('Any incomplete tickets will be moved to either next sprint or backlog? Are you sure?')) {
+                    updateSprintStatus(button.getAttribute('identifier'), 'complete-sprint');
+                }
+            });
+        });
 
         $(document).ready(function () {
             document.querySelectorAll('.column-status-elm').forEach(function (el) {

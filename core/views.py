@@ -380,7 +380,9 @@ def backlogView(request, url):
         else:
             form = SprintForm(board)
 
-        sprints = board.boardSprints.order_by('-startDate', '-createdDateTime').prefetch_related('tickets__columnStatus')
+        sprints = board.boardSprints.filter(isComplete=False).order_by(
+            '-startDate', '-createdDateTime'
+        ).prefetch_related('tickets__columnStatus')
         backlogColumns = [
             column for column in board.boardColumns.all()
             if column.status in [Column.Status.UNMAPPED, Column.Status.BACK_LOG]

@@ -14,6 +14,7 @@ from django.forms.widgets import (
     TextInput,
     Textarea,
     SelectMultiple,
+    DateInput,
 )
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -78,7 +79,7 @@ def renderFormFields(field):
         label = f'<span class="form-label">{field.label}</span>'
         body = str(field)
         extra = '</br>'
-    elif isinstance(field.field.widget, ColorWidget):
+    elif isinstance(field.field.widget, ColorWidget) or isinstance(field.field.widget, DateInput):
         label = f'<span class="form-label">{field.label}</span>'
         body += f'''
             <div class="row">
