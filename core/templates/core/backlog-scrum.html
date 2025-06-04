@@ -116,8 +116,8 @@
             newSprintForm.style.display = 'none';
         });
 
-        updateSprintStatus = (identifier, event) => {
-            fetch('{% url 'core:scrumBoardBacklogSprintUpdateApiVersion1' %}', {
+        updateSprintStatus = (url, identifier) => {
+            fetch(url, {
                 method: 'PUT',
                 headers: {
                     'Content-type': 'application/json',
@@ -125,7 +125,6 @@
                 },
                 body: JSON.stringify({
                     'sprint-id': identifier,
-                    'event': event,
                 })
             }).then(() => {
                 location.reload();
@@ -134,14 +133,14 @@
 
         document.querySelectorAll('.start-sprint-btn').forEach(button => {
             button.addEventListener('click', function () {
-                updateSprintStatus(button.getAttribute('identifier'), 'start-sprint');
+                updateSprintStatus('{% url 'core:startSprintEventApiVersion1' %}', button.getAttribute('identifier'));
             });
         });
 
         document.querySelectorAll('.complete-sprint-btn').forEach(button => {
             button.addEventListener('click', function () {
                 if (window.confirm('Any incomplete tickets will be moved to either next sprint or backlog? Are you sure?')) {
-                    updateSprintStatus(button.getAttribute('identifier'), 'complete-sprint');
+                    updateSprintStatus('{% url 'core:completeSprintEventApiVersion1' %}', button.getAttribute('identifier'));
                 }
             });
         });

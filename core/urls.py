@@ -4,7 +4,8 @@ from core.api import (
     BoardColumnAndStatusApiVersion1,
     TicketColumStatusApiVersion1,
     ScrumBoardBacklogTicketUpdateApiVersion1,
-    ScrumBoardBacklogSprintUpdateApiVersion1,
+    StartSprintEventApiVersion1,
+    CompleteSprintEventApiVersion1,
 )
 from core.views import (
     loginView,
@@ -67,9 +68,15 @@ urlpatterns += [
         'api/v1/scrumBoardBacklogTicketUpdateApiVersion1/',
         ScrumBoardBacklogTicketUpdateApiVersion1.as_view(),
         name='scrumBoardBacklogTicketUpdateApiVersion1'
-    ),path(
-        'api/v1/scrumBoardBacklogSprintUpdateApiVersion1/',
-        ScrumBoardBacklogSprintUpdateApiVersion1.as_view(),
-        name='scrumBoardBacklogSprintUpdateApiVersion1'
+    ),
+    path(
+        'api/v1/startSprintEventApiVersion1/',
+        StartSprintEventApiVersion1.as_view(),
+        name='startSprintEventApiVersion1'
+    ),
+    path(
+        'api/v1/completeSprintEventApiVersion1/',
+        CompleteSprintEventApiVersion1.as_view(),
+        name='completeSprintEventApiVersion1'
     )
 ]

@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import messages
 from django.db import transaction
 from rest_framework import status
@@ -88,50 +90,88 @@ class ScrumBoardBacklogTicketUpdateApiVersion1(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class ScrumBoardBacklogSprintUpdateApiVersion1(APIView):
+class StartSprintEventApiVersion1(APIView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.sprint = None
 
-    def startSprintConditions(self, sprint):
-        if not sprint.tickets.exists():
+    def dispatch(self, request, *args, **kwargs):
+        self.sprint = Sprint.objects.get(
+            id=json.loads(request.body.decode('utf-8')).get('sprint-id')
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def startSprintConditions(self):
+        condition1 = {
+            'board': self.sprint.board,
+            'isActive': True
+        }
+        conditions2 = {
+            'board': self.sprint.board,
+            'isComplete': False,
+            'id__lt': self.sprint.id
+        }
+
+        if not self.sprint.tickets.exists():
             return 'Selected sprint does not have any tickets. Please add ticket(s) before starting the sprint.'
-        if Sprint.objects.filter(board=sprint.board, isActive=True).exclude(id=sprint.id).exists():
+        if Sprint.objects.filter(**condition1).exclude(id=self.sprint.id).exists():
             return 'Please complete your existing sprint before starting a new one.'
-        if Sprint.objects.filter(board=sprint.board, isComplete=False, id__lt=sprint.id).exclude(id=sprint.id).exists():
+        if Sprint.objects.filter(**conditions2).exclude(id=self.sprint.id).exists():
             return 'You have an ongoing or incomplete sprint. Please finish it before moving on to the next one.'
         return None
 
     def put(self, request, *args, **kwargs):
-        event = request.data.get('event')
-        sprint = Sprint.objects.get(id=request.data.get('sprint-id'))
+        sprintConditions = self.startSprintConditions()
+        if sprintConditions is None:
+            self.sprint.isActive = True
+            self.sprint.save()
+        else:
+            messages.error(request, sprintConditions)
+        return Response(status=status.HTTP_200_OK)
 
-        if event == 'start-sprint':
-            sprintConditions = self.startSprintConditions(sprint)
-            if sprintConditions is None:
-                sprint.isActive = True
-                sprint.save()
-            else:
-                messages.error(request, sprintConditions)
-        elif event == 'complete-sprint':
-            with transaction.atomic():
-                incompleteTickets = sprint.tickets.filter(
-                    columnStatus__column__status__in=[Column.Status.TODO, Column.Status.IN_PROGRESS]
-                )
-                nextSprint = Sprint.objects.filter(
-                    board=sprint.board, isComplete=False, isActive=False
-                ).order_by('id').exclude(id=sprint.id).first()
 
-                if nextSprint is None:
-                    columnStatus = ColumnStatus.objects.filter(
-                        column__board=sprint.board, column__status=Column.Status.BACK_LOG
-                    ).order_by('id')[:1].first()
-                    incompleteTickets.update(columnStatus=columnStatus)
-                else:
-                    nextSprint.tickets.add(*incompleteTickets)
-                    nextSprint.isActive = True
-                    nextSprint.save()
+class CompleteSprintEventApiVersion1(APIView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.sprint = None
+        self.onGoingColumnStatus = None
 
-                sprint.tickets.remove(*incompleteTickets)
-                sprint.isComplete = True
-                sprint.isActive = False
-                sprint.save()
+    def dispatch(self, request, *args, **kwargs):
+        self.sprint = Sprint.objects.get(
+            id=json.loads(request.body.decode('utf-8')).get('sprint-id')
+        )
+        self.onGoingColumnStatus = [Column.Status.TODO, Column.Status.IN_PROGRESS]
+        return super().dispatch(request, *args, **kwargs)
 
+    @transaction.atomic
+    def put(self, request, *args, **kwargs):
+        incompleteTickets = self.sprint.tickets.filter(columnStatus__column__status__in=self.onGoingColumnStatus)
+        nextSprint = Sprint.objects.filter(
+            board=self.sprint.board,
+            isComplete=False,
+            isActive=False
+        ).order_by('id').exclude(id=self.sprint.id).first()
+
+        if nextSprint is None:
+            columnStatus = ColumnStatus.objects.filter(
+                column__board=self.sprint.board, column__status=Column.Status.BACK_LOG
+            ).order_by('id')[:1].first()
+            incompleteTickets.update(columnStatus=columnStatus)
+            messages.success(
+                request,
+                f'{self.sprint.name} has been completed and incomplete tickets has been moved to the backlog!'
+            )
+        else:
+            nextSprint.tickets.add(*incompleteTickets)
+            nextSprint.isActive = True
+            nextSprint.save()
+            messages.success(
+                request,
+                f'{self.sprint.name} has been completed and incomplete tickets has been moved to {nextSprint.name}!'
+            )
+
+        self.sprint.tickets.remove(*incompleteTickets)
+        self.sprint.isComplete = True
+        self.sprint.isActive = False
+        self.sprint.save()
         return Response(status=status.HTTP_200_OK)
