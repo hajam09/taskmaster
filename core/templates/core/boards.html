@@ -4,7 +4,6 @@
 {% load crispy_forms_tags %}
 {% load templateTags %}
 {% block content %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
     <div class="container d-flex justify-content-center mt-5" style="color: black;">
         <div class="card idCardWideComponent">
             <legend>
@@ -51,14 +50,14 @@
                             {% renderSingleOrGroupUserAvatars board.members.all %}
                         </td>
                         <td>
-                                <span class="badge badge-{% if board.type == 'KANBAN' %}primary{% else %}secondary{% endif %}">
-                                    {{ board.get_type_display }}
-                                </span>
+                            <span class="badge badge-{% if board.type == 'KANBAN' %}primary{% else %}secondary{% endif %}">
+                                {{ board.get_type_display }}
+                            </span>
                         </td>
                         <td>
-                                <span class="badge badge-{% if board.isPrivate %}danger{% else %}success{% endif %}">
-                                    {% if board.isPrivate %}Private{% else %}Public{% endif %}
-                                </span>
+                            <span class="badge badge-{% if board.isPrivate %}danger{% else %}success{% endif %}">
+                                {% if board.isPrivate %}Private{% else %}Public{% endif %}
+                            </span>
                         </td>
                         <td>
                             <a href="{% url 'core:project-view' url=board.project.url %}">{{ board.project.name }}</a>
@@ -71,39 +70,48 @@
     </div>
 
     <script type="application/javascript">
-        const newBoardBtn = document.getElementById('add-board-btn');
-        const closeBoardBtn = document.getElementById('close-board-btn');
-        const newBoardForm = document.getElementById('form-id-new-board');
+        function initialiseBoardForm() {
+            const newBoardBtn = document.getElementById('add-board-btn');
+            const closeBoardBtn = document.getElementById('close-board-btn');
+            const newBoardForm = document.getElementById('form-id-new-board');
 
-        newBoardBtn.addEventListener('click', function () {
-            if (newBoardForm.style.display === 'none') {
-                newBoardForm.style.display = 'block';
-            } else {
+            newBoardBtn.addEventListener('click', function () {
+                toggleFormDisplay(newBoardForm);
+            });
+
+            closeBoardBtn.addEventListener('click', function () {
                 newBoardForm.style.display = 'none';
-            }
-        });
+            });
+        }
 
-        closeBoardBtn.addEventListener('click', function () {
-            newBoardForm.style.display = 'none';
-        });
+        function toggleFormDisplay(form) {
+            form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+        }
 
-        $(document).ready(function () {
-            $('.select2bs4').select2();
-        });
+        function initialiseSelect2() {
+            document.querySelectorAll('.select2bs4').forEach(selectElement => {
+                $(selectElement).select2();
+            });
+        }
 
-        $(function () {
-            $("#boardTable").DataTable(
-                {
-                    "responsive": true,
-                    "autoWidth": false,
-                    "paging": true,
-                    "searching": true,
-                    "ordering": true,
-                    "info": false,
-                    "pageLength": 18,
-                }
-            );
-            $('#boardTable_length').remove();
+        function initialiseDataTable() {
+            const boardTable = document.getElementById('boardTable');
+            new DataTable(boardTable, {
+                responsive: true,
+                autoWidth: false,
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: false,
+                pageLength: 18,
+            });
+            document.getElementById('boardTable_length').remove();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initialiseBoardForm();
+            initialiseSelect2();
+            initialiseDataTable();
         });
     </script>
 {% endblock %}

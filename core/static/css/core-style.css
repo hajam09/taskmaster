@@ -1,0 +1,74 @@
+body {
+    font-family: "Roboto", sans-serif;
+    color: black;
+}
+
+.btn-submit {
+    background-color: #0058d8;
+    color: white;
+}
+
+.btn-cancel {
+    background-color: transparent;
+    background-image: none;
+    color: black;
+    border-color: #6c757d;
+}
+
+.btn-cancel:hover {
+    color: white;
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-reset {
+    color: black;
+    background-color: white;
+    border-color: black;
+}
+
+.btn-reset:hover {
+    color: white;
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.strikethrough {
+    text-decoration: line-through;
+}
+
+/* Remove Arrows/Spinners in Input field type number */
+
+input::-webkit-inner-spin-button,
+input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0
+}
+
+/* Base 'Card' component style */
+.idCardWideComponent {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+.idCardNarrowComponent {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    width: 40rem;
+}
+
+.invalid-feedback {
+    text-align: center;
+}
+
+.column-status-style {
+    background-color: rgba(0, 123, 255, 0.1);
+    border: 2px dotted rgba(0, 123, 255, 0.6);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}

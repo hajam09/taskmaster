@@ -4,7 +4,6 @@
 {% load crispy_forms_tags %}
 {% load templateTags %}
 {% block content %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
     <div class="container d-flex justify-content-center mt-5" style="color: black;">
         <div class="card idCardWideComponent">
             <legend>
@@ -55,39 +54,44 @@
     </div>
 
     <script type="application/javascript">
-        const newTeamBtn = document.getElementById('add-team-btn');
-        const closeTeamBtn = document.getElementById('close-team-btn');
-        const newTeamForm = document.getElementById('form-id-new-team');
+        function initialiseSelect2() {
+            document.querySelectorAll('.select2bs4').forEach(selectElement => {
+                $(selectElement).select2();
+            });
+        }
 
-        newTeamBtn.addEventListener('click', function () {
-            if (newTeamForm.style.display === 'none') {
-                newTeamForm.style.display = 'block';
-            } else {
+        function initialiseDataTable() {
+            const teamTable = document.getElementById('teamTable');
+            new DataTable(teamTable, {
+                responsive: true,
+                autoWidth: false,
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: false,
+                pageLength: 18,
+            });
+            document.getElementById('teamTable_length').remove();
+        }
+
+        function initialiseTeamForm() {
+            const newTeamBtn = document.getElementById('add-team-btn');
+            const closeTeamBtn = document.getElementById('close-team-btn');
+            const newTeamForm = document.getElementById('form-id-new-team');
+
+            newTeamBtn.addEventListener('click', function () {
+                newTeamForm.style.display = (newTeamForm.style.display === 'none' || newTeamForm.style.display === '') ? 'block' : 'none';
+            });
+
+            closeTeamBtn.addEventListener('click', function () {
                 newTeamForm.style.display = 'none';
-            }
-        });
+            });
+        }
 
-        closeTeamBtn.addEventListener('click', function () {
-            newTeamForm.style.display = 'none';
-        });
-
-        $(document).ready(function () {
-            $('.select2bs4').select2();
-        });
-
-        $(function () {
-            $("#teamTable").DataTable(
-                {
-                    "responsive": true,
-                    "autoWidth": false,
-                    "paging": true,
-                    "searching": true,
-                    "ordering": true,
-                    "info": false,
-                    "pageLength": 18,
-                }
-            );
-            $('#teamTable_length').remove();
+        document.addEventListener('DOMContentLoaded', function () {
+            initialiseSelect2();
+            initialiseDataTable();
+            initialiseTeamForm();
         });
     </script>
 {% endblock %}

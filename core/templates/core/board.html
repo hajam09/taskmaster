@@ -4,33 +4,22 @@
 {% load crispy_forms_tags %}
 {% load templateTags %}
 {% block content %}
-    <style>
-        .column-status-style {
-            background-color: rgba(0, 123, 255, 0.1);
-            border: 2px dotted rgba(0, 123, 255, 0.6);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin: 1rem auto;
-        }
-    </style>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
     <div class="container-fluid justify-content-center mt-5" style="color: black;">
         <div class="row">
             <div id="core-navbar-element">
                 {% boardSettingsLinksComponent board 'hide' %}
             </div>
             <div id="core-board-element">
-                <div class="card idCardWideComponent">
+                <div class="card idCardWideComponent" style="min-height: 175%">
                     <legend>
                         <h2 class="heading-h2 text-center">Board - {{ board.name }}</h2>
                     </legend>
-                    <div class="row">
+                    <div class="row mt-3">
                         {% for column in columns %}
-                            <div class="col" style="height: auto; overflow: hidden;">
-                                <br>
-                                <div class="card" style="width: 105%; min-height: 200%; background-color: #e7eaee">
-                                    <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
+                            <div class="col" style="height: auto;">
+                                <div class="card w-100" style="min-height: 200%; background-color: #e7eaee">
+                                    <div class="card-body" style="padding-left: 2%; padding-right: 2%;">
                                         <h5 class="card-title text-uppercase">{{ column.name }}</h5>
                                         <div class="ticket-list">
                                             {% for columnStatus in column.columnStatus %}
@@ -58,7 +47,7 @@
     </div>
 
     <script type="application/javascript">
-        $(document).ready(function () {
+        function initialiseSortableForColumnStatus() {
             document.querySelectorAll('.column-status-elm').forEach(function (el) {
                 new Sortable(el, {
                     group: 'shared-status-cards',
@@ -113,13 +102,14 @@
                                 'X-CSRFToken': getCookie('csrftoken')
                             },
                             body: JSON.stringify(ctx)
-                        }).then((response) => response.json())
-                            .then((json) => {
-                                console.log(json);
-                            })
+                        });
                     }
                 });
             });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initialiseSortableForColumnStatus();
 
             showAndHideNavbar(
                 document.getElementById('core-navbar-element'),

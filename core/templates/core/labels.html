@@ -4,7 +4,6 @@
 {% load crispy_forms_tags %}
 {% load templateTags %}
 {% block content %}
-
     <div class="container d-flex justify-content-center mt-5" style="color: black;">
         <div class="card idCardWideComponent">
             <legend>
@@ -45,7 +44,8 @@
                             {{ label.code }}
                         </td>
                         <td>
-                            <span class="badge badge-primary" style="background-color: {{ label.colour }}; width: 100%">&nbsp;</span>
+                            <span class="badge badge-primary w-100"
+                                  style="background-color: {{ label.colour }};">&nbsp;</span>
                         </td>
                     </tr>
                 {% endfor %}
@@ -55,39 +55,37 @@
     </div>
 
     <script type="application/javascript">
-        const newLabelBtn = document.getElementById('add-label-btn');
-        const closeLabelBtn = document.getElementById('close-label-btn');
-        const newLabelForm = document.getElementById('form-id-new-label');
+        function initialiseLabelForm() {
+            const newLabelBtn = document.getElementById('add-label-btn');
+            const closeLabelBtn = document.getElementById('close-label-btn');
+            const newLabelForm = document.getElementById('form-id-new-label');
 
-        newLabelBtn.addEventListener('click', function () {
-            if (newLabelForm.style.display === 'none') {
-                newLabelForm.style.display = 'block';
-            } else {
+            newLabelBtn.addEventListener('click', function () {
+                newLabelForm.style.display = (newLabelForm.style.display === 'none' || newLabelForm.style.display === '') ? 'block' : 'none';
+            });
+
+            closeLabelBtn.addEventListener('click', function () {
                 newLabelForm.style.display = 'none';
-            }
-        });
+            });
+        }
 
-        closeLabelBtn.addEventListener('click', function () {
-            newLabelForm.style.display = 'none';
-        });
+        function initialiseDataTable() {
+            const labelTable = document.getElementById('labelTable');
+            new DataTable(labelTable, {
+                responsive: true,
+                autoWidth: false,
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: false,
+                pageLength: 18,
+            });
+            document.getElementById('labelTable_length').remove();
+        }
 
-        $(document).ready(function () {
-            $('.select2bs4').select2();
-        });
-
-        $(function () {
-            $("#labelTable").DataTable(
-                {
-                    "responsive": true,
-                    "autoWidth": false,
-                    "paging": true,
-                    "searching": true,
-                    "ordering": true,
-                    "info": false,
-                    "pageLength": 18,
-                }
-            );
-            $('#labelTable_length').remove();
+        document.addEventListener('DOMContentLoaded', function () {
+            initialiseLabelForm();
+            initialiseDataTable();
         });
     </script>
 {% endblock %}

@@ -30,8 +30,14 @@
     </div>
 
     <script type="application/javascript">
-        $(document).ready(function () {
-            $('.select2bs4').select2();
+        function initialiseSelect2() {
+            document.querySelectorAll('.select2bs4').forEach(selectElement => {
+                $(selectElement).select2();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initialiseSelect2();
         });
     </script>
 {% endblock %}

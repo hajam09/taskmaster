@@ -105,17 +105,15 @@
     <script type="application/javascript">
 
         $(function () {
-            $("#ticketsTable").DataTable(
-                {
-                    "responsive": true,
-                    "autoWidth": false,
-                    "paging": true,
-                    "searching": true,
-                    "ordering": true,
-                    "info": false,
-                    "pageLength": 18,
-                }
-            );
+            $("#ticketsTable").DataTable({
+                "responsive": true,
+                "autoWidth": false,
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "info": false,
+                "pageLength": 18,
+            });
             $('#ticketsTable_length').remove();
         });
 

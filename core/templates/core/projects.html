@@ -63,39 +63,44 @@
     </div>
 
     <script type="application/javascript">
-        const newProjectBtn = document.getElementById('add-project-btn');
-        const closeProjectBtn = document.getElementById('close-project-btn');
-        const newProjectForm = document.getElementById('form-id-new-project');
+        function initialiseProjectForm() {
+            const newProjectBtn = document.getElementById('add-project-btn');
+            const closeProjectBtn = document.getElementById('close-project-btn');
+            const newProjectForm = document.getElementById('form-id-new-project');
 
-        newProjectBtn.addEventListener('click', function () {
-            if (newProjectForm.style.display === 'none') {
-                newProjectForm.style.display = 'block';
-            } else {
+            newProjectBtn.addEventListener('click', function () {
+                newProjectForm.style.display = (newProjectForm.style.display === 'none' || newProjectForm.style.display === '') ? 'block' : 'none';
+            });
+
+            closeProjectBtn.addEventListener('click', function () {
                 newProjectForm.style.display = 'none';
-            }
-        });
+            });
+        }
 
-        closeProjectBtn.addEventListener('click', function () {
-            newProjectForm.style.display = 'none';
-        });
+        function initialiseSelect2() {
+            document.querySelectorAll('.select2bs4').forEach(selectElement => {
+                $(selectElement).select2();
+            });
+        }
 
-        $(document).ready(function () {
-            $('.select2bs4').select2();
-        });
+        function initialiseDataTable() {
+            const projectTable = document.getElementById('projectTable');
+            new DataTable(projectTable, {
+                responsive: true,
+                autoWidth: false,
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: false,
+                pageLength: 18,
+            });
+            document.getElementById('projectTable_length').remove();
+        }
 
-        $(function () {
-            $("#projectTable").DataTable(
-                {
-                    "responsive": true,
-                    "autoWidth": false,
-                    "paging": true,
-                    "searching": true,
-                    "ordering": true,
-                    "info": false,
-                    "pageLength": 18,
-                }
-            );
-            $('#projectTable_length').remove();
+        document.addEventListener('DOMContentLoaded', function () {
+            initialiseProjectForm();
+            initialiseSelect2();
+            initialiseDataTable();
         });
     </script>
 {% endblock %}

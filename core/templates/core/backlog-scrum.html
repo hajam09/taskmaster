@@ -4,16 +4,7 @@
 {% load crispy_forms_tags %}
 {% load templateTags %}
 {% block content %}
-    <style>
-        .column-status-style {
-            background-color: rgba(0, 123, 255, 0.1);
-            border: 2px dotted rgba(0, 123, 255, 0.6);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-        }
-    </style>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
     <div class="container-fluid justify-content-center mt-5" style="color: black;">
         <div class="row">
             <div id="core-navbar-element">
@@ -25,8 +16,7 @@
                         <h2 class="heading-h2 text-center">{{ board.name }} Backlog</h2>
                     </legend>
                     {% for sprint in sprints %}
-                        <br>
-                        <span>
+                        <span class="mt-3">
                             {% if sprint.isActive %}
                                 <button type="button" class="btn btn-sm float-right mr-2 complete-sprint-btn btn-submit"
                                         identifier="{{ sprint.id }}">
@@ -39,13 +29,11 @@
                                 </button>
                             {% endif %}
                         </span>
-                        <br>
-                        <div class="row">
-                            <div class="card" style="width: 105%; background-color: #e7eaee">
-                                <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
+                        <div class="row mt-3">
+                            <div class="card w-100" style="background-color: #e7eaee">
+                                <div class="card-body" style="padding-left: 2%; padding-right: 2%;">
                                     <small class="card-title"><strong>{{ sprint.name }}</strong></small>
-                                    <br><br>
-                                    <ul class="list-group list-group-flush ticket-group-container in-progress-ticket-container">
+                                    <ul class="list-group list-group-flush ticket-group-container in-progress-ticket-container mt-3">
                                         <span class="column-status-elm" identifier="{{ sprint.id }}" zone="sprint">
                                             {% for ticket in sprint.tickets.all %}
                                                 {% ticketHorizontalBarComponent ticket %}
@@ -56,8 +44,7 @@
                             </div>
                         </div>
                     {% endfor %}
-                    <br>
-                    <div>
+                    <div class="mt-3">
                         <button type="button" class="btn btn-sm float-right mr-2" id="create-sprint-btn">
                             Create Sprint
                         </button>
@@ -78,13 +65,11 @@
                             <input type="submit" class="btn btn-sm btn-submit" value="Submit">
                         </div>
                     </form>
-                    <div class="row">
-                        <br>
-                        <div class="card" style="width: 105%; background-color: #e7eaee">
+                    <div class="row mt-5">
+                        <div class="card w-100" style="background-color: #e7eaee">
                             <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
                                 <small class="card-title"><strong>Backlog</strong></small>
-                                <br><br>
-                                <ul class="list-group list-group-flush ticket-group-container backlog-ticket-container">
+                                <ul class="list-group list-group-flush ticket-group-container backlog-ticket-container mt-3">
                                     {% for column in backlogColumns %}
                                         {% for columnStatus in column.columnStatus.all %}
                                             <span class="column-status-elm" draggable="false"
@@ -109,52 +94,7 @@
     </div>
 
     <script type="application/javascript">
-        const createSprintBtn = document.getElementById('create-sprint-btn');
-        const cancelSprintBtn = document.getElementById('cancel-sprint-btn');
-        const newSprintForm = document.getElementById('form-id-new-sprint');
-
-        createSprintBtn.addEventListener('click', function () {
-            if (newSprintForm.style.display === 'none') {
-                newSprintForm.style.display = 'block';
-            } else {
-                newSprintForm.style.display = 'none';
-            }
-        });
-
-        cancelSprintBtn.addEventListener('click', function () {
-            newSprintForm.style.display = 'none';
-        });
-
-        updateSprintStatus = (url, identifier) => {
-            fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Content-type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({
-                    'sprint-id': identifier,
-                })
-            }).then(() => {
-                location.reload();
-            })
-        }
-
-        document.querySelectorAll('.start-sprint-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                updateSprintStatus('{% url 'core:startSprintEventApiVersion1' %}', button.getAttribute('identifier'));
-            });
-        });
-
-        document.querySelectorAll('.complete-sprint-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                if (window.confirm('Any incomplete tickets will be moved to either next sprint or backlog? Are you sure?')) {
-                    updateSprintStatus('{% url 'core:completeSprintEventApiVersion1' %}', button.getAttribute('identifier'));
-                }
-            });
-        });
-
-        $(document).ready(function () {
+        function initialiseSortableForColumnStatus() {
             document.querySelectorAll('.column-status-elm').forEach(function (el) {
                 new Sortable(el, {
                     group: {
@@ -215,10 +155,60 @@
                                 'X-CSRFToken': getCookie('csrftoken')
                             },
                             body: JSON.stringify(ctx)
-                        })
+                        });
                     }
                 });
             });
+        }
+
+        function updateSprintStatus(url, identifier) {
+            fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    'sprint-id': identifier,
+                })
+            }).then(() => {
+                location.reload();
+            })
+        }
+
+        function initialiseSprintForm() {
+            const newSprintBtn = document.getElementById('create-sprint-btn')
+            const cancelSprintBtn = document.getElementById('cancel-sprint-btn');
+            const newSprintForm = document.getElementById('form-id-new-sprint');
+            const startSprintBtn = document.querySelectorAll('.start-sprint-btn');
+            const completeSprintBtn = document.querySelectorAll('.complete-sprint-btn');
+
+            newSprintBtn.addEventListener('click', function () {
+                newSprintForm.style.display = (newSprintForm.style.display === 'none' || newSprintForm.style.display === '') ? 'block' : 'none';
+            });
+
+            cancelSprintBtn.addEventListener('click', function () {
+                newSprintForm.style.display = 'none';
+            });
+
+            startSprintBtn.forEach(button => {
+                button.addEventListener('click', function () {
+                    updateSprintStatus('{% url 'core:startSprintEventApiVersion1' %}', button.getAttribute('identifier'));
+                });
+            });
+
+            completeSprintBtn.forEach(button => {
+                button.addEventListener('click', function () {
+                    if (window.confirm('Any incomplete tickets will be moved to either next sprint or backlog? Are you sure?')) {
+                        updateSprintStatus('{% url 'core:completeSprintEventApiVersion1' %}', button.getAttribute('identifier'));
+                    }
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initialiseSortableForColumnStatus();
+            initialiseSprintForm();
 
             showAndHideNavbar(
                 document.getElementById('core-navbar-element'),
@@ -226,6 +216,5 @@
                 'hide',
             );
         });
-
     </script>
 {% endblock %}

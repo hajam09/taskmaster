@@ -4,17 +4,6 @@
 {% load crispy_forms_tags %}
 {% load templateTags %}
 {% block content %}
-    <style>
-        .form-control.status-name {
-            background-color: #f0f0f0;
-            border: none;
-            outline: none;
-        }
-
-        .form-control.status-name:focus {
-            border: 2px solid #007bff;
-        }
-    </style>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
     <div class="container-fluid justify-content-center mt-5" style="color: black;">
         <div class="row">
@@ -74,8 +63,7 @@
                             <div class="col board-column-instance" id="div-id-board-column-{{ column.id }}"
                                  identifier="{{ column.id }}"
                                  draggable="true">
-                                <br>
-                                <div class="card" style="width: 105%">
+                                <div class="card mt-4 w-100">
                                     <div class="card-body">
                                         <h5 class="card-title text-uppercase">
                                             <input class="form-control form-control-sm column-name" type="text"
@@ -85,9 +73,9 @@
                                                    onblur="this.style.border='none'">
                                         </h5>
                                         <div class="w-100"
-                                             style="height: 10px; background-color: {{ column.getColour }};"></div>
-                                        <br>
-                                        <div class="status-list">
+                                             style="height: 10px; background-color: {{ column.getColour }};">
+                                        </div>
+                                        <div class="status-list mt-3">
                                             {% for status in column.columnStatus.all %}
                                                 <div class="card mb-3 status-instance" id="status-{{ status.id }}"
                                                      identifier="{{ status.id }}" draggable="true">
@@ -117,84 +105,7 @@
     </div>
 
     <script type="application/javascript">
-        const addColumnBtn = document.getElementById('add-column-btn');
-        const addStatusBtn = document.getElementById('add-status-btn');
-
-        const closeColumnBtn = document.getElementById('close-column-btn');
-        const closeStatusBtn = document.getElementById('close-status-btn');
-
-        const newColumnForm = document.getElementById('form-id-new-column-form');
-        const newStatusForm = document.getElementById('form-id-new-status-form');
-
-        addColumnBtn.addEventListener('click', function () {
-            if (newColumnForm.style.display === 'none') {
-                newColumnForm.style.display = 'block';
-                newStatusForm.style.display = 'none';
-            } else {
-                newColumnForm.style.display = 'none';
-            }
-        });
-
-        addStatusBtn.addEventListener('click', function () {
-            if (newStatusForm.style.display === 'none') {
-                newStatusForm.style.display = 'block';
-                newColumnForm.style.display = 'none';
-            } else {
-                newStatusForm.style.display = 'none';
-            }
-        });
-
-        closeColumnBtn.addEventListener('click', function () {
-            newColumnForm.style.display = 'none';
-        });
-
-        closeStatusBtn.addEventListener('click', function () {
-            newStatusForm.style.display = 'none';
-        });
-
-        const saveBoardBtn = document.getElementById('save-board-btn');
-        saveBoardBtn.addEventListener('click', function () {
-            const boardColumnsList = document.getElementById('div-id-board-columns');
-            let ctx = [];
-            boardColumnsList.querySelectorAll('.board-column-instance').forEach((boardColumn, orderNo) => {
-                const columnId = boardColumn.getAttribute('identifier');
-                const columnName = boardColumn.querySelector('.column-name').value;
-
-                const statusList = boardColumn.querySelector('.status-list');
-                let statusData = [];
-                statusList.querySelectorAll('.status-instance').forEach((columnStatus, orderNo) => {
-                    const columnStatusId = columnStatus.getAttribute('identifier');
-                    const statusName = columnStatus.querySelector('.status-name').value;
-                    statusData.push({
-                        'column-status-id': columnStatusId,
-                        'column-status-name': statusName,
-                        'order-no': orderNo + 1,
-                    })
-                })
-
-                ctx.push({
-                    'column-id': columnId,
-                    'column-name': columnName,
-                    'status-data': statusData,
-                    'order-no': orderNo + 1,
-                })
-            });
-
-            fetch('{% url 'core:boardColumnAndStatusApiVersion1' %}', {
-                method: 'PUT',
-                headers: {
-                    'Content-type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify(ctx)
-            }).then((response) => response.json())
-                .then((json) => {
-                    console.log(json);
-                })
-        });
-
-        $(document).ready(function () {
-            $('.select2bs4').select2();
+        function initialiseSortableForBoardColumns() {
             new Sortable(document.getElementById('div-id-board-columns'), {
                 animation: 150,
                 handle: '.card-title',
@@ -202,6 +113,9 @@
                 onEnd: function (evt) {
                 }
             });
+        }
+
+        function initialiseSortableForEachStatusList() {
             document.querySelectorAll('.status-list').forEach(function (el) {
                 new Sortable(el, {
                     group: 'shared-status-cards',
@@ -211,11 +125,87 @@
                     }
                 });
             });
+        }
+
+        function initialiseSaveBoardButtonListenerAndHandler() {
+            document.getElementById('save-board-btn').addEventListener('click', function () {
+                const boardColumnsList = document.getElementById('div-id-board-columns');
+                let ctx = [];
+                boardColumnsList.querySelectorAll('.board-column-instance').forEach((boardColumn, orderNo) => {
+                    const columnId = boardColumn.getAttribute('identifier');
+                    const columnName = boardColumn.querySelector('.column-name').value;
+
+                    const statusList = boardColumn.querySelector('.status-list');
+                    let statusData = [];
+                    statusList.querySelectorAll('.status-instance').forEach((columnStatus, orderNo) => {
+                        const columnStatusId = columnStatus.getAttribute('identifier');
+                        const statusName = columnStatus.querySelector('.status-name').value;
+                        statusData.push({
+                            'column-status-id': columnStatusId,
+                            'column-status-name': statusName,
+                            'order-no': orderNo + 1,
+                        })
+                    })
+
+                    ctx.push({
+                        'column-id': columnId,
+                        'column-name': columnName,
+                        'status-data': statusData,
+                        'order-no': orderNo + 1,
+                    })
+                });
+
+                fetch('{% url 'core:boardColumnAndStatusApiVersion1' %}', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(ctx)
+                });
+            });
+        }
+
+        function initialiseBoardColumnFormAndColumnStatusForm() {
+            const newColumnForm = document.getElementById('form-id-new-column-form');
+            const newStatusForm = document.getElementById('form-id-new-status-form');
+            const columnBtn = document.getElementById('add-column-btn');
+            const statusBtn = document.getElementById('add-status-btn');
+            const closeColumnBtn = document.getElementById('close-column-btn');
+            const closeStatusBtn = document.getElementById('close-status-btn');
+
+            function toggleForm(formToShow, formToHide) {
+                formToShow.style.display = formToShow.style.display === 'none' ? 'block' : 'none';
+                formToHide.style.display = 'none';
+            }
+
+            columnBtn.addEventListener('click', function () {
+                toggleForm(newColumnForm, newStatusForm);
+            });
+
+            statusBtn.addEventListener('click', function () {
+                toggleForm(newStatusForm, newColumnForm);
+            });
+
+            closeColumnBtn.addEventListener('click', function () {
+                newColumnForm.style.display = 'none';
+            });
+
+            closeStatusBtn.addEventListener('click', function () {
+                newStatusForm.style.display = 'none';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initialiseSortableForBoardColumns();
+            initialiseSortableForEachStatusList();
+            initialiseSaveBoardButtonListenerAndHandler();
+            initialiseBoardColumnFormAndColumnStatusForm();
 
             showAndHideNavbar(
                 document.getElementById('core-navbar-element'),
                 document.getElementById('core-settings-element'),
-                'show',
+                'show'
             );
         });
     </script>

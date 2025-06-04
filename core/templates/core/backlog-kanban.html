@@ -4,16 +4,7 @@
 {% load crispy_forms_tags %}
 {% load templateTags %}
 {% block content %}
-    <style>
-        .column-status-style {
-            background-color: rgba(0, 123, 255, 0.1);
-            border: 2px dotted rgba(0, 123, 255, 0.6);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-        }
-    </style>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
     <div class="container-fluid justify-content-center mt-5" style="color: black;">
         <div class="row">
             <div id="core-navbar-element">
@@ -24,13 +15,11 @@
                     <legend>
                         <h2 class="heading-h2 text-center">{{ board.name }} Backlog</h2>
                     </legend>
-                    <div class="row">
-                        <br>
-                        <div class="card" style="width: 105%; background-color: #e7eaee">
-                            <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
+                    <div class="row mt-3">
+                        <div class="card w-100" style="background-color: #e7eaee">
+                            <div class="card-body" style="padding-left: 2%; padding-right: 2%;">
                                 <small class="card-title"><strong>In Progress</strong></small>
-                                <br><br>
-                                <ul class="list-group list-group-flush ticket-group-container in-progress-ticket-container">
+                                <ul class="list-group list-group-flush ticket-group-container in-progress-ticket-container mt-3">
                                     {% for column in inProgressColumns %}
                                         {% for columnStatus in column.columnStatus.all %}
                                             <span class="column-status-elm" draggable="false"
@@ -51,13 +40,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <br>
-                        <div class="card" style="width: 105%; background-color: #e7eaee">
-                            <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
+                    <div class="row mt-5">
+                        <div class="card w-100" style="background-color: #e7eaee">
+                            <div class="card-body" style="padding-left: 2%; padding-right: 2%;">
                                 <small class="card-title"><strong>Backlog</strong></small>
-                                <br><br>
-                                <ul class="list-group list-group-flush ticket-group-container backlog-ticket-container">
+                                <ul class="list-group list-group-flush ticket-group-container backlog-ticket-container mt-3">
                                     {% for column in backlogColumns %}
                                         {% for columnStatus in column.columnStatus.all %}
                                             <span class="column-status-elm" draggable="false"
@@ -82,7 +69,7 @@
     </div>
 
     <script type="application/javascript">
-        $(document).ready(function () {
+        function initialiseSortableForColumnStatus() {
             document.querySelectorAll('.column-status-elm').forEach(function (el) {
                 new Sortable(el, {
                     group: {
@@ -139,13 +126,14 @@
                                 'X-CSRFToken': getCookie('csrftoken')
                             },
                             body: JSON.stringify(ctx)
-                        }).then((response) => response.json())
-                            .then((json) => {
-                                console.log(json);
-                            })
+                        });
                     }
                 });
             });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initialiseSortableForColumnStatus();
 
             showAndHideNavbar(
                 document.getElementById('core-navbar-element'),
