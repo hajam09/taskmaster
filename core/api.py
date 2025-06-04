@@ -15,11 +15,11 @@ from core.models import (
 
 
 class BoardColumnAndStatusApiVersion1(APIView):
-    def put(self, request, *args, **kwargs):
-        columnIds = [columnData.get('column-id') for columnData in request.data]
+    def put(self, *args, **kwargs):
+        columnIds = [columnData.get('column-id') for columnData in self.request.data]
         statusIds = [
             columnStatusData.get('column-status-id')
-            for columnData in request.data
+            for columnData in self.request.data
             for columnStatusData in columnData.get('status-data')
         ]
 
@@ -32,7 +32,7 @@ class BoardColumnAndStatusApiVersion1(APIView):
         columnsToUpdate = []
         statusesToUpdate = []
 
-        for columnData in request.data:
+        for columnData in self.request.data:
             column = columnsDict.get(columnData.get('column-id'))
             if column:
                 if column.status in [Column.Status.TODO, Column.Status.IN_PROGRESS]:
@@ -57,9 +57,9 @@ class BoardColumnAndStatusApiVersion1(APIView):
 
 
 class TicketColumStatusApiVersion1(APIView):
-    def put(self, request, *args, **kwargs):
-        columnStatusId = request.data.get('column-status-id')
-        ticketIds = request.data.get('ticket-ids')
+    def put(self, *args, **kwargs):
+        columnStatusId = self.request.data.get('column-status-id')
+        ticketIds = self.request.data.get('ticket-ids')
         tickets = Ticket.objects.filter(id__in=ticketIds)
         for ticket in tickets:
             ticket.columnStatus_id = columnStatusId
@@ -69,15 +69,15 @@ class TicketColumStatusApiVersion1(APIView):
 
 
 class ScrumBoardBacklogTicketUpdateApiVersion1(APIView):
-    def put(self, request, *args, **kwargs):
-        ticketId = request.data.get('ticket-id')
-        zone = request.data.get('zone')
+    def put(self, *args, **kwargs):
+        ticketId = self.request.data.get('ticket-id')
+        zone = self.request.data.get('zone')
         ticket = Ticket.objects.select_related('columnStatus').get(id=ticketId)
         Sprint.tickets.through.objects.filter(ticket=ticket).delete()
 
         if zone == 'sprint':
             # remove from other sprints, add it to this sprint, update column status to remove from backlog
-            sprint = Sprint.objects.select_related('board').get(id=request.data.get('sprint-id'))
+            sprint = Sprint.objects.select_related('board').get(id=self.request.data.get('sprint-id'))
             sprint.tickets.add(ticket)
             ticket.columnStatus = ColumnStatus.objects.filter(
                 column__board=sprint.board, column__status=Column.Status.TODO
@@ -85,7 +85,7 @@ class ScrumBoardBacklogTicketUpdateApiVersion1(APIView):
             ticket.save()
         elif zone == 'backlog':
             # remove from all sprints, update column status to backlog
-            ticket.columnStatus_id = request.data.get('column-id')
+            ticket.columnStatus_id = self.request.data.get('column-id')
             ticket.save()
         return Response(status=status.HTTP_200_OK)
 

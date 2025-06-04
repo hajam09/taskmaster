@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from colorfield.widgets import ColorWidget
 from django import template
 from django.db.models.query import QuerySet
@@ -273,5 +275,38 @@ def ticketHorizontalBarComponent(ticket):
             <span class="badge badge-primary float-right ml-3" style="margin-top: 4.5px;">{ticket.columnStatus.name}</span>
             {epic}
         </li>
+    '''
+    return mark_safe(body)
+
+
+@register.simple_tag
+def boardSettingsLinksComponent(board, visibility):
+    boardSettingsViewUrl = reverse('core:board-settings-view', kwargs={'url': board.url})
+    boardViewUrl = reverse('core:board-view', kwargs={'url': board.url})
+    boardBacklogViewUrl = reverse('core:board-backlog-view', kwargs={'url': board.url})
+    body = f'''
+        <button class="btn btn-primary" id="toggle-button" style="left: 10px; top: 10px;">
+            &#9776;
+        </button>
+        <p></p>
+        <div class="card idCardWideComponent" id="nav-bar-element"
+            style="padding: 0px; display: {'block' if visibility == 'show' else 'none'};">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><b class="card-title text-uppercase">Links</b></li>
+                <li class="list-group-item">
+                    <a href="{boardViewUrl}">Board</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{boardBacklogViewUrl}">Backlog</a>
+                </li>
+                <li class="list-group-item"><b class="card-title text-uppercase">Settings</b></li>
+                <li class="list-group-item">
+                    <a href="{boardSettingsViewUrl + '?' + urlencode({'tab': 'general'})}">General</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{boardSettingsViewUrl + '?' + urlencode({'tab': 'columns'})}">Columns</a>
+                </li>
+            </ul>
+        </div>
     '''
     return mark_safe(body)

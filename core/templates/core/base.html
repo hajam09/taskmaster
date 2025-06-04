@@ -73,14 +73,14 @@
         }
 
         /* Base 'Card' component style */
-        #idCardWideComponent {
+        .idCardWideComponent {
             background-color: #fff;
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             width: 100%;
         }
-        #idCardNarrowComponent {
+        .idCardNarrowComponent {
             background-color: #fff;
             border-radius: 10px;
             padding: 20px;
@@ -162,6 +162,40 @@
                 }
             }
             return cookieValue;
+        }
+
+
+        function amendClassesToElement(element, classesToRemove, classesToAdd) {
+            element.classList.remove(...classesToRemove);
+            element.classList.add(...classesToAdd);
+        }
+
+        function showAndHideNavbar(navbarComponent, mainComponent, defaultVisibility) {
+
+            if (defaultVisibility === 'show') {
+                amendClassesToElement(navbarComponent, navbarComponent.classList, ['col-2']);
+                amendClassesToElement(mainComponent, mainComponent.classList, ['col-10']);
+            } else if (defaultVisibility === 'hide') {
+                amendClassesToElement(navbarComponent, navbarComponent.classList, ['col-auto']);
+                amendClassesToElement(mainComponent, mainComponent.classList, ['col-11']);
+            } else {
+                throw new Error('Unknown defaultVisibility: ' + defaultVisibility);
+            }
+
+            const navbarToggleButton = navbarComponent.querySelector('#toggle-button');
+            navbarToggleButton.addEventListener('click', () => {
+                const navbarElement = navbarComponent.querySelector('#nav-bar-element');
+
+                if (navbarElement.style.display === 'block') {
+                    navbarElement.style.display = 'none';
+                    amendClassesToElement(navbarComponent, navbarComponent.classList, ['col-auto']);
+                    amendClassesToElement(mainComponent, mainComponent.classList, ['col-11']);
+                } else {
+                    navbarElement.style.display = 'block';
+                    amendClassesToElement(navbarComponent, navbarComponent.classList, ['col-2']);
+                    amendClassesToElement(mainComponent, mainComponent.classList, ['col-10']);
+                }
+            });
         }
 
     </script>

@@ -15,37 +15,44 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
-    <div class="container-fluid d-flex justify-content-center mt-5" style="color: black;">
-        <div class="card" id="idCardWideComponent">
-            <legend>
-                <h2 class="heading-h2 text-center">Board - {{ board.name }}</h2>
-            </legend>
-            <div class="row">
-                {% for column in columns %}
-                    <div class="col" style="height: auto; overflow: hidden;">
-                        <br>
-                        <div class="card" style="width: 105%; min-height: 200%; background-color: #e7eaee">
-                            <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
-                                <h5 class="card-title text-uppercase">{{ column.name }}</h5>
-                                <div class="ticket-list">
-                                    {% for columnStatus in column.columnStatus %}
-                                        <span class="column-status-elm" draggable="false"
-                                              identifier="{{ columnStatus.id }}">
-                                            <p class="card-text column-status-name-element text-center"
-                                               style="display: none;">
-                                                {{ columnStatus.name }}
-                                            </p>
-                                            {% for ticket in columnStatus.columnStatusTickets %}
-                                                {% ticketComponent ticket %}
+    <div class="container-fluid justify-content-center mt-5" style="color: black;">
+        <div class="row">
+            <div id="core-navbar-element">
+                {% boardSettingsLinksComponent board 'hide' %}
+            </div>
+            <div id="core-board-element">
+                <div class="card idCardWideComponent">
+                    <legend>
+                        <h2 class="heading-h2 text-center">Board - {{ board.name }}</h2>
+                    </legend>
+                    <div class="row">
+                        {% for column in columns %}
+                            <div class="col" style="height: auto; overflow: hidden;">
+                                <br>
+                                <div class="card" style="width: 105%; min-height: 200%; background-color: #e7eaee">
+                                    <div class="card-body w-100" style="padding-left: 2%; padding-right: 2%;">
+                                        <h5 class="card-title text-uppercase">{{ column.name }}</h5>
+                                        <div class="ticket-list">
+                                            {% for columnStatus in column.columnStatus %}
+                                                <span class="column-status-elm" draggable="false"
+                                                      identifier="{{ columnStatus.id }}">
+                                                    <p class="card-text column-status-name-element text-center"
+                                                       style="display: none;">
+                                                        {{ columnStatus.name }}
+                                                    </p>
+                                                    {% for ticket in columnStatus.columnStatusTickets %}
+                                                        {% ticketComponent ticket %}
+                                                    {% endfor %}
+                                                </span>
                                             {% endfor %}
-                                        </span>
-                                    {% endfor %}
+                                        </div>
+                                    </div>
                                 </div>
+                                <br>
                             </div>
-                        </div>
-                        <br>
+                        {% endfor %}
                     </div>
-                {% endfor %}
+                </div>
             </div>
         </div>
     </div>
@@ -113,6 +120,12 @@
                     }
                 });
             });
+
+            showAndHideNavbar(
+                document.getElementById('core-navbar-element'),
+                document.getElementById('core-board-element'),
+                'hide',
+            );
         });
     </script>
 {% endblock %}
