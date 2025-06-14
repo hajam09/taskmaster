@@ -1,6 +1,7 @@
 import json
 
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import status
 from rest_framework.response import Response
@@ -10,7 +11,12 @@ from core.models import (
     ColumnStatus,
     Column,
     Ticket,
-    Sprint
+    Sprint,
+    Project
+)
+from core.serializers import (
+    ProjectSerializerVersion1,
+    UserSerializerVersion1
 )
 
 
@@ -175,3 +181,43 @@ class CompleteSprintEventApiVersion1(APIView):
         self.sprint.isActive = False
         self.sprint.save()
         return Response(status=status.HTTP_200_OK)
+
+
+class ProjectListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        queryset = Project.objects.all()
+        serializer = ProjectSerializerVersion1(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class TicketTypeListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        data = [
+            {
+                'label': ticketType.label,
+                'code': ticketType,
+                'icon': Ticket.icons.get(ticketType),
+            }
+            for ticketType in Ticket.Type
+        ]
+        return Response(data=data, status=status.HTTP_200_OK)
+
+
+class TicketPriorityListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        data = [
+            {
+                'label': ticketType.label,
+                'code': ticketType,
+                'icon': Ticket.icons.get(ticketType),
+            }
+            for ticketType in Ticket.Priority
+        ]
+        return Response(data=data, status=status.HTTP_200_OK)
+
+
+class UserListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        queryset = User.objects.all()
+        serializer = UserSerializerVersion1(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
