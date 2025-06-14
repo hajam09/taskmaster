@@ -4,48 +4,40 @@
 {% load crispy_forms_tags %}
 {% load templateTags %}
 {% block content %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/avatars-icons.css' %}"/>
     <div class="container-fluid justify-content-center mt-5" style="color: black;">
         <div class="card idCardWideComponent">
             <legend>
                 <h2 class="heading-h2 text-center">Tickets</h2>
-                <br>
+            </legend>
+            <form method="get">
                 <div class="row">
                     <div class="col">
                         <input class="form-control form-control-sm" type="text" id="search-input"
                                placeholder="Search tickets" value="{{ request.GET.query }}">
                     </div>
                     <div class="col">
-                        <select class="form-control form-control-sm">
-                            <option value="">All projects</option>
-                        </select>
+                        <select class="form-control form-control-sm" id="project-list"></select>
                     </div>
                     <div class="col">
-                        <select class="form-control form-control-sm">
-                            <option value="">All types</option>
-                        </select>
+                        <select class="form-control form-control-sm" id="type-list"></select>
                     </div>
                     <div class="col">
-                        <select class="form-control form-control-sm">
-                            <option value="">All priorities</option>
-                        </select>
+                        <select class="form-control form-control-sm" id="priority-list"></select>
                     </div>
                     <div class="col">
-                        <select class="form-control form-control-sm">
-                            <option value="">All assignee</option>
-                        </select>
+                        <select class="form-control form-control-sm" id="assignee-list"></select>
                     </div>
                     <div class="col">
-                        <select class="form-control form-control-sm">
-                            <option value="">All reporters</option>
-                        </select>
+                        <select class="form-control form-control-sm" id="reporter-list"></select>
                     </div>
                     <div class="col-md-auto">
-                        <button type="button" class="btn btn-sm float-right btn-submit" id="search-btn">Search</button>
+                        <button type="button" class="btn btn-sm float-right btn-submit" id="search-tickets-btn">
+                            Search
+                        </button>
                     </div>
                 </div>
-
-            </legend>
+            </form>
+            <div class="p-2"></div>
             <table id="ticketsTable" class="table table-sm table-bordered table-hover" style="color: black;">
                 <thead>
                 <tr>
@@ -103,41 +95,186 @@
     </div>
 
     <script type="application/javascript">
-
-        $(function () {
-            $("#ticketsTable").DataTable({
-                "responsive": true,
-                "autoWidth": false,
-                "paging": true,
-                "searching": true,
-                "ordering": true,
-                "info": false,
-                "pageLength": 18,
+        function initialiseDataTable() {
+            const ticketsTable = document.getElementById('ticketsTable');
+            new DataTable(ticketsTable, {
+                responsive: true,
+                autoWidth: false,
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: false,
+                pageLength: 18,
             });
-            $('#ticketsTable_length').remove();
-        });
-
-        function isEmptyOrSpaces(str) {
-            return str === null || str.match(/^ *$/) !== null;
+            document.getElementById('ticketsTable_length').remove();
         }
 
-        const searchInput = $('#search-input');
-        const searchBtn = $('#search-btn');
-
-        function getTickets() {
-            const ticketsView = '{% url 'core:tickets-view' %}';
-            if (!isEmptyOrSpaces(searchInput.val())) {
-                window.location.href = ticketsView + '?query=' + searchInput.val();
+        function getNonEmptyOptionsCount(dropdownElement) {
+            const options = dropdownElement.options;
+            let nonEmptyCount = 0;
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].value !== "") {
+                    nonEmptyCount++;
+                }
             }
+            return nonEmptyCount;
         }
 
-        searchInput.on('keyup', function (e) {
-            if (e.key === 'Enter' || e.keyCode === 13) {
-                getTickets();
+        function initialiseAndSetProjectListDropdown() {
+            const projectListDropdown = document.getElementById('project-list');
+            projectListDropdown.addEventListener('click', function () {
+                const optionCount = getNonEmptyOptionsCount(projectListDropdown);
+                if (optionCount !== 0)
+                    return;
+
+                fetch('{% url 'core:projectListApiVersion1' %}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((response) => {
+                        response.forEach(o => {
+                            const option = document.createElement('option');
+                            option.value = o.code;
+                            option.textContent = o.name;
+                            projectListDropdown.appendChild(option);
+                        });
+                    });
+            });
+        }
+
+        function initialiseAndSetTypeListDropdown() {
+            const typeListDropdown = document.getElementById('type-list');
+            typeListDropdown.addEventListener('click', function () {
+                const optionCount = getNonEmptyOptionsCount(typeListDropdown);
+                if (optionCount !== 0)
+                    return;
+
+                fetch('{% url 'core:ticketTypeListApiVersion1' %}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((response) => {
+                        response.forEach(o => {
+                            const option = document.createElement('option');
+                            option.value = o.code;
+                            option.textContent = o.label;
+                            typeListDropdown.appendChild(option);
+                        });
+                    });
+            });
+        }
+
+        function initialiseAndSetPriorityListDropdown() {
+            const priorityListDropdown = document.getElementById('priority-list');
+            priorityListDropdown.addEventListener('click', function () {
+                const optionCount = getNonEmptyOptionsCount(priorityListDropdown);
+                if (optionCount !== 0)
+                    return;
+
+                fetch('{% url 'core:ticketPriorityListApiVersion1' %}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((response) => {
+                        response.forEach(o => {
+                            const option = document.createElement('option');
+                            option.value = o.code;
+                            option.textContent = o.label;
+                            priorityListDropdown.appendChild(option);
+                        });
+                    });
+            });
+        }
+
+        function initialiseAndSetBothAssigneeAndReporterListDropdown() {
+            const assigneeListDropdown = document.getElementById('assignee-list');
+            const reporterListDropdown = document.getElementById('reporter-list');
+
+            function populateDropdown(dropdown, data) {
+                data.forEach(o => {
+                    const option = document.createElement('option');
+                    option.value = o.id;
+                    option.textContent = o.first_name + " " + o.last_name;
+                    dropdown.appendChild(option);
+                });
             }
-        });
-        searchBtn.click(function () {
-            getTickets();
+
+            let userListFetched = false;
+            let userListData = [];
+
+            function fetchUserList() {
+                return fetch('{% url 'core:userListApiVersion1' %}', {
+                    method: 'GET',
+                }).then((response) => response.json())
+                    .then((response) => {
+                        userListData = response;
+                        userListFetched = true;
+                        populateDropdown(assigneeListDropdown, userListData);
+                        populateDropdown(reporterListDropdown, userListData);
+                    });
+            }
+
+            function handleDropdownClick() {
+                const assigneeListOptionCount = getNonEmptyOptionsCount(assigneeListDropdown);
+                const reporterListOptionCount = getNonEmptyOptionsCount(reporterListDropdown);
+                if (!userListFetched) {
+                    fetchUserList();
+                } else {
+                    if (assigneeListOptionCount === 0) {
+                        populateDropdown(assigneeListDropdown, userListData);
+                    }
+
+                    if (reporterListOptionCount === 0) {
+                        populateDropdown(reporterListDropdown, userListData);
+                    }
+                }
+            }
+
+            assigneeListDropdown.addEventListener('click', handleDropdownClick);
+            reporterListDropdown.addEventListener('click', handleDropdownClick);
+        }
+
+        function initialiseAndHandleTicketSearchForm() {
+            document.getElementById('search-tickets-btn').addEventListener('click', function () {
+                /*
+                let url = new URL(window.location.href);
+
+                const projectList = document.getElementById('project-list');
+                const typeList = document.getElementById('type-list');
+                const priorityList = document.getElementById('priority-list');
+                const assigneeList = document.getElementById('assignee-list');
+                const reporterList = document.getElementById('reporter-list');
+
+                const selectedProjects = Array.from(projectList.selectedOptions).map(option => option.value);
+                const selectedTypes = Array.from(typeList.selectedOptions).map(option => option.value);
+                const selectedPriorities = Array.from(priorityList.selectedOptions).map(option => option.value);
+                const selectedAssignees = Array.from(assigneeList.selectedOptions).map(option => option.value);
+                const selectedReporters = Array.from(reporterList.selectedOptions).map(option => option.value);
+
+                if (selectedProjects.length > 0) {
+                    url.searchParams.set('projects', selectedProjects.join(','));
+                }
+
+                if (selectedTypes.length > 0) {
+                    url.searchParams.set('types', selectedTypes.join(','));
+                }
+
+                if (selectedPriorities.length > 0) {
+                    url.searchParams.set('priorities', selectedPriorities.join(','));
+                }
+
+                if (selectedAssignees.length > 0) {
+                    url.searchParams.set('assignees', selectedAssignees.join(','));
+                }
+
+                if (selectedReporters.length > 0) {
+                    url.searchParams.set('reporters', selectedReporters.join(','));
+                }
+
+                // window.location.href = url.href;
+                 */
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initialiseDataTable();
         });
     </script>
 {% endblock %}
