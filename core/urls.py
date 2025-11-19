@@ -26,7 +26,8 @@ from core.views import (
     labelsView,
     labelView,
     ticketsView,
-    ticketView
+    ticketView,
+    ticketCreateRequest
 )
 
 app_name = 'core'
@@ -51,6 +52,7 @@ urlpatterns = [
     path('labels/<slug:url>/', labelView, name='label-view'),
     path('tickets/', ticketsView, name='tickets-view'),
     path('ticket/<slug:url>/', ticketView, name='ticket-view'),
+    path('ticket-create-request/', ticketCreateRequest, name='ticket-create-request'),
 ]
 
 urlpatterns += [

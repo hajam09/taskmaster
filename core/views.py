@@ -7,7 +7,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import (
+    F,
+    Q,
+    Value
+)
+from django.db.models.functions import Concat
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -29,7 +34,8 @@ from core.forms import (
     LabelForm,
     ColumnForm,
     ColumnStatusForm,
-    SprintForm
+    SprintForm,
+    TicketForm
 )
 from core.models import (
     Profile,
@@ -383,6 +389,7 @@ def boardView(request, url):
     return render(request, 'core/board.html', context)
 
 
+@login_required
 def backlogView(request, url):
     board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets').get(url=url)
     context = {}
@@ -539,27 +546,50 @@ def ticketsView(request):
     query = request.GET.get('query')
     relatedColumns = ['columnStatus__column', 'assignee', 'reporter']
 
+    tickets = Ticket.objects.annotate(
+        assignee_fullname=Concat(
+            F('assignee__first_name'), Value(' '), F('assignee__last_name')
+        ),
+        reporter_fullname=Concat(
+            F('reporter__first_name'), Value(' '), F('reporter__last_name')
+        ),
+    )
+
     if query and query.strip():
-        query = query.strip()
+        query = ' '.join(query.split())
         attributesToSearch = [
             'url', 'summary', 'description', 'resolution', 'type', 'priority',
             'project__name', 'project__code', 'project__url', 'project__description', 'project__status',
             'assignee__first_name', 'assignee__last_name', 'reporter__first_name', 'reporter__last_name',
-            'columnStatus__name', 'columnStatus__column__name', 'columnStatus__column__board__name',
-            'columnStatus__column__board__type', 'columnStatus__column__status',
+            'assignee_fullname', 'reporter_fullname', 'columnStatus__name', 'columnStatus__column__name',
+            'columnStatus__column__board__name', 'columnStatus__column__board__type', 'columnStatus__column__status',
             'label__name', 'label__code', 'linkType'
         ]
         search_filter = Q()
         for field in attributesToSearch:
             search_filter |= Q(**{f'{field}__icontains': query})
-        tickets = Ticket.objects.filter(search_filter).select_related(*relatedColumns).distinct()
+        tickets = tickets.filter(search_filter).select_related(*relatedColumns).distinct()
     else:
-        tickets = Ticket.objects.all().select_related(*relatedColumns)
+        tickets = tickets.select_related(*relatedColumns)
 
     context = {
         'tickets': tickets,
     }
     return render(request, 'core/tickets.html', context)
+
+
+@login_required
+def ticketCreateRequest(request):
+    if request.method == 'POST':
+        form = TicketForm(request, request.POST)
+        if form.is_valid():
+            ticket = form.save()
+            messages.success(
+                request,
+                f'Ticket created successfully! You can view it by clicking <a href="{ticket.getUrl}">here</a>'
+            )
+            return redirect(request.META.get('HTTP_REFERER', 'core:tickets-view'))
+    return redirect(request.META.get('HTTP_REFERER', 'core:tickets-view'))
 
 
 def ticketView(request, url):

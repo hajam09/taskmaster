@@ -9,6 +9,7 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.db.models import Case, When
 from django.utils.safestring import mark_safe
 
 from core.models import (
@@ -19,7 +20,8 @@ from core.models import (
     Label,
     Column,
     ColumnStatus,
-    Sprint
+    Sprint,
+    Ticket
 )
 
 
@@ -48,7 +50,7 @@ class LoginForm(forms.ModelForm):
         model = User
         fields = ('email', 'password')
 
-    def __init__(self, request=None, *args, **kwargs):
+    def __init__(self, request, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.request = request
 
@@ -410,4 +412,54 @@ class SprintForm(forms.ModelForm):
         instance.board = self.board
         if commit:
             instance.save()
+        return instance
+
+
+class TicketForm(forms.ModelForm):
+    board = forms.ModelChoiceField(
+        queryset=Board.objects.none(),
+        required=True,
+        label='Board',
+        widget=forms.Select(),
+        empty_label='---------'
+    )
+    assignee = forms.ModelChoiceField(
+        queryset=User.objects.none(),
+        required=False,
+        label='Assignee',
+        widget=forms.Select(),
+        empty_label='---------'
+    )
+
+    class Meta:
+        model = Ticket
+        fields = ('summary', 'description', 'type', 'priority', 'board', 'storyPoints', 'assignee', 'resolution')
+
+    def __init__(self, request, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.request = request
+        self.fields['board'].queryset = Board.objects.all()
+
+        users = list(User.objects.values_list('id', flat=True))
+        users.remove(self.request.user.id)
+        users.insert(0, self.request.user.id)
+        preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(users)])
+        self.fields['assignee'].queryset = User.objects.filter(id__in=users).order_by(preserved)
+
+        for key, value in self.fields.items():
+            value.widget.attrs.update({'class': 'form-control form-control-sm col'})
+            value.label = mark_safe(f'<strong>{value.label}</strong>')
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        board = self.cleaned_data.get('board')
+        instance.url = f'{board.project.code}-{Ticket.objects.filter(project=board.project).count() + 1}'
+        instance.project = board.project
+        instance.reporter = self.request.user
+        instance.columnStatus = ColumnStatus.objects.get(column__board=board, column__status=Column.Status.BACK_LOG)
+
+        if commit:
+            instance.save()
+            self.save_m2m()
         return instance
