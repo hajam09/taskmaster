@@ -4,118 +4,188 @@
 {% load crispy_forms_tags %}
 {% load templateTags %}
 {% block content %}
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
-    <div class="container-fluid justify-content-center mt-5" style="color: black;">
+    <style>
+        .ticket-object-component {
+            border: none;
+            box-shadow: 0 1px 1px rgba(9, 30, 66, 0.25);
+            cursor: pointer;
+        }
+
+        .ticket-object-component:hover {
+            background-color: #ebecf0;
+        }
+
+        .ticket-object-component .card-title {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .ticket-object-component .card-body {
+            padding-top: 0;
+            font-size: 12px;
+        }
+
+        img {
+            vertical-align: middle;
+        }
+
+        .kanban-board > .col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kanban-board > .col > .card {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+    </style>
+    <div class="container-fluid justify-content-center mt-5 mb-5" style="max-width: 95%">
+
         <div class="row">
-            <div id="core-navbar-element">
+            <div class="col=1" id="core-navbar-element">
                 {% boardSettingsLinksComponent board 'hide' %}
             </div>
-            <div id="core-board-element">
-                <div class="card idCardWideComponent" style="min-height: 175%">
-                    <legend>
-                        <h2 class="heading-h2 text-center">Board - {{ board.name }}</h2>
-                    </legend>
-                    <div class="row mt-3">
-                        {% for column in columns %}
-                            <div class="col" style="height: auto;">
-                                <div class="card w-100" style="min-height: 200%; background-color: #e7eaee">
-                                    <div class="card-body" style="padding-left: 2%; padding-right: 2%;">
-                                        <h5 class="card-title text-uppercase">{{ column.name }}</h5>
-                                        <div class="ticket-list">
-                                            {% for columnStatus in column.columnStatus %}
-                                                <span class="column-status-elm" draggable="false"
-                                                      identifier="{{ columnStatus.id }}">
-                                                    <p class="card-text column-status-name-element text-center"
-                                                       style="display: none;">
-                                                        {{ columnStatus.name }}
-                                                    </p>
-                                                    {% for ticket in columnStatus.columnStatusTickets %}
-                                                        {% ticketComponent ticket %}
-                                                    {% endfor %}
-                                                </span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                                <br>
-                            </div>
-                        {% endfor %}
+            <div class="col=11 ml-3" id="core-board-element">
+                <legend>
+                    <h2 class="heading-h2">Board - {{ board.name }}</h2>
+                </legend>
+
+                <form class="form-inline" method="get">
+                    <div class="form-group mb-2 mr-2">
+                        <input type="text" name="q" class="form-control form-control-sm" placeholder="Search"
+                               value="{{ request.GET.q }}">
                     </div>
+                    <button type="submit" class="btn btn-sm btn-primary mb-2">Go</button>
+                </form>
+
+                <div class="kanban-board row mt-3" style="display: flex; overflow-x: auto; padding-bottom: 15px;">
+
+                    {% for column in columns %}
+                        <div class="col">
+                            <div class="card mb-3">
+                                <div class="text-light"
+                                     style="background-color: {{ column.colour }};padding: 8px 10px; font-size: 14px; font-weight: 600; border-radius: 4px 4px 0 0;"> {{ column.name }}
+                                    &nbsp;<span class="badge badge-light" data-column-id="{{ column.id }}">0</span>
+                                </div>
+
+                                <div class="card-body kanban-column-body ticket-list"
+                                     style="display: block;background-color: #fefefe;padding: 8px; flex-grow: 1; min-height: 100px;">
+
+                                    {% for columnStatus in column.columnStatus %}
+
+                                        <span class="column-status-elm" draggable="false"
+                                              data-identifier="{{ columnStatus.id }}"
+                                              style="display: block; margin-bottom: 10px;">
+
+                                            <p class="card-text column-status-name-element text-center"
+                                               style="display: none;">
+                                                {{ columnStatus.name }}
+                                            </p>
+
+                                            {% for ticket in columnStatus.columnStatusTickets %}
+                                                {% ticketComponent ticket %}
+                                            {% endfor %}
+
+                                        </span>
+
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+
                 </div>
             </div>
         </div>
-    </div>
 
-    <script type="application/javascript">
-        function initialiseSortableForColumnStatus() {
-            document.querySelectorAll('.column-status-elm').forEach(function (el) {
-                new Sortable(el, {
-                    group: 'shared-status-cards',
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
 
-                    onMove: function (evt) {
-                        document.querySelectorAll('.column-status-elm').forEach(el => {
-                            el.classList.add('card', 'column-status-style');
-                        });
+        <script type="application/javascript">
 
-                        document.querySelectorAll('.column-status-name-element').forEach(el => {
-                            el.style.display = 'block';
-                        });
+            function updateColumnCounters() {
+                document.querySelectorAll('.col').forEach(column => {
+                    const badge = column.querySelector('.badge[data-column-id]');
+                    if (!badge) return;
 
-                        // uncomment below to hide other tickets when changing ticket's column status.
-                        /*const selectedTicket = evt.dragged.getAttribute('identifier');
-                        document.querySelectorAll('.ticket-object-component').forEach(el => {
-                            if (el.getAttribute('identifier')!== selectedTicket)
-                                el.style.display = 'none';
-                        });*/
-                    },
-
-                    onEnd: function (evt) {
-                        document.querySelectorAll('.column-status-elm').forEach(el => {
-                            el.classList.remove('card', 'column-status-style');
-                        });
-
-                        document.querySelectorAll('.ticket-object-component').forEach(el => {
-                            el.style.display = 'block';
-                        });
-
-                        document.querySelectorAll('.column-status-name-element').forEach(el => {
-                            el.style.display = 'none';
-                        });
-
-                        const itemEl = evt.item; // Element that was dragged
-                        const fromList = evt.from; // Original list (before drag)
-                        const toList = evt.to; // New list (where dropped)
-                        const newIndex = evt.newIndex; // Index in the new list
-                        const oldIndex = evt.oldIndex; // Index in the original list
-
-                        const ctx = {
-                            'column-status-id': toList.getAttribute('identifier'),
-                            'ticket-ids': Array.from(toList.querySelectorAll('.ticket-object-component')).map(el => el.getAttribute('identifier'))
-                        };
-
-                        fetch('{% url 'core:ticketColumStatusApiVersion1' %}', {
-                            method: 'PUT',
-                            headers: {
-                                'Content-type': 'application/json',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: JSON.stringify(ctx)
-                        });
-                    }
+                    // Count all ticket elements inside this column
+                    badge.textContent = column.querySelectorAll('.ticket-object-component').length;
                 });
+            }
+
+            function initialiseSortableForColumnStatus() {
+                document.querySelectorAll('.column-status-elm').forEach(function (el) {
+                    new Sortable(el, {
+                        group: 'shared-status-cards',
+                        animation: 150,
+                        ghostClass: 'sortable-ghost',
+
+                        onMove: function (evt) {
+                            document.querySelectorAll('.column-status-elm').forEach(el => {
+                                el.classList.add('card', 'column-status-style');
+                            });
+
+                            document.querySelectorAll('.column-status-name-element').forEach(el => {
+                                el.style.display = 'block';
+                            });
+
+                            // uncomment below to hide other tickets when changing ticket's column status.
+                            /*const selectedTicket = evt.dragged.getAttribute('identifier');
+                            document.querySelectorAll('.ticket-object-component').forEach(el => {
+                                if (el.getAttribute('identifier')!== selectedTicket)
+                                    el.style.display = 'none';
+                            });*/
+                        },
+
+                        onEnd: function (evt) {
+                            document.querySelectorAll('.column-status-elm').forEach(el => {
+                                el.classList.remove('card', 'column-status-style');
+                            });
+
+                            document.querySelectorAll('.ticket-object-component').forEach(el => {
+                                el.style.display = 'block';
+                            });
+
+                            document.querySelectorAll('.column-status-name-element').forEach(el => {
+                                el.style.display = 'none';
+                            });
+
+                            const itemEl = evt.item; // Element that was dragged
+                            const fromList = evt.from; // Original list (before drag)
+                            const toList = evt.to; // New list (where dropped)
+                            const newIndex = evt.newIndex; // Index in the new list
+                            const oldIndex = evt.oldIndex; // Index in the original list
+
+                            const ctx = {
+                                'column-status-id': toList.getAttribute('data-identifier'),
+                                'ticket-ids': Array.from(toList.querySelectorAll('.ticket-object-component')).map(el => el.getAttribute('data-identifier'))
+                            };
+
+                            fetch('{% url 'core:ticketColumStatusApiVersion1' %}', {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify(ctx)
+                            });
+
+                            updateColumnCounters();
+                        }
+                    });
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                initialiseSortableForColumnStatus();
+                updateColumnCounters();
+
+                showAndHideNavbar(
+                    document.getElementById('core-navbar-element'),
+                    document.getElementById('core-board-element'),
+                    'hide',
+                );
             });
-        }
+        </script>
 
-        document.addEventListener('DOMContentLoaded', function () {
-            initialiseSortableForColumnStatus();
-
-            showAndHideNavbar(
-                document.getElementById('core-navbar-element'),
-                document.getElementById('core-board-element'),
-                'hide',
-            );
-        });
-    </script>
 {% endblock %}

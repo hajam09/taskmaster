@@ -40,17 +40,33 @@ class LabelAdmin(admin.ModelAdmin):
 
 @admin.register(Column)
 class ColumnAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('id', 'name', 'orderNo')
 
 
 @admin.register(ColumnStatus)
 class ColumnStatusAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('id', 'name', 'orderNo')
 
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('id', 'url', 'type', 'orderNo')
+    filter_horizontal = (
+        'subTask',
+        'label',
+        'watchers',
+        'linkedIssues',
+    )
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name in ['subTask', 'linkedIssues']:
+            if request._obj_ is not None:
+                kwargs['queryset'] = Ticket.objects.exclude(pk=request._obj_.pk)
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+    def get_form(self, request, obj=None, **kwargs):
+        request._obj_ = obj
+        return super().get_form(request, obj, **kwargs)
 
 
 @admin.register(Sprint)

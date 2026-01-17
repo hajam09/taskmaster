@@ -7,9 +7,9 @@
     <div class="container d-flex justify-content-center mt-5 mb-5" style="color: black;">
         <div class="card idCardWideComponent">
             <legend>
-                <h2 class="heading-h2 text-center">Profile</h2>
+                <h2 class="heading-h2 text-center">Create Ticket</h2>
             </legend>
-            <form method="post" class="p-4">
+            <form method="post" class="p-4" id="form-id-new-team">
                 {% csrf_token %}
                 {% for field in form %}
                     {% renderFormFields field %}
@@ -20,8 +20,8 @@
                 {% endfor %}
 
                 <div class="text-right">
-                    <input type="reset" class="btn btn-sm btn-reset" value="Reset">
-                    <input type="submit" class="btn btn-sm btn-submit" value="Submit">
+                    <a href="{{ url }}" class="btn btn-sm btn-cancel"> Cancel </a>
+                    <button type="submit" class="btn btn-sm btn-submit">Submit</button>
                 </div>
             </form>
         </div>

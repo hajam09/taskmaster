@@ -9,7 +9,7 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db.models import Case, When
+from django.db.models import Case, When, Max
 from django.utils.safestring import mark_safe
 
 from core.models import (
@@ -322,13 +322,20 @@ class BoardForm(forms.ModelForm):
             todo = Column(name='To Do', board=instance, status=Column.Status.TODO)
             inProgress = Column(name='In Progress', board=instance, status=Column.Status.IN_PROGRESS)
             done = Column(name='Done', board=instance, status=Column.Status.DONE)
-            Column.objects.bulk_create([unmapped, backLog, todo, inProgress, done])
+            columns = Column.objects.bulk_create([unmapped, backLog, todo, inProgress, done])
+            for c in columns:
+                c.orderNo = c.id
+            Column.objects.bulk_update(columns, ['orderNo'])
 
-            ColumnStatus.objects.bulk_create([
+            status = ColumnStatus.objects.bulk_create([
+                ColumnStatus(name='Back Log', column=backLog),
                 ColumnStatus(name='To Do', column=todo),
                 ColumnStatus(name='In Progress', column=inProgress),
                 ColumnStatus(name='Done', column=done)
             ])
+            for s in status:
+                s.orderNo = s.id
+            ColumnStatus.objects.bulk_update(columns, ['orderNo'])
         return instance
 
 
@@ -454,10 +461,13 @@ class TicketForm(forms.ModelForm):
         instance = super().save(commit=False)
 
         board = self.cleaned_data.get('board')
-        instance.url = f'{board.project.code}-{Ticket.objects.filter(project=board.project).count() + 1}'
+        instance.url = f'{board.project.code}-{Ticket.objects.filter(project=board.project).count() + 3}'
         instance.project = board.project
         instance.reporter = self.request.user
-        instance.columnStatus = ColumnStatus.objects.get(column__board=board, column__status=Column.Status.BACK_LOG)
+        instance.columnStatus = ColumnStatus.objects.filter(
+            column__board=board,
+            column__status=Column.Status.BACK_LOG
+        ).first()
 
         if commit:
             instance.save()

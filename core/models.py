@@ -27,7 +27,7 @@ def getRandomString():
 class BaseModel(models.Model):
     createdDateTime = models.DateTimeField(default=timezone.now)
     modifiedDateTime = models.DateTimeField(auto_now=True)
-    orderNo = models.IntegerField(default=1)
+    orderNo = models.IntegerField(default=0)
 
     class Meta:
         abstract = True
@@ -54,6 +54,7 @@ class Profile(BaseModel):
     url = models.CharField(max_length=8, editable=False, unique=True, default=getRandomString)
     jobTitle = models.CharField(max_length=32, blank=True, null=True, choices=JobTitle.choices)
     department = models.CharField(max_length=128, blank=True, null=True)
+
     # icon = models.ImageField(upload_to='profile-picture', blank=True, null=True, default=getRandomAvatar)
 
     class Meta:
@@ -114,6 +115,7 @@ class Project(BaseModel):
     isPrivate = models.BooleanField(default=False)
     lead = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     members = models.ManyToManyField(User, blank=True, related_name='projectMembers')
+
     # icon = models.ImageField(upload_to='project-icons/', default=getRandomProjectIcon)
 
     class Meta:
@@ -153,6 +155,10 @@ class Board(BaseModel):
         if not self.isPrivate:
             return True
         return user in self.members.all() or user in self.admins.all()
+
+    @property
+    def getUrl(self):
+        return reverse('core:board-view', kwargs={'url': self.url})
 
 
 class Label(BaseModel):
@@ -202,6 +208,14 @@ class Column(BaseModel):
             return '#00875A'
         raise NotImplemented
 
+    def save(self, *args, **kwargs):
+        isNew = self.pk is None
+        super().save(*args, **kwargs)
+
+        if isNew:
+            self.orderNo = self.pk
+            super().save(update_fields=['orderNo'])
+
 
 class ColumnStatus(BaseModel):
     name = models.CharField(max_length=32)
@@ -214,6 +228,14 @@ class ColumnStatus(BaseModel):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        isNew = self.pk is None
+        super().save(*args, **kwargs)
+
+        if isNew:
+            self.orderNo = self.pk
+            super().save(update_fields=['orderNo'])
 
 
 class Ticket(BaseModel):
@@ -321,6 +343,7 @@ class Ticket(BaseModel):
     class Meta:
         verbose_name = 'Ticket'
         verbose_name_plural = 'Tickets'
+        ordering = ['orderNo']
 
     icons = {
         Type.BUG: 'https://cdn-thumbs.imagevenue.com/76/05/cc/ME14ZPM0_t.jpg',
@@ -354,8 +377,24 @@ class Ticket(BaseModel):
     def getUrl(self):
         return reverse('core:ticket-view', kwargs={'url': self.url})
 
+    @property
+    def getIcon(self):
+        return "https://dummyimage.com/100x100/"
+
     def __str__(self):
         return self.url
+
+    def save(self, *args, **kwargs):
+        isNew = self.pk is None
+        super().save(*args, **kwargs)
+
+        if isNew:
+            self.orderNo = self.pk
+            super().save(update_fields=['orderNo'])
+
+    def delete(self, *args, **kwargs):
+        Ticket.objects.filter(epic=self).update(epic=None)
+        super().delete(*args, **kwargs)
 
 
 #

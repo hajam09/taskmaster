@@ -222,25 +222,24 @@ def renderSingleOrGroupUserAvatars(users):
 def ticketComponent(ticket):
     strikethrough = 'strikethrough' if ticket.columnStatus.column.status == Column.Status.DONE else ''
     epic = f'''
-        <span class="badge badge-primary float-right" style="background-color: {ticket.epic.colour}">
+        <span class="badge badge-primary float-right"
+            style="background-color: {ticket.epic.colour}; margin-left: 14px; margin-bottom: 5px;">
             {ticket.epic.summary}
         </span>
     ''' if ticket.epic else ''
     body = f'''
-        <div class="card mb-1 ticket-object-component" id="ticket-{ticket.id}" identifier="{ticket.id}">
-            <div class="card-title" style="position: relative;top: 15px;left: 10px;">{ticket.summary}</div>
+        <div class="card mb-1 ticket-object-component border" data-identifier="{ticket.id}">
+            <div class="card-body mt-1" style="margin-left: -10px; margin-right: -15px;"> {ticket.summary} </div>
             <div class="card-body" style="position: relative;top: 15px;left: -10px;">
+                <div class="row align-items-center">{epic}</div>
                 <div class="row align-items-center">
                     <div class="col d-flex align-items-center">
-                        <img src="{ticket.ticketTypeIcon}" width="20px" title="{ticket.get_type_display()}"
-                                 class="img-rounded" loading="lazy">
-                        <a class="ml-2 {strikethrough}" href="{ticket.url}">{ticket.url}</a>
-                        {'&nbsp;&nbsp;' + epic}
+                        <img src="{ticket.ticketTypeIcon}" width="20px" title="{ticket.get_type_display()}">
+                        <a class="ml-2 {strikethrough}" href="{ticket.getUrl}">{ticket.url}</a>
                     </div>
                     <div class="col-auto ml-auto d-flex align-items-center">
-                        <span class="badge badge-pill" style="background-color: #f0f0f0">{ticket.storyPoints}</span>
-                        <img src="{ticket.ticketPriorityIcon}" width="20px" title="{ticket.get_priority_display()}"
-                             class="img-rounded" loading="lazy" style="margin-left: 10px"/>
+                        <span class="badge badge-pill" style="background-color:#f0f0f0; font-size: 11px">{ticket.storyPoints}</span>
+                        <img src="{ticket.ticketPriorityIcon}" width="20px" style="margin-left:10px" title="{ticket.get_priority_display()}">
                         {getAvatarImage()}
                     </div>
                 </div>
@@ -251,23 +250,26 @@ def ticketComponent(ticket):
 
 
 @register.simple_tag
-def ticketHorizontalBarComponent(ticket):
+def ticketHorizontalBarComponent(ticket, showEpicLabel=True):
     strikethrough = 'strikethrough' if ticket.columnStatus.column.status == Column.Status.DONE else ''
     epic = f'''
-        <span class="badge badge-primary float-right" style="margin-top: 4.5px; background-color: {ticket.epic.colour}">
-            {ticket.epic.summary}
+        <span class="badge badge-primary float-right" style="margin-top: 4.5px; background-color: {ticket.epic.colour}"
+            data-toggle="tooltip" data-placement="top" title="{ticket.summary}">
+            {ticket.epic.summary[:10].rstrip() + '...' if len(ticket.epic.summary) > 10 else ticket.epic}
         </span>
-    ''' if ticket.epic else ''
+    ''' if ticket.epic and showEpicLabel else ''
+    summary = ticket.summary[:70].rstrip() + '...' if len(ticket.summary) > 70 else ticket.summary
+
     body = f'''
-        <li class="list-group-item ticket-object-component" id="ticket-{ticket.id}" identifier="{ticket.id}">
+        <li class="list-group-item ticket-object-component mt-1" id="ticket-{ticket.id}" identifier="{ticket.id}">
             <img src="{ticket.ticketTypeIcon}" width="20px" title="{ticket.get_type_display()}" class="img-rounded"
                 loading="lazy">
             &nbsp;
             <img src="{ticket.ticketPriorityIcon}" width="20px" title="{ticket.get_priority_display()}"
                 class="img-rounded" loading="lazy" style="margin-left: 10px"/>
-            <a class="ml-2 {strikethrough}" href="{ticket.url}">{ticket.url}</a>
+            <a class="ml-2 {strikethrough}" href="{ticket.getUrl}">{ticket.url}</a>
             &nbsp;
-            <span>{ticket.summary}</span>
+            <span data-toggle="tooltip" data-placement="top" title="{ticket.summary}">{summary}</span>
             <span class="float-right ml-2" style="margin-right: 10px;">{getAvatarImage()}</span>
             <span class="badge badge-pill float-right ml-3" style="background-color: #f0f0f0; margin-top: 4.5px;">
                 {ticket.storyPoints}

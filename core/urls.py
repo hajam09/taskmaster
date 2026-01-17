@@ -6,6 +6,7 @@ from core.api import (
     ScrumBoardBacklogTicketUpdateApiVersion1,
     StartSprintEventApiVersion1,
     CompleteSprintEventApiVersion1,
+    TicketOrderNoUpdateApiV1,
 )
 from core.views import (
     loginView,
@@ -27,7 +28,7 @@ from core.views import (
     labelView,
     ticketsView,
     ticketView,
-    ticketCreateRequest
+    newTicketView,
 )
 
 app_name = 'core'
@@ -51,8 +52,8 @@ urlpatterns = [
     path('labels/', labelsView, name='labels-view'),
     path('labels/<slug:url>/', labelView, name='label-view'),
     path('tickets/', ticketsView, name='tickets-view'),
-    path('ticket/<slug:url>/', ticketView, name='ticket-view'),
-    path('ticket-create-request/', ticketCreateRequest, name='ticket-create-request'),
+    path('tickets/new/', newTicketView, name='new-ticket-view'),
+    path('tickets/<slug:url>/', ticketView, name='ticket-view'),
 ]
 
 urlpatterns += [
@@ -80,5 +81,10 @@ urlpatterns += [
         'api/v1/completeSprintEventApiVersion1/',
         CompleteSprintEventApiVersion1.as_view(),
         name='completeSprintEventApiVersion1'
-    )
+    ),
+    path(
+        'api/v1/ticketOrderNoUpdateApiV1/',
+        TicketOrderNoUpdateApiV1.as_view(),
+        name='ticketOrderNoUpdateApiV1'
+    ),
 ]
