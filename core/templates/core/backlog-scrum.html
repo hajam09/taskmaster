@@ -5,7 +5,7 @@
 {% load templateTags %}
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
-    <div class="container-fluid justify-content-center mt-5" style="color: black;">
+    <div class="container-fluid justify-content-center mt-5 mb-5" style="color: black;">
         <div class="row">
             <div id="core-navbar-element">
                 {% boardSettingsLinksComponent board 'hide' %}
@@ -95,7 +95,16 @@
 
     <script type="application/javascript">
         function initialiseSortableForColumnStatus() {
-            document.querySelectorAll('.column-status-elm').forEach(function (el) {
+            // Helper to get current ticket order in a column or sprint
+            function getTicketOrder(columnEl) {
+                return Array.from(columnEl.querySelectorAll('.ticket-object-component'))
+                    .map(el => el.getAttribute('identifier'));
+            }
+
+            // Initialize order tracking for all columns/sprints
+            document.querySelectorAll('.column-status-elm').forEach(el => {
+                el.dataset.ticketOrder = JSON.stringify(getTicketOrder(el));
+
                 new Sortable(el, {
                     group: {
                         name: 'shared',
@@ -105,61 +114,69 @@
                     animation: 150,
                     draggable: 'li',
                     sort: true,
+
                     onMove: function (evt) {
+                        // Add visual styles while dragging
                         document.querySelectorAll('.column-status-elm').forEach(el => {
                             el.classList.add('card', 'column-status-style');
                         });
-
                         document.querySelectorAll('.column-status-name-element').forEach(el => {
                             el.style.display = 'block';
                         });
-
-                        // below hides other tickets when changing ticket's column status.
-                        const selectedTicket = evt.dragged.getAttribute('identifier');
-                        document.querySelectorAll('.ticket-object-component').forEach(el => {
-                            if (el.getAttribute('identifier') !== selectedTicket)
-                                el.style.display = 'none';
-                        });
                     },
+
                     onEnd: function (evt) {
+                        // Reset visual styles
                         document.querySelectorAll('.column-status-elm').forEach(el => {
                             el.classList.remove('card', 'column-status-style');
                         });
-
                         document.querySelectorAll('.ticket-object-component').forEach(el => {
                             el.style.display = 'block';
                         });
-
                         document.querySelectorAll('.column-status-name-element').forEach(el => {
                             el.style.display = 'none';
                         });
 
-                        const fromColumn = evt.from.getAttribute('identifier');
-                        const toColumn = evt.to.getAttribute('identifier');
-                        const zone = evt.to.getAttribute('zone');
+                        const fromEl = evt.from;
+                        const toEl = evt.to;
+                        const zone = toEl.getAttribute('zone');
 
-                        if (fromColumn === toColumn)
-                            return;
+                        const newToOrder = getTicketOrder(toEl);
+                        const oldToOrder = JSON.parse(toEl.dataset.ticketOrder);
 
-                        const destinationIdKey = zone === 'sprint' ? 'sprint-id' : 'column-id';
-                        const ctx = {
-                            'ticket-id': evt.item.getAttribute('identifier'),
-                            'zone': zone,
-                            [destinationIdKey]: toColumn,
-                        };
+                        // Check if order changed in the destination
+                        const isToOrderChanged = oldToOrder.length !== newToOrder.length ||
+                            oldToOrder.some((id, index) => id !== newToOrder[index]);
 
-                        fetch('{% url 'core:scrumBoardBacklogTicketUpdateApiVersion1' %}', {
-                            method: 'PUT',
-                            headers: {
-                                'Content-type': 'application/json',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: JSON.stringify(ctx)
-                        });
+                        const allTicketsInZone = Array.from(toEl.querySelectorAll('.ticket-object-component'))
+                                  .map(el => el.getAttribute('identifier'));
+
+                        // Only trigger API if moved to another column/sprint or order changed
+                        if (fromEl !== toEl || isToOrderChanged) {
+                            const destinationIdKey = zone === 'sprint' ? 'sprint-id' : 'column-id';
+                            const ctx = {
+                                'tickets': allTicketsInZone,
+                                'zone': zone,
+                                [destinationIdKey]: toEl.getAttribute('identifier'),
+                            };
+
+                            fetch('{% url "core:scrumBoardBacklogTicketUpdateApiVersion1" %}', {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify(ctx)
+                            });
+                        }
+
+                        // Update stored order
+                        toEl.dataset.ticketOrder = JSON.stringify(newToOrder);
                     }
                 });
             });
         }
+
 
         function updateSprintStatus(url, identifier) {
             fetch(url, {

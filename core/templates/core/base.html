@@ -32,12 +32,10 @@
 
     <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">OneQuiz</a>
+        <a class="navbar-brand" href="#">TaskMaster</a>
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav ml-auto">
-                {% if ticketForm %}
-                    <button type="button" class="btn btn-primary btn-sm" id="create-ticket-btn">Create</button>
-                {% endif %}
+                <a class="btn btn-primary" href="{% url "core:new-ticket-view" %}" role="button">Create Issue</a>
                 {% for panel in navigationPanel %}
                     {% if not panel.subLinks %}
                         <li class="nav-item active">
@@ -78,25 +76,6 @@
             {% endfor %}
         {% endif %}
     </div>
-    {% if ticketForm %}
-        <div class="container">
-            <form method="post" class="p-4 d-none" id="new-ticket-form" action="{% url 'core:ticket-create-request' %}">
-                {% csrf_token %}
-                {% for field in ticketForm %}
-                    {% renderFormFields field %}
-                    {% for error in field.errors %}
-                        <p class="text-center" style="color: red;"><small>{{ error }}</small></p>
-                    {% endfor %}
-                    <br>
-                {% endfor %}
-
-                <div class="text-right">
-                    <input type="button" class="btn btn-sm btn-cancel" id="close-ticket-btn" value="Cancel">
-                    <input type="submit" class="btn btn-sm btn-submit" value="Submit">
-                </div>
-            </form>
-        </div>
-    {% endif %}
     {% block content %}
     {% endblock %}
     </body>
@@ -153,20 +132,6 @@
                 }
             });
         }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const newTicketForm = document.getElementById('new-ticket-form');
-            const createTicketBtn = document.getElementById('create-ticket-btn');
-            const closeTicketBtn = document.getElementById('close-ticket-btn');
-
-            createTicketBtn.addEventListener('click', function () {
-                newTicketForm.classList.toggle('d-none');
-            });
-
-            closeTicketBtn.addEventListener('click', function () {
-                newTicketForm.classList.add('d-none');
-            });
-        });
 
     </script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"

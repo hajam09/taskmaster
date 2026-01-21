@@ -5,7 +5,7 @@
 {% load templateTags %}
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
-    <div class="container-fluid justify-content-center mt-5" style="color: black;">
+    <div class="container-fluid justify-content-center mt-5 mb-5" style="color: black;">
         <div class="row">
             <div id="core-navbar-element">
                 {% boardSettingsLinksComponent board 'hide' %}
@@ -70,7 +70,16 @@
 
     <script type="application/javascript">
         function initialiseSortableForColumnStatus() {
-            document.querySelectorAll('.column-status-elm').forEach(function (el) {
+            // Helper to get current ticket order in a column
+            function getTicketOrder(columnEl) {
+                return Array.from(columnEl.querySelectorAll('.ticket-object-component'))
+                    .map(el => el.getAttribute('identifier'));
+            }
+
+            // Initialize order tracking for all columns
+            document.querySelectorAll('.column-status-elm').forEach(el => {
+                el.dataset.ticketOrder = JSON.stringify(getTicketOrder(el));
+
                 new Sortable(el, {
                     group: {
                         name: 'shared',
@@ -80,57 +89,63 @@
                     animation: 150,
                     draggable: 'li',
                     sort: true,
-                    onMove: function (evt) {
+
+                    onMove: function () {
+                        // Add visual styles while dragging
                         document.querySelectorAll('.column-status-elm').forEach(el => {
                             el.classList.add('card', 'column-status-style');
                         });
-
                         document.querySelectorAll('.column-status-name-element').forEach(el => {
                             el.style.display = 'block';
                         });
-
-                        // below hides other tickets when changing ticket's column status.
-                        const selectedTicket = evt.dragged.getAttribute('identifier');
-                        document.querySelectorAll('.ticket-object-component').forEach(el => {
-                            if (el.getAttribute('identifier') !== selectedTicket)
-                                el.style.display = 'none';
-                        });
                     },
+
                     onEnd: function (evt) {
+                        // Remove visual styles
                         document.querySelectorAll('.column-status-elm').forEach(el => {
                             el.classList.remove('card', 'column-status-style');
                         });
-
                         document.querySelectorAll('.ticket-object-component').forEach(el => {
                             el.style.display = 'block';
                         });
-
                         document.querySelectorAll('.column-status-name-element').forEach(el => {
                             el.style.display = 'none';
                         });
 
-                        const fromColumn = evt.from.getAttribute('identifier');
-                        const toColumn = evt.to.getAttribute('identifier');
-                        if (fromColumn === toColumn)
-                            return;
+                        const fromColumnEl = evt.from;
+                        const toColumnEl = evt.to;
 
-                        const ctx = {
-                            'ticket-ids': [evt.item.getAttribute('identifier')],
-                            'column-status-id': evt.to.getAttribute('identifier'),
-                        };
+                        const newToOrder = getTicketOrder(toColumnEl);
 
-                        fetch('{% url 'core:ticketColumStatusApiVersion1' %}', {
-                            method: 'PUT',
-                            headers: {
-                                'Content-type': 'application/json',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: JSON.stringify(ctx)
-                        });
+                        // Check if order changed in destination column
+                        const oldToOrder = JSON.parse(toColumnEl.dataset.ticketOrder);
+                        const isToOrderChanged = oldToOrder.length !== newToOrder.length ||
+                            oldToOrder.some((id, index) => id !== newToOrder[index]);
+
+                        // Only trigger API if column changed or order changed
+                        if (fromColumnEl !== toColumnEl || isToOrderChanged) {
+                            const ctx = {
+                                'ticket-ids': newToOrder,
+                                'column-status-id': toColumnEl.getAttribute('identifier')
+                            };
+
+                            fetch('{% url "core:ticketColumStatusApiVersion1" %}', {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify(ctx)
+                            });
+                        }
+
+                        // Update stored order for destination column
+                        toColumnEl.dataset.ticketOrder = JSON.stringify(newToOrder);
                     }
                 });
             });
         }
+
 
         document.addEventListener('DOMContentLoaded', function () {
             initialiseSortableForColumnStatus();

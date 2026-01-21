@@ -5,7 +5,7 @@
 {% load templateTags %}
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
-    <div class="container-fluid justify-content-center mt-5" style="color: black;">
+    <div class="container-fluid justify-content-center mt-5 mb-5" style="color: black;">
         <div class="row">
             <div id="core-navbar-element">
                 {% boardSettingsLinksComponent board 'show' %}
@@ -143,7 +143,6 @@
                         statusData.push({
                             'column-status-id': columnStatusId,
                             'column-status-name': statusName,
-                            'order-no': orderNo + 1,
                         })
                     })
 
@@ -151,7 +150,6 @@
                         'column-id': columnId,
                         'column-name': columnName,
                         'status-data': statusData,
-                        'order-no': orderNo + 1,
                     })
                 });
 

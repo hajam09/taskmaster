@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core import service
 from core.models import (
     ColumnStatus,
     Column,
@@ -15,78 +16,96 @@ from core.models import (
 
 
 class BoardColumnAndStatusApiVersion1(APIView):
+
+    @transaction.atomic
     def put(self, *args, **kwargs):
-        columnIds = [columnData.get('column-id') for columnData in self.request.data]
-        statusIds = [
-            columnStatusData.get('column-status-id')
-            for columnData in self.request.data
-            for columnStatusData in columnData.get('status-data')
-        ]
+        data = self.request.data
 
-        columns = Column.objects.filter(id__in=columnIds)
-        columnStatuses = ColumnStatus.objects.filter(id__in=statusIds)
+        columnIds = []
+        statusIds = []
 
-        columnsDict = {str(column.id): column for column in columns}
-        statusesDict = {str(columnStatus.id): columnStatus for columnStatus in columnStatuses}
+        for col in data:
+            columnIds.append(int(col['column-id']))
+            for st in col.get('status-data', []):
+                statusIds.append(int(st['column-status-id']))
+
+        columns = Column.objects.select_for_update().in_bulk(columnIds)
+        columnStatuses = ColumnStatus.objects.select_for_update().in_bulk(statusIds)
 
         columnsToUpdate = []
-        statusesToUpdate = []
+        columnStatusesToUpdate = []
 
-        for columnData in self.request.data:
-            column = columnsDict.get(columnData.get('column-id'))
-            if column:
-                if column.status in [Column.Status.TODO, Column.Status.IN_PROGRESS]:
-                    column.name = columnData.get('column-name')
-                column.orderNo = columnData.get('order-no')
-                columnsToUpdate.append(column)
+        for columnData in data:
+            column = columns.get(int(columnData['column-id']))
+            column.name = columnData['column-name']
+            columnsToUpdate.append(column)
 
-                for columnStatusData in columnData.get('status-data'):
-                    columnStatus = statusesDict.get(columnStatusData.get('column-status-id'))
-                    if columnStatus:
-                        columnStatus.name = columnStatusData.get('column-status-name')
-                        columnStatus.orderNo = columnStatusData.get('order-no')
-                        statusesToUpdate.append(columnStatus)
+            for columnStatusData in columnData.get('status-data', []):
+                columnStatus = columnStatuses.get(int(columnStatusData['column-status-id']))
+                columnStatus.name = columnStatusData['column-status-name']
+                columnStatusesToUpdate.append(columnStatus)
 
-        with transaction.atomic():
-            if columnsToUpdate:
-                Column.objects.bulk_update(columnsToUpdate, ['name', 'orderNo'])
-
-            if statusesToUpdate:
-                ColumnStatus.objects.bulk_update(statusesToUpdate, ['name', 'orderNo'])
+        orderedColumns = service.updateOrderNoForListOfObjects(columnsToUpdate, columnIds)
+        orderedStatuses = service.updateOrderNoForListOfObjects(columnStatusesToUpdate, statusIds)
+        Column.objects.bulk_update(orderedColumns, ['name', 'orderNo'])
+        ColumnStatus.objects.bulk_update(orderedStatuses, ['name', 'orderNo'])
         return Response(status=status.HTTP_200_OK)
 
 
 class TicketColumStatusApiVersion1(APIView):
+
+    @transaction.atomic
     def put(self, *args, **kwargs):
         columnStatusId = self.request.data.get('column-status-id')
         ticketIds = self.request.data.get('ticket-ids')
-        tickets = Ticket.objects.filter(id__in=ticketIds)
-        for ticket in tickets:
+
+        tickets = list(Ticket.objects.filter(id__in=ticketIds))
+        orderedTickets = service.updateOrderNoForListOfObjects(tickets, ticketIds)
+
+        for ticket in orderedTickets:
             ticket.columnStatus_id = columnStatusId
-            ticket.orderNo = ticketIds.index(str(ticket.id)) + 1
+
         Ticket.objects.bulk_update(tickets, ['columnStatus', 'orderNo'])
         return Response(status=status.HTTP_200_OK)
 
 
-class ScrumBoardBacklogTicketUpdateApiVersion1(APIView):
+class TicketOrderNoUpdateApiV1(APIView):
     def put(self, *args, **kwargs):
-        ticketId = self.request.data.get('ticket-id')
+        tickets = list(Ticket.objects.filter(id__in=self.request.data))
+        orderedTickets = service.updateOrderNoForListOfObjects(tickets, self.request.data)
+        Ticket.objects.bulk_update(orderedTickets, ['orderNo'])
+        return Response(status=status.HTTP_200_OK)
+
+
+class ScrumBoardBacklogTicketUpdateApiVersion1(APIView):
+
+    @transaction.atomic
+    def put(self, *args, **kwargs):
         zone = self.request.data.get('zone')
-        ticket = Ticket.objects.select_related('columnStatus').get(id=ticketId)
-        Sprint.tickets.through.objects.filter(ticket=ticket).delete()
+        ticketIds = self.request.data.get('tickets', [])
+
+        Sprint.tickets.through.objects.filter(ticket_id__in=ticketIds).delete()
+        tickets = list(Ticket.objects.filter(id__in=ticketIds))
 
         if zone == 'sprint':
-            # remove from other sprints, add it to this sprint, update column status to remove from backlog
             sprint = Sprint.objects.select_related('board').get(id=self.request.data.get('sprint-id'))
-            sprint.tickets.add(ticket)
-            ticket.columnStatus = ColumnStatus.objects.filter(
-                column__board=sprint.board, column__status=Column.Status.TODO
-            ).order_by('id')[:1].first()
-            ticket.save()
+            sprint.tickets.add(*ticketIds)
+
+            columnStatus = ColumnStatus.objects.filter(
+                column__board=sprint.board,
+                column__status=Column.Status.TODO
+            ).order_by('id').first()
+
+            for ticket in tickets:
+                ticket.columnStatus = columnStatus
+
         elif zone == 'backlog':
-            # remove from all sprints, update column status to backlog
-            ticket.columnStatus_id = self.request.data.get('column-id')
-            ticket.save()
+            columnStatusId = self.request.data.get('column-id')
+            for ticket in tickets:
+                ticket.columnStatus_id = columnStatusId
+
+        orderedTickets = service.updateOrderNoForListOfObjects(tickets, ticketIds)
+        Ticket.objects.bulk_update(orderedTickets, ['orderNo'])
         return Response(status=status.HTTP_200_OK)
 
 

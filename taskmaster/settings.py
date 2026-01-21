@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'core.middleware.HistoryMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -68,7 +69,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'core.context.ticketForm',
             ],
         },
     },
@@ -145,7 +145,9 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', cast=str)
 # Additional settings
 if DEBUG:
     INSTALLED_APPS.append('debug_toolbar')
+    INSTALLED_APPS.append('django_browser_reload')
     MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+    MIDDLEWARE.append('django_browser_reload.middleware.BrowserReloadMiddleware')
 else:
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 31536000
