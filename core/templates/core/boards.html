@@ -26,7 +26,15 @@
                     <input type="submit" class="btn btn-sm btn-submit" value="Submit">
                 </div>
             </form>
-            <table id="boardTable" class="table table-sm table-bordered table-hover" style="color: black;">
+
+            <form class="form-inline" method="get">
+                <div class="form-group mb-2 mr-2">
+                    <input type="text" name="query" class="form-control form-control-sm" placeholder="Search"
+                           value="{{ request.GET.query }}">
+                </div>
+                <button type="submit" class="btn btn-sm btn-submit mb-2">Search</button>
+            </form>
+            <table id="boardsTable" class="table table-sm table-bordered table-hover" style="width: 100%">
                 <thead>
                 <tr>
                     <th>Name</th>
@@ -66,6 +74,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            {% paginationComponent request boards %}
         </div>
     </div>
 
@@ -76,16 +85,25 @@
             const newBoardForm = document.getElementById('form-id-new-board');
 
             newBoardBtn.addEventListener('click', function () {
-                toggleFormDisplay(newBoardForm);
+                newBoardForm.style.display = (newBoardForm.style.display === 'none' || newBoardForm.style.display === '') ? 'block' : 'none';
             });
 
             closeBoardBtn.addEventListener('click', function () {
                 newBoardForm.style.display = 'none';
             });
+
         }
 
-        function toggleFormDisplay(form) {
-            form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+        function initialiseDataTable() {
+            $("#boardsTable").DataTable({
+                responsive: true,
+                autoWidth: true,
+                paging: false,
+                searching: false,
+                ordering: true,
+                info: false,
+                scrollX: true,
+            });
         }
 
         function initialiseSelect2() {
@@ -94,24 +112,10 @@
             });
         }
 
-        function initialiseDataTable() {
-            const boardTable = document.getElementById('boardTable');
-            new DataTable(boardTable, {
-                responsive: true,
-                autoWidth: false,
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: false,
-                pageLength: 18,
-            });
-            document.getElementById('boardTable_length').remove();
-        }
-
         document.addEventListener('DOMContentLoaded', function () {
             initialiseBoardForm();
-            initialiseSelect2();
             initialiseDataTable();
+            initialiseSelect2();
         });
     </script>
 {% endblock %}

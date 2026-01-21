@@ -32,29 +32,27 @@
                     <input type="text" name="query" class="form-control form-control-sm" placeholder="Search"
                            value="{{ request.GET.query }}">
                 </div>
-                <button type="submit" class="btn btn-sm btn-primary mb-2">Go</button>
+                <button type="submit" class="btn btn-sm btn-submit mb-2">Search</button>
             </form>
-
-            <table id="labelTable" class="table table-sm table-bordered table-hover" style="color: black;">
+            <table id="labelsTable" class="table table-sm table-bordered table-hover" style="width: 100%">
                 <thead>
                 <tr>
                     <th>Name</th>
                     <th>Description</th>
-                    <th>Colour</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for label in labels %}
                     <tr>
                         <td>
-                            <a href="{% url 'core:label-view' url=label.url %}">{{ label.name }}</a>
+                            <span class="badge w-100" style="background-color: {{ label.colour }};">
+                                <a href="{% url 'core:label-view' url=label.url %}" style="color: white;">
+                                    {{ label.name }}
+                                </a>
+                            </span>
                         </td>
-                        <td>
-                            {{ label.description|truncatechars:100 }}
-                        </td>
-                        <td>
-                            <span class="badge badge-primary w-100"
-                                  style="background-color: {{ label.colour }};">{{ label.get_colour_display }}</span>
+                        <td data-toggle="tooltip" data-placement="top" title="{{ label.description }}">
+                            {{ label.description|truncatechars:125 }}
                         </td>
                     </tr>
                 {% endfor %}
@@ -79,9 +77,19 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            initialiseLabelForm();
+        function initialiseDataTable() {
+            $("#labelsTable").DataTable({
+                responsive: true,
+                autoWidth: true,
+                paging: false,
+                searching: false,
+                ordering: true,
+                info: false,
+                scrollX: true,
+            });
+        }
 
+        function initialiseFormColourDropdown() {
             const select = document.getElementById("id_colour");
 
             if (select) {
@@ -107,6 +115,12 @@
                     }
                 });
             }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initialiseLabelForm();
+            initialiseDataTable();
+            initialiseFormColourDropdown();
         });
     </script>
 {% endblock %}

@@ -26,7 +26,15 @@
                     <input type="submit" class="btn btn-sm btn-submit" value="Submit">
                 </div>
             </form>
-            <table id="teamTable" class="table table-sm table-bordered table-hover" style="color: black;">
+
+            <form class="form-inline" method="get">
+                <div class="form-group mb-2 mr-2">
+                    <input type="text" name="query" class="form-control form-control-sm" placeholder="Search"
+                           value="{{ request.GET.query }}">
+                </div>
+                <button type="submit" class="btn btn-sm btn-submit mb-2">Search</button>
+            </form>
+            <table id="teamsTable" class="table table-sm table-bordered table-hover" style="width: 100%">
                 <thead>
                 <tr>
                     <th>Name</th>
@@ -50,30 +58,11 @@
                 {% endfor %}
                 </tbody>
             </table>
+            {% paginationComponent request teams %}
         </div>
     </div>
 
     <script type="application/javascript">
-        function initialiseSelect2() {
-            document.querySelectorAll('.select2bs4').forEach(selectElement => {
-                $(selectElement).select2();
-            });
-        }
-
-        function initialiseDataTable() {
-            const teamTable = document.getElementById('teamTable');
-            new DataTable(teamTable, {
-                responsive: true,
-                autoWidth: false,
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: false,
-                pageLength: 18,
-            });
-            document.getElementById('teamTable_length').remove();
-        }
-
         function initialiseTeamForm() {
             const newTeamBtn = document.getElementById('add-team-btn');
             const closeTeamBtn = document.getElementById('close-team-btn');
@@ -88,10 +77,28 @@
             });
         }
 
+        function initialiseDataTable() {
+            $("#teamsTable").DataTable({
+                responsive: true,
+                autoWidth: true,
+                paging: false,
+                searching: false,
+                ordering: true,
+                info: false,
+                scrollX: true,
+            });
+        }
+
+        function initialiseSelect2() {
+            document.querySelectorAll('.select2bs4').forEach(selectElement => {
+                $(selectElement).select2();
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
-            initialiseSelect2();
-            initialiseDataTable();
             initialiseTeamForm();
+            initialiseDataTable();
+            initialiseSelect2();
         });
     </script>
 {% endblock %}

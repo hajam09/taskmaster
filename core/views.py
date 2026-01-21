@@ -239,9 +239,32 @@ def teamsView(request):
     else:
         form = TeamForm(request)
 
+    page = request.GET.get('page')
+    query = request.GET.get('query')
+
+    teams = Team.objects.all().prefetch_related('admins', 'members')
+    if query:
+        searchFields = {
+            'name', 'description', 'url',
+            'admins__first_name', 'admins__last_name',
+            'members__first_name', 'members__last_name'
+        }
+        q = Q()
+        for field in searchFields:
+            q |= Q(**{f'{field}__icontains': query})
+        teams = teams.filter(q).distinct()
+
+    paginator = Paginator(teams, 20)
+    try:
+        teams = paginator.page(page)
+    except PageNotAnInteger:
+        teams = paginator.page(1)
+    except EmptyPage:
+        teams = paginator.page(paginator.num_pages)
+
     context = {
         'form': form,
-        'teams': Team.objects.all().prefetch_related('admins', 'members')
+        'teams': teams
     }
     return render(request, 'core/teams.html', context)
 
@@ -285,9 +308,37 @@ def projectsView(request):
     else:
         form = ProjectForm(request)
 
+    page = request.GET.get('page')
+    query = request.GET.get('query')
+
+    projects = Project.objects.all().select_related('lead').prefetch_related('members').annotate(
+        lead_fullname=Concat(
+            F('lead__first_name'), Value(' '), F('lead__last_name')
+        )
+    )
+    if query:
+        searchFields = {
+            'name', 'code', 'url', 'description', 'status',
+            'lead__first_name', 'lead__last_name',
+            'members__first_name', 'members__last_name',
+            'lead_fullname',
+        }
+        q = Q()
+        for field in searchFields:
+            q |= Q(**{f'{field}__icontains': query})
+        projects = projects.filter(q).distinct()
+
+    paginator = Paginator(projects, 20)
+    try:
+        projects = paginator.page(page)
+    except PageNotAnInteger:
+        projects = paginator.page(1)
+    except EmptyPage:
+        projects = paginator.page(paginator.num_pages)
+
     context = {
         'form': form,
-        'projects': Project.objects.all().select_related('lead').prefetch_related('members')
+        'projects': projects
     }
     return render(request, 'core/projects.html', context)
 
@@ -331,9 +382,33 @@ def boardsView(request):
     else:
         form = BoardForm(request)
 
+    page = request.GET.get('page')
+    query = request.GET.get('query')
+
+    boards = Board.objects.all().select_related('project').prefetch_related('members', 'admins')
+    if query:
+        searchFields = {
+            'name', 'url', 'type',
+            'project__name', 'project__code',
+            'admins__first_name', 'admins__last_name',
+            'members__first_name', 'members__last_name'
+        }
+        q = Q()
+        for field in searchFields:
+            q |= Q(**{f'{field}__icontains': query})
+        boards = boards.filter(q).distinct()
+
+    paginator = Paginator(boards, 20)
+    try:
+        boards = paginator.page(page)
+    except PageNotAnInteger:
+        boards = paginator.page(1)
+    except EmptyPage:
+        boards = paginator.page(paginator.num_pages)
+
     context = {
         'form': form,
-        'boards': Board.objects.all().select_related('project').prefetch_related('members', 'admins')
+        'boards': boards
     }
     return render(request, 'core/boards.html', context)
 
@@ -516,7 +591,7 @@ def labelsView(request):
 
     labels = Label.objects.all()
     if query:
-        searchFields = {'name', 'description', 'url', 'colour'}
+        searchFields = {'name', 'description', 'url'}
         q = Q()
         for field in searchFields:
             q |= Q(**{f'{field}__icontains': query})
