@@ -26,6 +26,15 @@
                     <input type="submit" class="btn btn-sm btn-submit" value="Submit">
                 </div>
             </form>
+
+            <form class="form-inline" method="get">
+                <div class="form-group mb-2 mr-2">
+                    <input type="text" name="query" class="form-control form-control-sm" placeholder="Search"
+                           value="{{ request.GET.query }}">
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary mb-2">Go</button>
+            </form>
+
             <table id="labelTable" class="table table-sm table-bordered table-hover" style="color: black;">
                 <thead>
                 <tr>
@@ -51,6 +60,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            {% paginationComponent request labels %}
         </div>
     </div>
 
@@ -69,23 +79,8 @@
             });
         }
 
-        function initialiseDataTable() {
-            const labelTable = document.getElementById('labelTable');
-            new DataTable(labelTable, {
-                responsive: true,
-                autoWidth: false,
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: false,
-                pageLength: 18,
-            });
-            document.getElementById('labelTable_length').remove();
-        }
-
         document.addEventListener('DOMContentLoaded', function () {
             initialiseLabelForm();
-            initialiseDataTable();
 
             const select = document.getElementById("id_colour");
 

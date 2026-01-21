@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.cache import cache
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import (
     F,
     Max,
@@ -510,9 +511,28 @@ def labelsView(request):
     else:
         form = LabelForm()
 
+    page = request.GET.get('page')
+    query = request.GET.get('query')
+
+    labels = Label.objects.all()
+    if query:
+        searchFields = {'name', 'description', 'url', 'colour'}
+        q = Q()
+        for field in searchFields:
+            q |= Q(**{f'{field}__icontains': query})
+        labels = labels.filter(q).distinct()
+
+    paginator = Paginator(labels, 20)
+    try:
+        labels = paginator.page(page)
+    except PageNotAnInteger:
+        labels = paginator.page(1)
+    except EmptyPage:
+        labels = paginator.page(paginator.num_pages)
+
     context = {
         'form': form,
-        'labels': Label.objects.all()
+        'labels': labels
     }
     return render(request, 'core/labels.html', context)
 

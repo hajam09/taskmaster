@@ -2,6 +2,7 @@ from urllib.parse import urlencode
 
 from colorfield.widgets import ColorWidget
 from django import template
+from django.core.paginator import Page
 from django.db.models.query import QuerySet
 from django.forms.widgets import (
     CheckboxInput,
@@ -312,3 +313,116 @@ def boardSettingsLinksComponent(board, visibility):
         </div>
     '''
     return mark_safe(body)
+
+
+@register.simple_tag
+def paginationComponent(request, objects: Page):
+    if not objects.has_other_pages():
+        return mark_safe('<span></span>')
+
+    parameters = request.GET.copy()
+    currentParameters = parameters.copy()
+    parameters.pop('page', None)
+    query = urlencode(parameters)
+
+    def createUrlWithPage(number):
+        return f"?page={number}&{query}" if query else f"?page={number}"
+
+    def hasParametersChanged():
+        return currentParameters.get('tab') != request.GET.get('tab') or currentParameters.get(
+            'query') != request.GET.get('query')
+
+    if hasParametersChanged():
+        pageNumber = 1
+    else:
+        pageNumber = int(request.GET.get('page') or 1)
+
+    if objects.has_previous():
+        previousPageLink = f'''
+        <li class="page-item">
+            <a class="page-link" href="{createUrlWithPage(objects.previous_page_number())}" tabindex="-1">Previous</a>
+        </li>
+        '''
+        firstPageLink = f'''
+        <li class="page-item">
+            <a class="page-link" href="{createUrlWithPage(1)}" tabindex="-1">First</a>
+        </li>
+        '''
+    else:
+        previousPageLink = f'''
+        <li class="page-item disabled">
+            <a class="page-link" href="#" tabindex="-1">Previous</a>
+        </li>
+        '''
+        firstPageLink = f'''
+        <li class="page-item disabled">
+            <a class="page-link" href="#" tabindex="-1">First</a>
+        </li>
+        '''
+
+    # Next and last page links
+    if objects.has_next():
+        nextPageLink = f'''
+        <li class="page-item">
+            <a class="page-link" href="{createUrlWithPage(objects.next_page_number())}" tabindex="-1">Next</a>
+        </li>
+        '''
+        lastPageLink = f'''
+        <li class="page-item">
+            <a class="page-link" href="{createUrlWithPage(objects.paginator.num_pages)}" tabindex="-1">Last</a>
+        </li>
+        '''
+    else:
+        nextPageLink = f'''
+        <li class="page-item disabled">
+            <a class="page-link" href="#" tabindex="-1">Next</a>
+        </li>
+        '''
+        lastPageLink = f'''
+        <li class="page-item disabled">
+            <a class="page-link" href="#" tabindex="-1">Last</a>
+        </li>
+        '''
+
+    # Page number links
+    pageNumberLinks = ''
+    EITHER_SIDE_PAGE_LIMIT = 20
+    pageRange = objects.paginator.page_range
+    if pageRange.stop > EITHER_SIDE_PAGE_LIMIT:
+        currentPage = pageNumber
+        minRange = currentPage - EITHER_SIDE_PAGE_LIMIT // 2
+        maxRange = currentPage + EITHER_SIDE_PAGE_LIMIT // 2
+
+        if minRange <= 0:
+            minRange = 1
+        if maxRange > pageRange.stop:
+            maxRange = pageRange.stop
+
+        pageRange = range(minRange, maxRange)
+
+    for pageNumber in pageRange:
+        if objects.number == pageNumber:
+            pageNumberLinks += f'''
+                <li class="page-item active"><a class="page-link" href="#">{pageNumber}</a></li>
+            '''
+        else:
+            pageNumberLinks += f'''
+                <li class="page-item"><a class="page-link" href="{createUrlWithPage(pageNumber)}">{pageNumber}</a></li>
+            '''
+
+    itemContent = f'''
+    <div class="row">
+        <div class="col-md-12" style="width: 1100px;">
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    {firstPageLink}
+                    {previousPageLink}
+                    {pageNumberLinks}
+                    {nextPageLink}
+                    {lastPageLink}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    '''
+    return mark_safe(itemContent)
