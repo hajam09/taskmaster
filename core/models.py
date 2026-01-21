@@ -162,10 +162,21 @@ class Board(BaseModel):
 
 
 class Label(BaseModel):
+    class Colour(models.TextChoices):
+        BLUE = '#669df1', _('Blue')
+        TEAL = '#6cc3e0', _('Teal')
+        GREEN = '#4bce97', _('Green')
+        LIME = '#94c748', _('Lime')
+        YELLOW = '#eed12b', _('Yellow')
+        PURPLE = '#c97cf4', _('Purple')
+        MAGENTA = '#e774bb', _('Magenta')
+        RED = '#f87168', _('Red')
+        ORANGE = '#fca700', _('Orange')
+        GRAY = '#8c8f97', _('Gray')
     name = models.CharField(max_length=128, unique=True)
-    code = models.CharField(max_length=128, unique=True)
+    description = models.CharField(max_length=1024, blank=True, null=True)
     url = models.CharField(max_length=8, editable=False, unique=True, default=getRandomString)
-    colour = ColorField(default='#000000')
+    colour = models.CharField(max_length=8, blank=True, null=True, choices=Colour.choices)
 
     class Meta:
         verbose_name = 'Label'

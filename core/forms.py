@@ -342,7 +342,7 @@ class BoardForm(forms.ModelForm):
 class LabelForm(forms.ModelForm):
     class Meta:
         model = Label
-        fields = ('name', 'code', 'colour')
+        fields = ('name', 'description', 'colour')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

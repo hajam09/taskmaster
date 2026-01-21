@@ -99,7 +99,9 @@
                         <td>{{ ticket.get_resolution_display }}</td>
                         <td>
                             {% for label in ticket.label.all %}
-                                <a href="#" class="badge badge-light border">{{ label.name }}</a>
+                                <a href="#"
+                                   class="badge badge-light border"
+                                   style="background-color: {{ label.colour }}; color: white">{{ label.name }}</a>
                             {% endfor %}
                         </td>
                         <td>{{ ticket.createdDateTime|date:"d M Y" }}</td>

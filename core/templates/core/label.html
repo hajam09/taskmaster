@@ -26,4 +26,34 @@
             </form>
         </div>
     </div>
+
+    <script type="application/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            const select = document.getElementById("id_colour");
+
+            if (select) {
+                Array.from(select.options).forEach(option => {
+                    if (option.value) {
+                        option.style.backgroundColor = option.value;
+                        option.style.color = "#fff";
+                    }
+                });
+
+                if (select.value) {
+                    select.style.backgroundColor = select.value;
+                    select.style.color = "#fff";
+                }
+
+                select.addEventListener("change", function () {
+                    if (this.value) {
+                        this.style.backgroundColor = this.value;
+                        this.style.color = "#fff";
+                    } else {
+                        this.style.backgroundColor = "";
+                        this.style.color = "#000000";
+                    }
+                });
+            }
+        });
+    </script>
 {% endblock %}

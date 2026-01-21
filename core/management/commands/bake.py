@@ -121,8 +121,8 @@ class Command(BaseCommand):
         labelList = [
             Label(
                 name=self.faker.pystr_format(),
-                code=self.faker.swift8(),
-                colour=self.faker.hex_color()
+                description=self.faker.paragraph()[:1000],
+                colour=random.choice(Label.Colour.values)
             )
             for _ in range(self.NUMBER_OF_LABELS)
         ]
