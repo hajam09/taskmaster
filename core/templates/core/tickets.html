@@ -11,46 +11,22 @@
                 <h2 class="heading-h2 text-center">Tickets</h2>
             </legend>
 
-            <span class="form-row align-items-center mt-4 flex-nowrap">
-
+            <div class="form-row align-items-center mt-4 flex-nowrap">
                 <div class="col-2">
                     <input type="text" name="query" class="form-control form-control-sm" placeholder="Search"
                            value="{{ request.GET.query }}">
                 </div>
-
-                <div class="col"></div>
-
-                <div class="col-1 filter-dropdown d-none" data-filter="type">
-                    <select name="type" class="form-control form-control-sm"></select>
+                <div class="col d-flex justify-content-between" id="filter-list">
+                    <select name="type" class="form-control form-control-sm mr-2 d-none"></select>
+                    <select name="priority" class="form-control form-control-sm mr-2 d-none"></select>
+                    <select name="status" class="form-control form-control-sm mr-2 d-none"></select>
+                    <select name="resolution" class="form-control form-control-sm mr-2 d-none"></select>
+                    <select name="project" class="form-control form-control-sm mr-2 d-none"></select>
+                    <select name="assignee" class="form-control form-control-sm mr-2 d-none"></select>
+                    <select name="reporter" class="form-control form-control-sm mr-2 d-none"></select>
                 </div>
-
-                <div class="col-1 filter-dropdown d-none" data-filter="priority">
-                    <select name="priority" class="form-control form-control-sm"></select>
-                </div>
-
-                <div class="col-1 filter-dropdown d-none" data-filter="status">
-                    <select name="status" class="form-control form-control-sm"></select>
-                </div>
-
-                <div class="col-1 filter-dropdown d-none" data-filter="resolution">
-                    <select name="resolution" class="form-control form-control-sm"></select>
-                </div>
-
-                <div class="col-1 filter-dropdown d-none" data-filter="project">
-                    <select name="project" class="form-control form-control-sm"></select>
-                </div>
-
-                <div class="col-1 filter-dropdown d-none" data-filter="assignee">
-                    <select name="assignee" class="form-control form-control-sm"></select>
-                </div>
-
-                <div class="col-1 filter-dropdown d-none" data-filter="reporter">
-                    <select name="reporter" class="form-control form-control-sm"></select>
-                </div>
-
-                <!-- Push next items to far right -->
-                <div class="ms-auto col-2">
-                    <select id="filter-toggle" class="form-control form-control-sm">
+                <div class="col-auto ml-auto d-flex align-items-center float-right">
+                    <select id="filter-toggle" class="form-control form-control-sm mr-2">
                         <option value="">Filter</option>
                         <option value="type">☐ Type</option>
                         <option value="priority">☐ Priority</option>
@@ -60,15 +36,12 @@
                         <option value="assignee">☐ Assignee</option>
                         <option value="reporter">☐ Reporter</option>
                     </select>
-                </div>
-
-                <div class="col-auto">
                     <button type="button" class="btn btn-sm btn-submit">
                         Search
                     </button>
                 </div>
+            </div>
 
-            </span>
             <table id="ticketsTable" class="table table-sm table-bordered table-hover display nowrap"
                    style="width: 100%">
                 <thead>
@@ -197,7 +170,7 @@
                         }
                     });
 
-                    // Update dropdown placeholder text: Name (count)
+                    // Update placeholder text: Name (count)
                     const count = selectedOptionsMap[name].size;
                     placeholder.text = count > 0 ? `${capitalizeFirstLetter(name)} (${count})` : placeholder.dataset.defaultText;
 
@@ -240,8 +213,7 @@
                 placeholder.text = count > 0 ? `${capitalizeFirstLetter(name)} (${count})` : placeholder.dataset.defaultText;
 
                 // Make dropdown visible
-                const parent = selectEl.closest('.filter-dropdown');
-                if (parent) parent.classList.remove('d-none');
+                selectEl.classList.remove('d-none');
 
                 // Update filter-toggle option and main placeholder
                 updateFilterToggleOption(name);
@@ -314,7 +286,7 @@
                     const selected = this.value;
                     if (!selected) return;
 
-                    const filterEl = document.querySelector(`.filter-dropdown[data-filter="${selected}"]`);
+                    const filterEl = document.querySelector(`#filter-list select[name="${selected}"]`);
                     if (filterEl) filterEl.classList.toggle('d-none');
 
                     // Update option text and top placeholder
@@ -339,7 +311,7 @@
             // -------------------------------
             // Initialize all filters
             // -------------------------------
-            document.querySelectorAll('.filter-dropdown select').forEach(selectEl => {
+            document.querySelectorAll('#filter-list select').forEach(selectEl => {
                 if (selectEl.id !== 'filter-toggle') {
                     populateAndPreselect(selectEl);
                 }
