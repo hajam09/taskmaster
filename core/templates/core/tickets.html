@@ -9,45 +9,86 @@
         <div class="card idCardWideComponent">
             <legend>
                 <h2 class="heading-h2 text-center">Tickets</h2>
-                <br>
-                <div class="row">
-                    <div class="col">
-                        <input class="form-control form-control-sm" type="text" id="search-input"
-                               placeholder="Search tickets" value="{{ request.GET.query }}">
-                    </div>
-                    <div class="col">
-                        <select class="form-control form-control-sm">
-                            <option value="">All projects</option>
-                        </select>
-                    </div>
-                    <div class="col">
-                        <select class="form-control form-control-sm">
-                            <option value="">All types</option>
-                        </select>
-                    </div>
-                    <div class="col">
-                        <select class="form-control form-control-sm">
-                            <option value="">All priorities</option>
-                        </select>
-                    </div>
-                    <div class="col">
-                        <select class="form-control form-control-sm">
-                            <option value="">All assignee</option>
-                        </select>
-                    </div>
-                    <div class="col">
-                        <select class="form-control form-control-sm">
-                            <option value="">All reporters</option>
-                        </select>
-                    </div>
-                    <div class="col-md-auto">
-                        <button type="button" class="btn btn-sm float-right btn-submit" id="search-btn">Search</button>
-                    </div>
+            </legend>
+
+            <span class="form-row align-items-center mt-4 flex-nowrap">
+
+                <!-- Search (far left) -->
+                <div class="col-2">
+                    <input type="text" name="query" class="form-control form-control-sm" placeholder="Search"
+                           value="{{ request.GET.query }}">
                 </div>
 
-            </legend>
+                <div class="col"></div>
+
+                <!-- Filter dropdowns (same row, fixed width) -->
+                <div class="col-1 filter-dropdown d-none" data-filter="type">
+                    <select name="type" class="form-control form-control-sm">
+                        <option value="">Type</option>
+                        <option value="bug">Bug</option>
+                        <option value="task">Task</option>
+                    </select>
+                </div>
+
+                <div class="col-1 filter-dropdown d-none" data-filter="priority">
+                    <select name="priority" class="form-control form-control-sm">
+                        <option>Priority</option>
+                    </select>
+                </div>
+
+                <div class="col-1 filter-dropdown d-none" data-filter="status">
+                    <select name="status" class="form-control form-control-sm">
+                        <option>Status</option>
+                    </select>
+                </div>
+
+                <div class="col-1 filter-dropdown d-none" data-filter="resolution">
+                    <select name="resolution" class="form-control form-control-sm">
+                        <option>Resolution</option>
+                    </select>
+                </div>
+
+                <div class="col-1 filter-dropdown d-none" data-filter="project">
+                    <select name="project" class="form-control form-control-sm">
+                        <option>Project</option>
+                    </select>
+                </div>
+
+                <div class="col-1 filter-dropdown d-none" data-filter="assignee">
+                    <select name="assignee" class="form-control form-control-sm">
+                        <option>Assignee</option>
+                    </select>
+                </div>
+
+                <div class="col-1 filter-dropdown d-none" data-filter="reporter">
+                    <select name="reporter" class="form-control form-control-sm">
+                        <option>Reporter</option>
+                    </select>
+                </div>
+
+                <!-- Push next items to far right -->
+                <div class="ms-auto col-2">
+                    <select id="filterToggle" class="form-control form-control-sm">
+                        <option value="">Filter</option>
+                        <option value="type">☐ Type</option>
+                        <option value="priority">☐ Priority</option>
+                        <option value="status">☐ Status</option>
+                        <option value="resolution">☐ Resolution</option>
+                        <option value="project">☐ Project</option>
+                        <option value="assignee">☐ Assignee</option>
+                        <option value="reporter">☐ Reporter</option>
+                    </select>
+                </div>
+
+                <div class="col-auto">
+                    <button type="button" class="btn btn-sm btn-submit">
+                        Search
+                    </button>
+                </div>
+
+            </span>
             <table id="ticketsTable" class="table table-sm table-bordered table-hover display nowrap"
-                   style="color: black;">
+                   style="width: 100%">
                 <thead>
                 <tr>
                     <th>T</th>
@@ -110,46 +151,259 @@
                 {% endfor %}
                 </tbody>
             </table>
+            {% paginationComponent request tickets %}
         </div>
     </div>
 
     <script type="application/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
 
-        $(function () {
+            const selectedOptionsMap = {}; // Track selections per dropdown
+            const searchInput = document.querySelector('[name="query"]');
+            const searchBtn = document.querySelector('.btn-submit');
+
+            // -------------------------------
+            // Utility functions
+            // -------------------------------
+            function populateSelectFromJSON(selectEl, items) {
+                if (!selectEl || !Array.isArray(items)) return;
+                selectEl.innerHTML = '';
+                items.forEach(item => {
+                    if (item.key !== undefined && item.value !== undefined) {
+                        const option = document.createElement('option');
+                        option.value = item.key;
+                        option.text = item.value;
+                        selectEl.appendChild(option);
+                    }
+                });
+            }
+
+            function capitalizeFirstLetter(str) {
+                return str.charAt(0).toUpperCase() + str.slice(1);
+            }
+
+            // -------------------------------
+            // Initialize filter style & tick logic
+            // -------------------------------
+            function initFilterStyle(selectEl) {
+                const name = selectEl.name;
+                if (!selectedOptionsMap[name]) selectedOptionsMap[name] = new Set();
+
+                const placeholder = selectEl.options[0];
+                placeholder.dataset.defaultText = placeholder.text;
+
+                selectEl.addEventListener('change', function () {
+                    const value = this.value;
+                    if (!value) return;
+
+                    // Toggle selection
+                    if (selectedOptionsMap[name].has(value)) {
+                        selectedOptionsMap[name].delete(value);
+                    } else {
+                        selectedOptionsMap[name].add(value);
+                    }
+
+                    // Update option checkmarks
+                    Array.from(this.options).forEach(opt => {
+                        if (!opt.value) return;
+                        if (selectedOptionsMap[name].has(opt.value)) {
+                            opt.text = '🗹 ' + opt.text.replace(/^🗹 |^☐ /, '');
+                            opt.setAttribute('checked', 'true');
+                        } else {
+                            opt.text = opt.text.replace(/^🗹 |^☐ /, '');
+                            opt.setAttribute('checked', 'false');
+                        }
+                    });
+
+                    // Update dropdown placeholder text: Name (count)
+                    const count = selectedOptionsMap[name].size;
+                    placeholder.text = count > 0 ? `${capitalizeFirstLetter(name)} (${count})` : placeholder.dataset.defaultText;
+
+                    // Keep placeholder selected
+                    selectEl.selectedIndex = 0;
+
+                    // Update filterToggle option and main placeholder
+                    updateFilterToggleOption(name);
+                    updateFilterTogglePlaceholder();
+                });
+            }
+
+            // -------------------------------
+            // Preselect dropdown values from URL
+            // -------------------------------
+            function preselectFromURL(selectEl) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const name = selectEl.name;
+                if (!urlParams.has(name)) return;
+
+                const values = urlParams.get(name).split(',');
+                if (values.length === 0) return;
+
+                if (!selectedOptionsMap[name]) selectedOptionsMap[name] = new Set();
+                values.forEach(v => selectedOptionsMap[name].add(v));
+
+                Array.from(selectEl.options).forEach(opt => {
+                    if (!opt.value) return;
+                    if (selectedOptionsMap[name].has(opt.value)) {
+                        opt.text = '🗹 ' + opt.text.replace(/^🗹 |^☐ /, '');
+                        opt.setAttribute('checked', 'true');
+                    } else {
+                        opt.text = opt.text.replace(/^🗹 |^☐ /, '');
+                        opt.setAttribute('checked', 'false');
+                    }
+                });
+
+                const placeholder = selectEl.options[0];
+                const count = selectedOptionsMap[name].size;
+                placeholder.text = count > 0 ? `${capitalizeFirstLetter(name)} (${count})` : placeholder.dataset.defaultText;
+
+                // Make dropdown visible
+                const parent = selectEl.closest('.filter-dropdown');
+                if (parent) parent.classList.remove('d-none');
+
+                // Update filterToggle option and main placeholder
+                updateFilterToggleOption(name);
+                updateFilterTogglePlaceholder();
+            }
+
+            // -------------------------------
+            // Populate dropdown via API & preselect
+            // -------------------------------
+            function populateAndPreselect(selectEl) {
+                const urlMap = {
+                    'type': '{% url "core:ticketTypeListApiVersion1" %}',
+                    'priority': '{% url "core:ticketPriorityListApiVersion1" %}',
+                    'status': '{% url "core:columnStatusListApiVersion1" %}',
+                    'resolution': '{% url "core:resolutionListApiVersion1" %}',
+                    'project': '{% url "core:projectListApiVersion1" %}',
+                    'assignee': '{% url "core:userListApiVersion1" %}',
+                    'reporter': '{% url "core:userListApiVersion1" %}',
+                };
+
+                if (!(selectEl.name in urlMap)) return;
+
+                fetch(urlMap[selectEl.name])
+                    .then(response => response.json())
+                    .then(data => {
+                        const placeholder = {key: '', value: capitalizeFirstLetter(selectEl.name)};
+                        if (selectEl.name === 'type') placeholder.value = 'Type';
+                        else if (selectEl.name === 'priority') placeholder.value = 'Priority';
+                        else if (selectEl.name === 'status') placeholder.value = 'Status';
+                        else if (selectEl.name === 'resolution') placeholder.value = 'Resolution';
+                        else if (selectEl.name === 'project') placeholder.value = 'Project';
+                        data.unshift(placeholder);
+
+                        populateSelectFromJSON(selectEl, data);
+                        initFilterStyle(selectEl);
+                        preselectFromURL(selectEl);
+                    });
+            }
+
+            // -------------------------------
+            // Update filterToggle option for a single dropdown
+            // -------------------------------
+            function updateFilterToggleOption(name) {
+                const filterToggle = document.getElementById('filterToggle');
+                const selectedSet = selectedOptionsMap[name];
+                const option = Array.from(filterToggle.options).find(o => o.value === name);
+                if (option) {
+                    const count = selectedSet ? selectedSet.size : 0;
+                    option.text = count > 0 ? '🗹 ' + capitalizeFirstLetter(name) + ` (${count})` : '☐ ' + capitalizeFirstLetter(name);
+                }
+            }
+
+            // -------------------------------
+            // Update the top placeholder (Filter) with total number of dropdowns that have selections
+            // -------------------------------
+            function updateFilterTogglePlaceholder() {
+                const filterToggle = document.getElementById('filterToggle');
+                const placeholder = filterToggle.options[0];
+                const totalSelectedDropdowns = Object.values(selectedOptionsMap).filter(set => set.size > 0).length;
+                placeholder.text = totalSelectedDropdowns > 0 ? `Filter (${totalSelectedDropdowns})` : 'Filter';
+            }
+
+            // -------------------------------
+            // Initialize filter toggle
+            // -------------------------------
+            function initialiseFilterToggle() {
+                const filterToggle = document.getElementById('filterToggle');
+
+                filterToggle.addEventListener('change', function () {
+                    const selected = this.value;
+                    if (!selected) return;
+
+                    const filterEl = document.querySelector(`.filter-dropdown[data-filter="${selected}"]`);
+                    if (filterEl) filterEl.classList.toggle('d-none');
+
+                    // Update option text and top placeholder
+                    updateFilterToggleOption(selected);
+                    updateFilterTogglePlaceholder();
+
+                    this.selectedIndex = 0;
+                });
+
+                // Initialize all options on load
+                Array.from(filterToggle.options).forEach(opt => {
+                    if (!opt.value) return;
+                    updateFilterToggleOption(opt.value);
+                });
+
+                // Update placeholder
+                updateFilterTogglePlaceholder();
+            }
+
+            initialiseFilterToggle();
+
+            // -------------------------------
+            // Initialize all filters
+            // -------------------------------
+            document.querySelectorAll('.filter-dropdown select').forEach(selectEl => {
+                if (selectEl.id !== 'filterToggle') {
+                    populateAndPreselect(selectEl);
+                }
+            });
+
+            // -------------------------------
+            // DataTable
+            // -------------------------------
             $("#ticketsTable").DataTable({
                 responsive: true,
-                autoWidth: false,
-                paging: true,
-                searching: true,
+                autoWidth: true,
+                paging: false,
+                searching: false,
                 ordering: true,
                 info: false,
-                pageLength: 18,
                 scrollX: true,
             });
-            $('#ticketsTable_length').remove();
-        });
 
-        function isEmptyOrSpaces(str) {
-            return str === null || str.match(/^ *$/) !== null;
-        }
+            // -------------------------------
+            // Search logic
+            // -------------------------------
+            function runSearch() {
+                const query = searchInput.value.trim();
+                const ticketsView = '{% url "core:tickets-view" %}';
+                const filters = {};
+                Object.keys(selectedOptionsMap).forEach(filterName => {
+                    const selectedSet = selectedOptionsMap[filterName];
+                    if (selectedSet && selectedSet.size > 0) filters[filterName] = Array.from(selectedSet);
+                });
 
-        const searchInput = $('#search-input');
-        const searchBtn = $('#search-btn');
+                const urlParams = new URLSearchParams();
+                if (query) urlParams.append('query', query);
+                Object.keys(filters).forEach(key => urlParams.append(key, filters[key].join(',')));
 
-        function getTickets() {
-            const ticketsView = '{% url 'core:tickets-view' %}';
-            if (!isEmptyOrSpaces(searchInput.val())) {
-                window.location.href = ticketsView + '?query=' + searchInput.val();
+                window.location.href = `${ticketsView}?${urlParams.toString()}`;
             }
-        }
 
-        searchInput.on('keyup', function (e) {
-            if (e.key === 'Enter' || e.keyCode === 13) {
-                getTickets();
-            }
-        });
-        searchBtn.click(function () {
-            getTickets();
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    runSearch();
+                }
+            });
+
+            searchBtn.addEventListener('click', runSearch);
+
         });
     </script>
 {% endblock %}

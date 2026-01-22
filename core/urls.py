@@ -7,6 +7,12 @@ from core.api import (
     StartSprintEventApiVersion1,
     CompleteSprintEventApiVersion1,
     TicketOrderNoUpdateApiV1,
+    TicketTypeListApiVersion1,
+    TicketPriorityListApiVersion1,
+    ColumnStatusListApiVersion1,
+    ResolutionListApiVersion1,
+    ProjectListApiVersion1,
+    UserListApiVersion1,
 )
 from core.views import (
     loginView,
@@ -86,5 +92,35 @@ urlpatterns += [
         'api/v1/ticketOrderNoUpdateApiV1/',
         TicketOrderNoUpdateApiV1.as_view(),
         name='ticketOrderNoUpdateApiV1'
+    ),
+    path(
+        'api/v1/ticketTypeListApiVersion1/',
+        TicketTypeListApiVersion1.as_view(),
+        name='ticketTypeListApiVersion1'
+    ),
+    path(
+        'api/v1/ticketPriorityListApiVersion1/',
+        TicketPriorityListApiVersion1.as_view(),
+        name='ticketPriorityListApiVersion1'
+    ),
+    path(
+        'api/v1/columnStatusListApiVersion1/',
+        ColumnStatusListApiVersion1.as_view(),
+        name='columnStatusListApiVersion1'
+    ),
+    path(
+        'api/v1/resolutionListApiVersion1/',
+        ResolutionListApiVersion1.as_view(),
+        name='resolutionListApiVersion1'
+    ),
+    path(
+        'api/v1/projectListApiVersion1/',
+        ProjectListApiVersion1.as_view(),
+        name='projectListApiVersion1'
+    ),
+    path(
+        'api/v1/userListApiVersion1/',
+        UserListApiVersion1.as_view(),
+        name='userListApiVersion1'
     ),
 ]

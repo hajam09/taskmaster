@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from core import service
 from core.models import (
     Profile,
     Team,
@@ -57,6 +58,14 @@ class TicketAdmin(admin.ModelAdmin):
         'watchers',
         'linkedIssues',
     )
+    search_fields = (
+        'url',
+        'summary',
+        'description',
+        'resolution',
+        'type',
+        'priority',
+    )
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name in ['subTask', 'linkedIssues']:
@@ -67,6 +76,11 @@ class TicketAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         request._obj_ = obj
         return super().get_form(request, obj, **kwargs)
+
+    def get_search_results(self, request, queryset, searchTerm):
+        queryset, useDistinct = super().get_search_results(request, queryset, searchTerm)
+        queryset = service.buildQuotedAwareSearchQuery(queryset, searchTerm, self.search_fields)
+        return queryset, useDistinct
 
 
 @admin.register(Sprint)

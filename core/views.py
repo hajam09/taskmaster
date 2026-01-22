@@ -634,35 +634,57 @@ def labelView(request, url):
 
 
 def ticketsView(request):
-    # todo: attributesToSearch, implement dropdown filters
+    page = request.GET.get('page')
     query = request.GET.get('query')
     relatedColumns = ['columnStatus__column', 'assignee', 'reporter']
 
-    tickets = Ticket.objects.prefetch_related('label').annotate(
+    tickets = Ticket.objects.select_related(*relatedColumns).prefetch_related('label').annotate(
         assignee_fullname=Concat(
             F('assignee__first_name'), Value(' '), F('assignee__last_name')
         ),
         reporter_fullname=Concat(
             F('reporter__first_name'), Value(' '), F('reporter__last_name')
         ),
-    )
+    ).order_by('-id')
 
-    if query and query.strip():
-        query = ' '.join(query.split())
-        attributesToSearch = [
-            'url', 'summary', 'description', 'resolution', 'type', 'priority',
-            'project__name', 'project__code', 'project__url', 'project__description', 'project__status',
-            'assignee__first_name', 'assignee__last_name', 'reporter__first_name', 'reporter__last_name',
-            'assignee_fullname', 'reporter_fullname', 'columnStatus__name', 'columnStatus__column__name',
-            'columnStatus__column__board__name', 'columnStatus__column__board__type', 'columnStatus__column__status',
-            'label__name', 'label__code', 'linkType'
-        ]
-        search_filter = Q()
-        for field in attributesToSearch:
-            search_filter |= Q(**{f'{field}__icontains': query})
-        tickets = tickets.filter(search_filter).select_related(*relatedColumns).distinct()
-    else:
-        tickets = tickets.select_related(*relatedColumns)
+    FILTER_MAP = {
+        'type': 'type__in',
+        'priority': 'priority__in',
+        'resolution': 'resolution__in',
+        'status': 'columnStatus__name__in',
+        'project': 'project__code__in',
+        'assignee': 'assignee__id__in',
+        'reporter': 'reporter__id__in',
+    }
+
+    filters = {}
+
+    for param, field in FILTER_MAP.items():
+        value = request.GET.get(param)
+        if value:
+            filters[field] = [
+                v.strip() for v in value.split(',') if v.strip()
+            ]
+
+    if filters:
+        tickets = tickets.filter(**filters)
+
+    attributesToSearch = [
+        'url', 'summary', 'description', 'resolution', 'type', 'priority',
+        'project__name', 'project__code',
+        'assignee__first_name', 'assignee__last_name', 'reporter__first_name', 'reporter__last_name',
+        'assignee_fullname', 'reporter_fullname', 'columnStatus__name', 'columnStatus__column__name',
+        'columnStatus__column__board__name', 'columnStatus__column__status',
+    ]
+    tickets = service.buildQuotedAwareSearchQuery(tickets, query, attributesToSearch)
+
+    paginator = Paginator(tickets, 20)
+    try:
+        tickets = paginator.page(page)
+    except PageNotAnInteger:
+        tickets = paginator.page(1)
+    except EmptyPage:
+        tickets = paginator.page(paginator.num_pages)
 
     context = {
         'tickets': tickets,

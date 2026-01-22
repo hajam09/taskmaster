@@ -1,6 +1,7 @@
 import json
 
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import status
 from rest_framework.response import Response
@@ -10,6 +11,7 @@ from core import service
 from core.models import (
     ColumnStatus,
     Column,
+    Project,
     Ticket,
     Sprint
 )
@@ -194,3 +196,77 @@ class CompleteSprintEventApiVersion1(APIView):
         self.sprint.isActive = False
         self.sprint.save()
         return Response(status=status.HTTP_200_OK)
+
+
+class TicketTypeListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        data = [
+            {
+                'key': item,
+                'value': item.label,
+                'icon': Ticket.icons.get(item),
+            }
+            for item in Ticket.Type
+        ]
+        return Response(data=data, status=status.HTTP_200_OK)
+
+
+class TicketPriorityListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        data = [
+            {
+                'key': item,
+                'value': item.label,
+                'icon': Ticket.icons.get(item),
+            }
+            for item in Ticket.Priority
+        ]
+        return Response(data=data, status=status.HTTP_200_OK)
+
+
+class ColumnStatusListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        data = [
+            {
+                'key': item,
+                'value': item,
+            }
+            for item in ColumnStatus.objects.values_list('name', flat=True)
+        ]
+        return Response(data=data, status=status.HTTP_200_OK)
+
+
+class ResolutionListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        data = [
+            {
+                'key': item,
+                'value': item.label,
+            }
+            for item in Ticket.Resolution
+        ]
+        return Response(data=data, status=status.HTTP_200_OK)
+
+
+class ProjectListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        data = [
+            {
+                'key': item['code'],
+                'value': item['name']
+            }
+            for item in Project.objects.values('code', 'name')
+        ]
+        return Response(data=data, status=status.HTTP_200_OK)
+
+
+class UserListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        data = [
+            {
+                'key': item.id,
+                'value': f"{item.first_name} {item.last_name}".strip()
+            }
+            for item in User.objects.only('id', 'first_name', 'last_name')
+        ]
+        return Response(data=data, status=status.HTTP_200_OK)
