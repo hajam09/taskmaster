@@ -208,6 +208,7 @@ class TicketTypeListApiVersion1(APIView):
             }
             for item in Ticket.Type
         ]
+        data = sorted(data, key=lambda x: x['value'].lower())
         return Response(data=data, status=status.HTTP_200_OK)
 
 
@@ -221,6 +222,7 @@ class TicketPriorityListApiVersion1(APIView):
             }
             for item in Ticket.Priority
         ]
+        data = sorted(data, key=lambda x: x['value'].lower())
         return Response(data=data, status=status.HTTP_200_OK)
 
 
@@ -231,7 +233,7 @@ class ColumnStatusListApiVersion1(APIView):
                 'key': item,
                 'value': item,
             }
-            for item in ColumnStatus.objects.values_list('name', flat=True)
+            for item in ColumnStatus.objects.order_by('name').values_list('name', flat=True)
         ]
         return Response(data=data, status=status.HTTP_200_OK)
 
@@ -245,6 +247,7 @@ class ResolutionListApiVersion1(APIView):
             }
             for item in Ticket.Resolution
         ]
+        data = sorted(data, key=lambda x: x['value'].lower())
         return Response(data=data, status=status.HTTP_200_OK)
 
 
@@ -255,7 +258,7 @@ class ProjectListApiVersion1(APIView):
                 'key': item['code'],
                 'value': item['name']
             }
-            for item in Project.objects.values('code', 'name')
+            for item in Project.objects.order_by('name').values('code', 'name')
         ]
         return Response(data=data, status=status.HTTP_200_OK)
 
@@ -267,6 +270,19 @@ class UserListApiVersion1(APIView):
                 'key': item.id,
                 'value': f"{item.first_name} {item.last_name}".strip()
             }
-            for item in User.objects.only('id', 'first_name', 'last_name')
+            for item in User.objects.order_by('first_name', 'last_name').only('id', 'first_name', 'last_name')
         ]
+        return Response(data=data, status=status.HTTP_200_OK)
+
+
+class ProjectStatusListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        data = [
+            {
+                'key': item,
+                'value': item.label,
+            }
+            for item in Project.Status
+        ]
+        data = sorted(data, key=lambda x: x['value'].lower())
         return Response(data=data, status=status.HTTP_200_OK)

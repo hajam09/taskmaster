@@ -13,7 +13,6 @@
 
             <span class="form-row align-items-center mt-4 flex-nowrap">
 
-                <!-- Search (far left) -->
                 <div class="col-2">
                     <input type="text" name="query" class="form-control form-control-sm" placeholder="Search"
                            value="{{ request.GET.query }}">
@@ -21,54 +20,37 @@
 
                 <div class="col"></div>
 
-                <!-- Filter dropdowns (same row, fixed width) -->
                 <div class="col-1 filter-dropdown d-none" data-filter="type">
-                    <select name="type" class="form-control form-control-sm">
-                        <option value="">Type</option>
-                        <option value="bug">Bug</option>
-                        <option value="task">Task</option>
-                    </select>
+                    <select name="type" class="form-control form-control-sm"></select>
                 </div>
 
                 <div class="col-1 filter-dropdown d-none" data-filter="priority">
-                    <select name="priority" class="form-control form-control-sm">
-                        <option>Priority</option>
-                    </select>
+                    <select name="priority" class="form-control form-control-sm"></select>
                 </div>
 
                 <div class="col-1 filter-dropdown d-none" data-filter="status">
-                    <select name="status" class="form-control form-control-sm">
-                        <option>Status</option>
-                    </select>
+                    <select name="status" class="form-control form-control-sm"></select>
                 </div>
 
                 <div class="col-1 filter-dropdown d-none" data-filter="resolution">
-                    <select name="resolution" class="form-control form-control-sm">
-                        <option>Resolution</option>
-                    </select>
+                    <select name="resolution" class="form-control form-control-sm"></select>
                 </div>
 
                 <div class="col-1 filter-dropdown d-none" data-filter="project">
-                    <select name="project" class="form-control form-control-sm">
-                        <option>Project</option>
-                    </select>
+                    <select name="project" class="form-control form-control-sm"></select>
                 </div>
 
                 <div class="col-1 filter-dropdown d-none" data-filter="assignee">
-                    <select name="assignee" class="form-control form-control-sm">
-                        <option>Assignee</option>
-                    </select>
+                    <select name="assignee" class="form-control form-control-sm"></select>
                 </div>
 
                 <div class="col-1 filter-dropdown d-none" data-filter="reporter">
-                    <select name="reporter" class="form-control form-control-sm">
-                        <option>Reporter</option>
-                    </select>
+                    <select name="reporter" class="form-control form-control-sm"></select>
                 </div>
 
                 <!-- Push next items to far right -->
                 <div class="ms-auto col-2">
-                    <select id="filterToggle" class="form-control form-control-sm">
+                    <select id="filter-toggle" class="form-control form-control-sm">
                         <option value="">Filter</option>
                         <option value="type">☐ Type</option>
                         <option value="priority">☐ Priority</option>
@@ -222,7 +204,7 @@
                     // Keep placeholder selected
                     selectEl.selectedIndex = 0;
 
-                    // Update filterToggle option and main placeholder
+                    // Update filter-toggle option and main placeholder
                     updateFilterToggleOption(name);
                     updateFilterTogglePlaceholder();
                 });
@@ -261,7 +243,7 @@
                 const parent = selectEl.closest('.filter-dropdown');
                 if (parent) parent.classList.remove('d-none');
 
-                // Update filterToggle option and main placeholder
+                // Update filter-toggle option and main placeholder
                 updateFilterToggleOption(name);
                 updateFilterTogglePlaceholder();
             }
@@ -300,10 +282,10 @@
             }
 
             // -------------------------------
-            // Update filterToggle option for a single dropdown
+            // Update filter-toggle option for a single dropdown
             // -------------------------------
             function updateFilterToggleOption(name) {
-                const filterToggle = document.getElementById('filterToggle');
+                const filterToggle = document.getElementById('filter-toggle');
                 const selectedSet = selectedOptionsMap[name];
                 const option = Array.from(filterToggle.options).find(o => o.value === name);
                 if (option) {
@@ -316,7 +298,7 @@
             // Update the top placeholder (Filter) with total number of dropdowns that have selections
             // -------------------------------
             function updateFilterTogglePlaceholder() {
-                const filterToggle = document.getElementById('filterToggle');
+                const filterToggle = document.getElementById('filter-toggle');
                 const placeholder = filterToggle.options[0];
                 const totalSelectedDropdowns = Object.values(selectedOptionsMap).filter(set => set.size > 0).length;
                 placeholder.text = totalSelectedDropdowns > 0 ? `Filter (${totalSelectedDropdowns})` : 'Filter';
@@ -326,7 +308,7 @@
             // Initialize filter toggle
             // -------------------------------
             function initialiseFilterToggle() {
-                const filterToggle = document.getElementById('filterToggle');
+                const filterToggle = document.getElementById('filter-toggle');
 
                 filterToggle.addEventListener('change', function () {
                     const selected = this.value;
@@ -358,7 +340,7 @@
             // Initialize all filters
             // -------------------------------
             document.querySelectorAll('.filter-dropdown select').forEach(selectEl => {
-                if (selectEl.id !== 'filterToggle') {
+                if (selectEl.id !== 'filter-toggle') {
                     populateAndPreselect(selectEl);
                 }
             });
