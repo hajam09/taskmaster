@@ -28,13 +28,18 @@
                 </div>
             </form>
 
-            <form class="form-inline" method="get">
-                <div class="form-group mb-2 mr-2">
+            <div class="form-row align-items-center mt-4 flex-nowrap">
+                <div class="col-2">
                     <input type="text" name="query" class="form-control form-control-sm" placeholder="Search"
                            value="{{ request.GET.query }}">
                 </div>
-                <button type="submit" class="btn btn-sm btn-submit mb-2">Search</button>
-            </form>
+                <div class="col d-flex justify-content-between" id="filter-list"></div>
+                <div class="col-auto ml-auto d-flex align-items-center float-right" id="filter-toggle-container">
+                    <button type="button" class="btn btn-sm btn-submit">
+                        Search
+                    </button>
+                </div>
+            </div>
             <table id="projectsTable" class="table table-sm table-bordered table-hover" style="width: 100%">
                 <thead>
                 <tr>
@@ -71,6 +76,7 @@
         </div>
     </div>
 
+    <script src="{% static 'js/multi-filter-controller.js' %}"></script>
     <script type="application/javascript">
         function initialiseProjectForm() {
             const newProjectBtn = document.getElementById('add-project-btn');
@@ -106,10 +112,52 @@
             });
         }
 
+        function runSearch(filter) {
+            const query = document.querySelector('[name="query"]').value.trim();
+            const params = new URLSearchParams();
+            if (query) params.append('query', query);
+
+            const selections = filter.getSelections();
+            Object.keys(selections).forEach(k => params.append(k, selections[k].join(',')));
+            window.location.href = `${'{% url "core:projects-view" %}'}?${params.toString()}`;
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             initialiseProjectForm();
             initialiseDataTable();
             initialiseSelect2();
+
+            const filter = new MultiFilterController({
+                filterListEl: document.getElementById('filter-list'),
+                filterToggleContainerEl: document.getElementById('filter-toggle-container'),
+                filters: [
+                    {
+                        name: 'lead',
+                        urlParam: 'lead',
+                        fetchUrl: '{% url "core:userListApiVersion1" %}'
+                    },
+                    {
+                        name: 'members',
+                        urlParam: 'members',
+                        fetchUrl: '{% url "core:userListApiVersion1" %}'
+                    },
+                    {
+                        name: 'status',
+                        urlParam: 'status',
+                        fetchUrl: '{% url "core:projectStatusListApiVersion1" %}'
+                    }
+                ]
+            });
+
+            document.querySelector('#filter-toggle-container .btn-submit').addEventListener('click', () => {
+                runSearch(filter);
+            });
+
+            document.querySelector('input[name="query"]').addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    runSearch(filter);
+                }
+            });
         });
     </script>
 {% endblock %}

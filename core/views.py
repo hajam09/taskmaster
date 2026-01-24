@@ -315,18 +315,24 @@ def projectsView(request):
         lead_fullname=Concat(
             F('lead__first_name'), Value(' '), F('lead__last_name')
         )
-    )
-    if query:
-        searchFields = {
-            'name', 'code', 'url', 'description', 'status',
-            'lead__first_name', 'lead__last_name',
-            'members__first_name', 'members__last_name',
-            'lead_fullname',
-        }
-        q = Q()
-        for field in searchFields:
-            q |= Q(**{f'{field}__icontains': query})
-        projects = projects.filter(q).distinct()
+    ).order_by('-id')
+
+    FILTER_MAP = {
+        'status': 'status__in',
+        'lead': 'lead__id__in',
+        'members': 'members__id__in'
+    }
+
+    filters = service.buildFilterMapQuery(request, FILTER_MAP)
+    if filters:
+        projects = projects.filter(**filters)
+
+    attributesToSearch = [
+        'name', 'code', 'url', 'description', 'status',
+        'lead__first_name', 'lead__last_name', 'lead_fullname',
+        'members__first_name', 'members__last_name',
+    ]
+    projects = service.buildQuotedAwareSearchQuery(projects, query, attributesToSearch).distinct()
 
     paginator = Paginator(projects, 20)
     try:
@@ -385,18 +391,32 @@ def boardsView(request):
     page = request.GET.get('page')
     query = request.GET.get('query')
 
-    boards = Board.objects.all().select_related('project').prefetch_related('members', 'admins')
-    if query:
-        searchFields = {
-            'name', 'url', 'type',
-            'project__name', 'project__code',
-            'admins__first_name', 'admins__last_name',
-            'members__first_name', 'members__last_name'
-        }
-        q = Q()
-        for field in searchFields:
-            q |= Q(**{f'{field}__icontains': query})
-        boards = boards.filter(q).distinct()
+    boards = Board.objects.all().select_related('project').prefetch_related('members', 'admins').order_by('-id')
+
+    FILTER_MAP = {
+        'type': 'type__in',
+        'project': 'project__code__in',
+    }
+    VISIBILITY_MAP = {
+        'PRIVATE': True,
+        'PUBLIC': False,
+    }
+
+    filters = service.buildFilterMapQuery(request, FILTER_MAP)
+    visibility = request.GET.get('visibility')
+    if visibility and visibility.upper() in VISIBILITY_MAP:
+        filters['isPrivate'] = VISIBILITY_MAP[visibility.upper()]
+
+    if filters:
+        boards = boards.filter(**filters)
+
+    attributesToSearch = [
+        'name', 'url', 'type',
+        'project__name', 'project__code',
+        'admins__first_name', 'admins__last_name',
+        'members__first_name', 'members__last_name'
+    ]
+    boards = service.buildQuotedAwareSearchQuery(boards, query, attributesToSearch)
 
     paginator = Paginator(boards, 20)
     try:
@@ -655,17 +675,10 @@ def ticketsView(request):
         'project': 'project__code__in',
         'assignee': 'assignee__id__in',
         'reporter': 'reporter__id__in',
+        'label': 'label__name__in',
     }
 
-    filters = {}
-
-    for param, field in FILTER_MAP.items():
-        value = request.GET.get(param)
-        if value:
-            filters[field] = [
-                v.strip() for v in value.split(',') if v.strip()
-            ]
-
+    filters = service.buildFilterMapQuery(request, FILTER_MAP)
     if filters:
         tickets = tickets.filter(**filters)
 

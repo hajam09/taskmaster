@@ -14,6 +14,7 @@ from core.api import (
     ProjectListApiVersion1,
     UserListApiVersion1,
     ProjectStatusListApiVersion1,
+    LabelListApiVersion1,
 )
 from core.views import (
     loginView,
@@ -128,5 +129,10 @@ urlpatterns += [
         'api/v1/projectStatusListApiVersion1/',
         ProjectStatusListApiVersion1.as_view(),
         name='projectStatusListApiVersion1'
+    ),
+    path(
+        'api/v1/labelListApiVersion1/',
+        LabelListApiVersion1.as_view(),
+        name='labelListApiVersion1'
     ),
 ]

@@ -11,6 +11,7 @@ from core import service
 from core.models import (
     ColumnStatus,
     Column,
+    Label,
     Project,
     Ticket,
     Sprint
@@ -285,4 +286,16 @@ class ProjectStatusListApiVersion1(APIView):
             for item in Project.Status
         ]
         data = sorted(data, key=lambda x: x['value'].lower())
+        return Response(data=data, status=status.HTTP_200_OK)
+
+
+class LabelListApiVersion1(APIView):
+    def get(self, *args, **kwargs):
+        data = [
+            {
+                'key': item,
+                'value': item,
+            }
+            for item in Label.objects.order_by('name').values_list('name', flat=True)
+        ]
         return Response(data=data, status=status.HTTP_200_OK)

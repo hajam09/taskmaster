@@ -85,3 +85,16 @@ def buildQuotedAwareSearchQuery(queryset, searchTerm, searchFields):
         combinedQ &= componentQ  # AND between components
 
     return queryset.filter(combinedQ)
+
+
+def buildFilterMapQuery(request, FILTER_MAP):
+    filters = {}
+
+    for param, field in FILTER_MAP.items():
+        value = request.GET.get(param)
+        if value:
+            filters[field] = [
+                v.strip() for v in value.split(',') if v.strip()
+            ]
+
+    return filters
