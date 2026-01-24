@@ -240,19 +240,24 @@ def teamsView(request):
         form = TeamForm(request)
 
     page = request.GET.get('page')
-    query = request.GET.get('query')
+    query = request.GET.get('query', '').strip()
 
-    teams = Team.objects.all().prefetch_related('admins', 'members')
-    if query:
-        searchFields = {
-            'name', 'description', 'url',
-            'admins__first_name', 'admins__last_name',
-            'members__first_name', 'members__last_name'
-        }
-        q = Q()
-        for field in searchFields:
-            q |= Q(**{f'{field}__icontains': query})
-        teams = teams.filter(q).distinct()
+    teams = Team.objects.all().prefetch_related('admins', 'members').order_by('-id')
+
+    FILTER_MAP = {
+        'admins': 'admins__id__in',
+        'members': 'members__id__in',
+    }
+    filters = service.buildFilterMapQuery(request, FILTER_MAP)
+    if filters:
+        teams = teams.filter(**filters)
+
+    attributesToSearch = {
+        'name', 'description', 'url',
+        'admins__first_name', 'admins__last_name',
+        'members__first_name', 'members__last_name'
+    }
+    teams = service.buildQuotedAwareSearchQuery(teams, query, attributesToSearch)
 
     paginator = Paginator(teams, 20)
     try:
@@ -309,7 +314,7 @@ def projectsView(request):
         form = ProjectForm(request)
 
     page = request.GET.get('page')
-    query = request.GET.get('query')
+    query = request.GET.get('query', '').strip()
 
     projects = Project.objects.all().select_related('lead').prefetch_related('members').annotate(
         lead_fullname=Concat(
@@ -332,7 +337,7 @@ def projectsView(request):
         'lead__first_name', 'lead__last_name', 'lead_fullname',
         'members__first_name', 'members__last_name',
     ]
-    projects = service.buildQuotedAwareSearchQuery(projects, query, attributesToSearch).distinct()
+    projects = service.buildQuotedAwareSearchQuery(projects, query, attributesToSearch)
 
     paginator = Paginator(projects, 20)
     try:
@@ -389,24 +394,18 @@ def boardsView(request):
         form = BoardForm(request)
 
     page = request.GET.get('page')
-    query = request.GET.get('query')
+    query = request.GET.get('query', '').strip()
 
     boards = Board.objects.all().select_related('project').prefetch_related('members', 'admins').order_by('-id')
 
     FILTER_MAP = {
         'type': 'type__in',
         'project': 'project__code__in',
-    }
-    VISIBILITY_MAP = {
-        'PRIVATE': True,
-        'PUBLIC': False,
+        'admins': 'admins__id__in',
+        'members': 'members__id__in',
     }
 
     filters = service.buildFilterMapQuery(request, FILTER_MAP)
-    visibility = request.GET.get('visibility')
-    if visibility and visibility.upper() in VISIBILITY_MAP:
-        filters['isPrivate'] = VISIBILITY_MAP[visibility.upper()]
-
     if filters:
         boards = boards.filter(**filters)
 
@@ -484,7 +483,7 @@ def boardView(request, url):
 
 @login_required
 def backlogView(request, url):
-    board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets').get(url=url)
+    board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets__epic').get(url=url)
     context = {}
 
     if board.type == Board.Types.KANBAN:
@@ -519,7 +518,7 @@ def backlogView(request, url):
 
         sprints = board.boardSprints.filter(isComplete=False).order_by(
             '-startDate', '-createdDateTime'
-        ).prefetch_related('tickets__columnStatus')
+        ).prefetch_related('tickets__columnStatus__column', 'tickets__epic')
         backlogColumns = [
             column for column in board.boardColumns.all()
             if column.status in [Column.Status.UNMAPPED, Column.Status.BACK_LOG]
@@ -607,15 +606,14 @@ def labelsView(request):
         form = LabelForm()
 
     page = request.GET.get('page')
-    query = request.GET.get('query')
+    query = request.GET.get('query', '').strip()
 
-    labels = Label.objects.all()
-    if query:
-        searchFields = {'name', 'description', 'url'}
-        q = Q()
-        for field in searchFields:
-            q |= Q(**{f'{field}__icontains': query})
-        labels = labels.filter(q).distinct()
+    labels = Label.objects.all().order_by('-id')
+
+    attributesToSearch = [
+        'name', 'description', 'url'
+    ]
+    labels = service.buildQuotedAwareSearchQuery(labels, query, attributesToSearch)
 
     paginator = Paginator(labels, 20)
     try:
@@ -655,7 +653,7 @@ def labelView(request, url):
 
 def ticketsView(request):
     page = request.GET.get('page')
-    query = request.GET.get('query')
+    query = request.GET.get('query', '').strip()
     relatedColumns = ['columnStatus__column', 'assignee', 'reporter']
 
     tickets = Ticket.objects.select_related(*relatedColumns).prefetch_related('label').annotate(

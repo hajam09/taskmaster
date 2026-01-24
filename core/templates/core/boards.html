@@ -139,6 +139,16 @@
                 filterToggleContainerEl: document.getElementById('filter-toggle-container'),
                 filters: [
                     {
+                        name: 'admins',
+                        urlParam: 'admins',
+                        fetchUrl: '{% url "core:userListApiVersion1" %}'
+                    },
+                    {
+                        name: 'members',
+                        urlParam: 'members',
+                        fetchUrl: '{% url "core:userListApiVersion1" %}'
+                    },
+                    {
                         name: 'type',
                         urlParam: 'type',
                         data: [{key: 'KANBAN', value: 'Kanban'}, {key: 'SCRUM', value: 'Scrum'}]

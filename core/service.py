@@ -84,7 +84,7 @@ def buildQuotedAwareSearchQuery(queryset, searchTerm, searchFields):
                 componentQ |= Q(**{f"{field}__icontains": component["value"]})
         combinedQ &= componentQ  # AND between components
 
-    return queryset.filter(combinedQ)
+    return queryset.filter(combinedQ).distinct()
 
 
 def buildFilterMapQuery(request, FILTER_MAP):
@@ -96,5 +96,14 @@ def buildFilterMapQuery(request, FILTER_MAP):
             filters[field] = [
                 v.strip() for v in value.split(',') if v.strip()
             ]
+
+    VISIBILITY_MAP = {
+        'PRIVATE': True,
+        'PUBLIC': False,
+    }
+
+    visibility = request.GET.get('visibility')
+    if visibility and visibility.upper() in VISIBILITY_MAP:
+        filters['isPrivate'] = VISIBILITY_MAP[visibility.upper()]
 
     return filters

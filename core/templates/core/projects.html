@@ -47,6 +47,7 @@
                     <th>Code</th>
                     <th>Lead</th>
                     <th>Status</th>
+                    <th>Visibility</th>
                     <th>Members</th>
                 </tr>
                 </thead>
@@ -64,6 +65,11 @@
                         </td>
                         <td>
                             <span class="badge badge-primary">{{ project.get_status_display }}</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-{% if project.isPrivate %}danger{% else %}success{% endif %}">
+                                {% if project.isPrivate %}Private{% else %}Public{% endif %}
+                            </span>
                         </td>
                         <td>
                             {% renderSingleOrGroupUserAvatars project.members.all %}
@@ -145,7 +151,12 @@
                         name: 'status',
                         urlParam: 'status',
                         fetchUrl: '{% url "core:projectStatusListApiVersion1" %}'
-                    }
+                    },
+                    {
+                        name: 'visibility',
+                        urlParam: 'visibility',
+                        data: [{key: 'PUBLIC', value: 'Public'}, {key: 'PRIVATE', value: 'Private'}]
+                    },
                 ]
             });
 
