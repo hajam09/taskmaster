@@ -162,6 +162,8 @@ class TeamForm(forms.ModelForm):
     def __init__(self, request, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.request = request
+        self.fields['admins'].label_from_instance = lambda user: user.get_full_name()
+        self.fields['members'].label_from_instance = lambda user: user.get_full_name()
         if getattr(self.instance, 'id'):
             self.fields['visibility'].initial = 'MEMBERS' if self.instance.isPrivate else 'EVERYONE'
             self.hasEditPermission = request.user in self.instance.admins.all()
@@ -226,6 +228,7 @@ class ProjectForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.request = request
         self.fields['status'].choices = [(None, '---------')] + Project.Status.choices
+        self.fields['members'].label_from_instance = lambda user: user.get_full_name()
 
         if getattr(self.instance, 'id'):
             self.fields['visibility'].initial = 'MEMBERS' if self.instance.isPrivate else 'EVERYONE'
@@ -244,7 +247,7 @@ class ProjectForm(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         instance.isPrivate = self.cleaned_data.get('visibility') == 'MEMBERS'
-        instance.lead = self.request.user
+        instance.lead = self.request.user if getattr(instance, 'lead', None) is None else instance.lead
         if commit:
             instance.save()
             self.save_m2m()
@@ -293,7 +296,8 @@ class BoardForm(forms.ModelForm):
         self.request = request
         self.fields['type'].choices = [(None, '---------')] + Board.Types.choices
         self.fields['type'].initial = None
-
+        self.fields['admins'].label_from_instance = lambda user: user.get_full_name()
+        self.fields['members'].label_from_instance = lambda user: user.get_full_name()
         if getattr(self.instance, 'id'):
             self.fields['visibility'].initial = 'MEMBERS' if self.instance.isPrivate else 'EVERYONE'
             self.hasEditPermission = request.user in self.instance.admins.all()

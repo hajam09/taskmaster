@@ -284,44 +284,6 @@ class Ticket(BaseModel):
         MINOR = 'MINOR', _('Minor')
         TRIVIAL = 'TRIVIAL', _('Trivial')
 
-    class LinkType(models.TextChoices):
-        LINKED_TO_ACTION = 'LINKED_TO_ACTION', _('linked to action')
-        LINKED_FROM_ACTION = 'LINKED_FROM_ACTION', _('linked from action')
-        BLOCKS = 'BLOCKS', _('blocks')
-        IS_BLOCKED_BY = 'IS_BLOCKED_BY', _('is blocked by')
-        IS_A_CHANGE_TO = 'IS_A_CHANGE_TO', _('Is a change to')
-        CHANGED_BY = 'CHANGED_BY', _('changed by')
-        CLONES = 'CLONES', _('clones')
-        IS_CLONED_BY = 'IS_CLONED_BY', _('is cloned by')
-        IS_DEPENDENT_ON = 'IS_DEPENDENT_ON', _('is dependent on')
-        IS_DEPENDENCY_OF = 'IS_DEPENDENCY_OF', _('is dependency of')
-        DUPLICATED = 'DUPLICATED', _('duplicates')
-        IS_DUPLICATED_BY = 'IS_DUPLICATED_BY', _('is duplicated by')
-        IMPACTS = 'IMPACTS', _('impacts')
-        IMPACTED_BY = 'IMPACTED_BY', _('impacted by')
-        REPLACES = 'REPLACES', _('replaces')
-        IS_REPLACED_BY = 'IS_REPLACED_BY', _('is replaced by')
-        LINKED_TO_RISK = 'LINKED_TO_RISK', _('linked to risk')
-        LINKED_FROM_RISK = 'LINKED_FROM_RISK', _('linked from risk')
-        CAUSES = 'CAUSES', _('causes')
-        IS_CAUSED_BY = 'IS_CAUSED_BY', _('is caused by')
-        CONTAINS = 'CONTAINS', _('contains')
-        CONTRIBUTES_TO = 'CONTRIBUTES_TO', _('contributes to')
-        FULLY_IMPLEMENTS = 'FULLY_IMPLEMENTS', _('fully implements')
-        IS_FULLY_IMPLEMENTED_BY = 'IS_FULLY_IMPLEMENTED_BY', _('is fully implemented by')
-        RELATES = 'RELATES', _('relates')
-        IS_RELATED_BY = 'IS_RELATED_BY', _('is related by')
-        PARTIALLY_IMPLEMENTS = 'PARTIALLY_IMPLEMENTS', _('partially implements')
-        IS_PARTIALLY_IMPLEMENTED_BY = 'IS_PARTIALLY_IMPLEMENTED_BY', _('is partially implemented by')
-        STARTS_WITH = 'STARTS_WITH', _('starts with')
-        FINISHES_WITH = 'FINISHES_WITH', _('finishes with')
-        HAS_TO_BE_DONE_BEFORE = 'HAS_TO_BE_DONE_BEFORE', _('has to be done before')
-        HAS_TO_BE_DONE_AFTER = 'HAS_TO_BE_DONE_AFTER', _('has to be done after')
-        HAS_TO_BE_STARTED_TOGETHER_WITH = 'HAS_TO_BE_STARTED_TOGETHER_WITH', _('has to be started together with')
-        HAS_TO_BE_FINISHED_TOGETHER_WITH = 'HAS_TO_BE_FINISHED_TOGETHER_WITH', _('has to be finished together with')
-        IS_PARENT_TASK_OF = 'IS_PARENT_TASK_OF', _('is parent task of')
-        IS_SUBTASK_OK = 'IS_SUBTASK_OK', _('is subtask of')
-
     url = models.CharField(max_length=32, unique=True)
     summary = models.CharField(max_length=2048)
     description = models.TextField(blank=True, null=True)
@@ -348,22 +310,19 @@ class Ticket(BaseModel):
         limit_choices_to={'type': 'EPIC'}
     )
 
-    linkType = models.CharField(max_length=64, blank=True, null=True, choices=LinkType.choices)
-    linkedIssues = models.ManyToManyField('Ticket', blank=True, related_name='ticketLinkedIssues')
-
     class Meta:
         verbose_name = 'Ticket'
         verbose_name_plural = 'Tickets'
         ordering = ['orderNo']
 
     icons = {
-        Type.BUG: 'https://cdn-thumbs.imagevenue.com/76/05/cc/ME14ZPM0_t.jpg',
-        Type.EPIC: 'https://cdn-thumbs.imagevenue.com/e9/21/f5/ME14ZPM1_t.jpg',
-        Type.STORY: 'https://cdn-thumbs.imagevenue.com/cc/5e/08/ME14ZPM6_t.jpg',
-        Type.SUB_TASK: 'https://cdn-thumbs.imagevenue.com/9c/bb/4c/ME14ZPM8_t.jpg',
-        Type.TASK: 'https://cdn-thumbs.imagevenue.com/d1/5c/cd/ME14ZPM9_t.jpg',
-        Type.TEST: 'https://cdn-thumbs.imagevenue.com/45/69/8d/ME14ZPMA_t.jpg',
-        Type.SPIKE: 'https://cdn-thumbs.imagevenue.com/90/63/63/ME14ZPM4_t.jpg',
+        Type.BUG: 'https://product-integrations-cdn.atl-paas.net/jira-issuetype/bug.png',
+        Type.EPIC: 'https://product-integrations-cdn.atl-paas.net/jira-issuetype/epic.png',
+        Type.STORY: 'https://product-integrations-cdn.atl-paas.net/jira-issuetype/story.png',
+        Type.SUB_TASK: 'https://product-integrations-cdn.atl-paas.net/jira-issuetype/subtask.png',
+        Type.TASK: 'https://product-integrations-cdn.atl-paas.net/jira-issuetype/task.png',
+        Type.TEST: 'https://product-integrations-cdn.atl-paas.net/jira-issuetype/defect.png',
+        Type.SPIKE: 'https://product-integrations-cdn.atl-paas.net/jira-issuetype/suggestion.png',
         Priority.BLOCKER: 'https://raw.githubusercontent.com/cglynne/jira-priority-icons/dc505157ab8cdac2adad074ef054da783f9fee70/jira_priority/blocker.svg',
         Priority.CRITICAL: 'https://raw.githubusercontent.com/cglynne/jira-priority-icons/dc505157ab8cdac2adad074ef054da783f9fee70/jira_priority/critical.svg',
         Priority.HIGH: 'https://raw.githubusercontent.com/cglynne/jira-priority-icons/dc505157ab8cdac2adad074ef054da783f9fee70/jira_priority/high.svg',
@@ -407,6 +366,64 @@ class Ticket(BaseModel):
         Ticket.objects.filter(epic=self).update(epic=None)
         super().delete(*args, **kwargs)
 
+
+class TicketLink(BaseModel):
+    class LinkType(models.TextChoices):
+        LINKED_TO_ACTION = 'LINKED_TO_ACTION', _('linked to action')
+        LINKED_FROM_ACTION = 'LINKED_FROM_ACTION', _('linked from action')
+        BLOCKS = 'BLOCKS', _('blocks')
+        IS_BLOCKED_BY = 'IS_BLOCKED_BY', _('is blocked by')
+        IS_A_CHANGE_TO = 'IS_A_CHANGE_TO', _('Is a change to')
+        CHANGED_BY = 'CHANGED_BY', _('changed by')
+        CLONES = 'CLONES', _('clones')
+        IS_CLONED_BY = 'IS_CLONED_BY', _('is cloned by')
+        IS_DEPENDENT_ON = 'IS_DEPENDENT_ON', _('is dependent on')
+        IS_DEPENDENCY_OF = 'IS_DEPENDENCY_OF', _('is dependency of')
+        DUPLICATED = 'DUPLICATED', _('duplicates')
+        IS_DUPLICATED_BY = 'IS_DUPLICATED_BY', _('is duplicated by')
+        IMPACTS = 'IMPACTS', _('impacts')
+        IMPACTED_BY = 'IMPACTED_BY', _('impacted by')
+        REPLACES = 'REPLACES', _('replaces')
+        IS_REPLACED_BY = 'IS_REPLACED_BY', _('is replaced by')
+        LINKED_TO_RISK = 'LINKED_TO_RISK', _('linked to risk')
+        LINKED_FROM_RISK = 'LINKED_FROM_RISK', _('linked from risk')
+        CAUSES = 'CAUSES', _('causes')
+        IS_CAUSED_BY = 'IS_CAUSED_BY', _('is caused by')
+        CONTAINS = 'CONTAINS', _('contains')
+        IS_CONTAINED_BY = 'IS_CONTAINED_BY', _('is contained by')
+        CONTRIBUTES_TO = 'CONTRIBUTES_TO', _('contributes to')
+        IS_CONTRIBUTED_BY = 'IS_CONTRIBUTED_BY', _('is contributed by')
+        FULLY_IMPLEMENTS = 'FULLY_IMPLEMENTS', _('fully implements')
+        IS_FULLY_IMPLEMENTED_BY = 'IS_FULLY_IMPLEMENTED_BY', _('is fully implemented by')
+        RELATES = 'RELATES', _('relates')
+        IS_RELATED_BY = 'IS_RELATED_BY', _('is related by')
+        PARTIALLY_IMPLEMENTS = 'PARTIALLY_IMPLEMENTS', _('partially implements')
+        IS_PARTIALLY_IMPLEMENTED_BY = 'IS_PARTIALLY_IMPLEMENTED_BY', _('is partially implemented by')
+        STARTS_WITH = 'STARTS_WITH', _('starts with')
+        FINISHES_WITH = 'FINISHES_WITH', _('finishes with')
+        HAS_TO_BE_DONE_BEFORE = 'HAS_TO_BE_DONE_BEFORE', _('has to be done before')
+        HAS_TO_BE_DONE_AFTER = 'HAS_TO_BE_DONE_AFTER', _('has to be done after')
+        HAS_TO_BE_STARTED_TOGETHER_WITH = 'HAS_TO_BE_STARTED_TOGETHER_WITH', _('has to be started together with')
+        HAS_TO_BE_FINISHED_TOGETHER_WITH = 'HAS_TO_BE_FINISHED_TOGETHER_WITH', _('has to be finished together with')
+        IS_PARENT_TASK_OF = 'IS_PARENT_TASK_OF', _('is parent task of')
+        IS_SUBTASK_OK = 'IS_SUBTASK_OK', _('is subtask of')
+
+    source = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='outgoingLinks')
+    target = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='incomingLinks')
+    linkType = models.CharField( max_length=32, choices=LinkType.choices)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['source', 'target', 'linkType'],
+                name='unique_ticket_link',
+            ),
+        ]
+        verbose_name = 'TicketLink'
+        verbose_name_plural = 'TicketLink'
+
+    def __str__(self):
+        return f'{self.source} {self.get_linkType_display()} {self.target}'
 
 #
 #

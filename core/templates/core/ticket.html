@@ -94,7 +94,7 @@
                                 <div id="epicTicketsList">
                                     {% for et in ticket.epicTickets.all %}
                                         {% ticketHorizontalBarComponent et False %}
-                                        {% empty %}
+                                    {% empty %}
                                         <i>No issues found for ths epic!</i>
                                     {% endfor %}
                                 </div>
@@ -124,7 +124,7 @@
                                                 {% if st != ticket %}
                                                     {% ticketHorizontalBarComponent st %}
                                                 {% endif %}
-                                                {% empty %}
+                                            {% empty %}
                                                 <i>No subtasks available for this ticket!</i>
                                             {% endfor %}
                                         </div>
@@ -181,9 +181,9 @@
                                     <input name="add-subtasks" hidden>
                                     <div class="form-row">
                                         <div class="col-12 col-md mb-2">
-                                            <input type="text" class="form-control form-control-sm w-100"
-                                                   placeholder="Add existing subtasks... ticket-1, ticket-2, ..."
-                                                   name="task-ids" required>
+                                            <select class="form-control form-control-sm subtasks-list" name="task-ids"
+                                                    multiple="multiple" required>
+                                            </select>
                                         </div>
                                         <div class="col-auto mb-2">
                                             <button type="submit" class="btn btn-primary btn-sm">Add</button>
@@ -194,7 +194,7 @@
                                 <div id="subtaskList">
                                     {% for st in ticket.subTask.all %}
                                         {% ticketHorizontalBarComponent st %}
-                                        {% empty %}
+                                    {% empty %}
                                         <i>No subtasks available for this ticket!</i>
                                     {% endfor %}
                                 </div>
@@ -225,8 +225,9 @@
                                         </div>
 
                                         <div class="col mb-2">
-                                            <input type="text" class="form-control form-control-sm" name="task-ids"
-                                                   placeholder="Add issues ... ticket-1, ticket-2, ..." required>
+                                            <select class="form-control form-control-sm all-tickets-list" name="task-ids"
+                                                    multiple="multiple" required>
+                                            </select>
                                         </div>
 
                                         <div class="col-auto mb-2">
@@ -236,6 +237,12 @@
                                 </form>
 
                                 <div id="linkedIssuesList">
+                                    {% for key, values in ticketLinks.items %}
+                                        <small class="text-muted">{{ key }}</small>
+                                        {% for ticket in values %}
+                                            {% ticketHorizontalBarComponent ticket %}
+                                        {% endfor %}
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
@@ -265,7 +272,7 @@
                                     <small>{{ c.createdDateTime|date:"Y-m-d H:i" }}</small>
                                     <p class="mt-1">{{ c.comment }}</p>
                                 </div>
-                                {% empty %}
+                            {% empty %}
                                 <p class="text-muted">No comments yet.</p>
                             {% endfor %}
 
@@ -350,7 +357,9 @@
                             <div class="col-md-6 mb-3">
                                 <strong>Watchers</strong>
                                 <div>
-                                    <span class="badge badge-light">0</span>
+                                    <span class="badge badge-light">
+                                        {{ ticket.watchers|length }}
+                                    </span>
                                 </div>
                             </div>
 
@@ -383,7 +392,11 @@
                             <div class="col-md-6 mb-3">
                                 <strong>Labels</strong>
                                 <div>
-                                    TODO
+                                    {% for label in ticket.label.all %}
+                                        <a href="#"
+                                           class="badge badge-light border"
+                                           style="background-color: {{ label.colour }}; color: white">{{ label.name }}</a>
+                                    {% endfor %}
                                 </div>
                             </div>
                             {% if ticket.epic %}
@@ -425,6 +438,87 @@
 
     <script>
 
+        function handleSelect2Dropdown(elementClassName, ajaxUrl, elementPlaceHolder) {
+            $(elementClassName).select2({
+                multiple: true,
+                placeholder: elementPlaceHolder,
+                allowClear: true,
+                minimumInputLength: 1,
+
+                ajax: {
+                    url: ajaxUrl,
+                    dataType: 'json',
+                    delay: 300,
+
+                    data: function (params) {
+                        return {
+                            query: params.term
+                        };
+                    },
+
+                    processResults: function (data) {
+                        return {
+                            results: data.map(function (ticket) {
+                                return {
+                                    id: ticket.id,
+                                    text: ticket.url,
+                                    icon: ticket.icon,
+                                    summary: ticket.summary
+                                };
+                            })
+                        };
+                    },
+
+                    cache: true
+                },
+
+                templateResult: function (ticket) {
+                    if (ticket.loading) {
+                        return ticket.text;
+                    }
+
+                    const $result = $('<span></span>');
+                    const $icon = $('<img>')
+                        .attr('src', ticket.icon)
+                        .css({
+                            width: '16px',
+                            height: '16px',
+                            'margin-bottom': '2px',
+                            'margin-right': '6px'
+                        });
+
+                    $result.append($icon);
+                    $result.append(
+                        document.createTextNode(
+                            ticket.text + ' ' + ticket.summary
+                        )
+                    );
+
+                    return $result;
+                },
+
+                templateSelection: function (ticket) {
+                    const $result = $('<span></span>');
+
+                    const $icon = $('<img>')
+                        .attr('src', ticket.icon)
+                        .css({
+                            width: '16px',
+                            height: '16px',
+                            'margin-bottom': '2px',
+                            'margin-right': '6px'
+                        });
+
+                    $result.append($icon);
+                    $result.append(
+                        document.createTextNode(ticket.text)
+                    );
+
+                    return $result;
+                }
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             const toggleLink = document.getElementById("toggleDescription");
             if (toggleLink) {
@@ -448,6 +542,8 @@
             makeSortable('epicTicketsList');
             makeSortable('subtaskList');
             makeSortable('linkedIssuesList');
+            handleSelect2Dropdown('.subtasks-list', '{% url "core:subTaskTicketLiveSearchApiVersion1" %}', 'Add subtasks');
+            handleSelect2Dropdown('.all-tickets-list', '{% url "core:allTicketLiveSearchApiVersion1" %}', 'Search for tickets');
         });
 
         function makeSortable(listId) {
