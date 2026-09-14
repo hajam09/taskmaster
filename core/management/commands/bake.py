@@ -1,4 +1,5 @@
 import random
+import uuid
 
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
@@ -50,9 +51,9 @@ class Command(BaseCommand):
         users_to_create = []
 
         for _ in range(self.NUMBER_OF_USERS):
-            first_name = self.faker.unique.first_name()
-            last_name = self.faker.unique.last_name()
-            email = f'{first_name.lower()}.{last_name.lower()}@{self.faker.free_email_domain()}'
+            first_name = self.faker.first_name()
+            last_name = self.faker.last_name()
+            email = f'{first_name.lower()}.{uuid.uuid4().hex[:8]}.{last_name.lower()}@{self.faker.free_email_domain()}'
 
             user = User(
                 first_name=first_name,

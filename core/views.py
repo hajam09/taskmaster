@@ -11,10 +11,9 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import (
     F,
     Max,
-    Q,
     Value
 )
-from django.db.models.functions import Concat, Upper
+from django.db.models.functions import Concat
 from django.http import HttpResponseForbidden
 from django.shortcuts import (
     redirect
@@ -50,9 +49,9 @@ from core.models import (
     Label,
     Column,
     Ticket,
+    TicketLink,
     Sprint
 )
-from taskmaster.operations import emailOperations
 
 
 def loginView(request):
@@ -93,7 +92,7 @@ def registerView(request):
         form = RegistrationForm(request.POST)
         if form.is_valid():
             newUser = form.save()
-            emailOperations.sendEmailToActivateAccount(request, newUser)
+            service.sendEmailToActivateAccount(request, newUser)
 
             messages.info(
                 request, 'We\'ve sent you an activation link. Please check your email.'
@@ -150,7 +149,7 @@ def forgotPasswordView(request):
                 user = None
 
             if user is not None:
-                emailOperations.sendEmailToSetPassword(request, user)
+                service.sendEmailToSetPassword(request, user)
 
             messages.info(
                 request, 'Check your email for a password change link.'
@@ -436,6 +435,7 @@ def boardsView(request):
 def boardView(request, url):
     board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets__epic').get(url=url)
     unmappedAndBacklogColumns = [Column.Status.UNMAPPED, Column.Status.BACK_LOG]
+    lastTwoWeeks = timezone.now() - timedelta(days=14)
 
     if board.type == Board.Types.KANBAN:
         columns = [
@@ -455,7 +455,10 @@ def boardView(request, url):
         ]
     else:
         currentSprint = Sprint.objects.filter(board=board, isComplete=False, isActive=True)
-        sprintTickets = set(Ticket.objects.filter(sprintTickets__in=currentSprint).values_list('id', flat=True))
+        sprintTickets = set(Ticket.objects.filter(
+            sprintTickets__in=currentSprint, createdDateTime__gte=lastTwoWeeks
+        ).values_list('id', flat=True))
+
         columns = [
             {
                 'name': column.name,
@@ -719,7 +722,8 @@ def ticketView(request, url):
     ).get(url=url)
     context = {
         'ticket': ticket,
-        'linkTypeChoices': Ticket.LinkType.choices,
+        'linkTypeChoices': TicketLink.LinkType.choices,
+        'ticketLinks': service.groupLinkedIssues(ticket)
     }
 
     if request.method == 'POST' and 'delete-ticket' in request.POST:
@@ -751,10 +755,21 @@ def ticketView(request, url):
         return redirect(request.path)
 
     elif request.method == 'POST' and 'add-subtasks' in request.POST:
-        ticketUrls = service.normalizeTicketInput(request.POST['task-ids'])
-        tickets = Ticket.objects.annotate(urlUpper=Upper('url'), type=Ticket.Type.SUB_TASK).filter(
-            urlUpper__in=ticketUrls)
-        ticket.subTask.add(*tickets)
+        ticket.subTask.add(*request.POST.getlist('task-ids'))
+        return redirect(request.path)
+
+    elif request.method == 'POST' and 'add-linked-issue' in request.POST:
+        linkType = TicketLink.LinkType(request.POST.get('link-type'))
+        targetTickets = Ticket.objects.filter(id__in=request.POST.getlist('task-ids'))
+
+        TicketLink.objects.bulk_create([
+            TicketLink(
+                source=ticket,
+                target=target,
+                linkType=linkType
+            )
+            for target in targetTickets
+        ])
         return redirect(request.path)
 
     if ticket.type == Ticket.Type.EPIC:

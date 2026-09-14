@@ -10,6 +10,7 @@ from core.models import (
     Column,
     ColumnStatus,
     Ticket,
+    TicketLink,
     Sprint
 )
 
@@ -56,7 +57,6 @@ class TicketAdmin(admin.ModelAdmin):
         'subTask',
         'label',
         'watchers',
-        'linkedIssues',
     )
     search_fields = (
         'url',
@@ -68,7 +68,7 @@ class TicketAdmin(admin.ModelAdmin):
     )
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name in ['subTask', 'linkedIssues']:
+        if db_field.name in ['subTask']:
             if request._obj_ is not None:
                 kwargs['queryset'] = Ticket.objects.exclude(pk=request._obj_.pk)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
@@ -81,6 +81,11 @@ class TicketAdmin(admin.ModelAdmin):
         queryset, useDistinct = super().get_search_results(request, queryset, searchTerm)
         queryset = service.buildQuotedAwareSearchQuery(queryset, searchTerm, self.search_fields)
         return queryset, useDistinct
+
+
+@admin.register(TicketLink)
+class TicketLinkAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(Sprint)
