@@ -276,75 +276,16 @@
                             <div class="tab-content" id="activityTabContent">
                                 <div class="tab-pane fade show active" id="comments-panel" role="tabpanel"
                                      aria-labelledby="comments-tab">
-                                    {% for item in ticketComments %}
-                                        {% with c=item.comment %}
-                                            <div class="comment-item border rounded p-3 mb-3" data-comment-id="{{ c.id }}">
-                                                <strong>{{ c.creator.get_full_name|default:c.creator.username }}</strong>
-                                                <small class="text-muted ml-2">
-                                                    {{ c.createdDateTime|date:"Y-m-d H:i" }}
-                                                    {% if c.edited %}(edited){% endif %}
-                                                </small>
-                                                {% if c.creator_id == request.user.id %}
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-link float-right edit-comment-button">
-                                                        Edit
-                                                    </button>
-                                                {% endif %}
-                                                <div class="mt-2 comment-content">{{ item.safeComment|safe }}</div>
-                                                <div class="d-flex mt-3">
-                                                    <form method="post" class="mr-2 comment-reaction-form">
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="comment-id" value="{{ c.id }}">
-                                                        <button type="submit" name="like-ticket-comment" value="1"
-                                                                class="btn btn-sm comment-like-button {% if item.likedByUser %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                                                                aria-label="Like comment">
-                                                            <i class="fa fa-thumbs-up"></i>
-                                                            <span class="comment-like-count">{{ item.likeCount }}</span>
-                                                        </button>
-                                                    </form>
-                                                    <form method="post" class="comment-reaction-form">
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="comment-id" value="{{ c.id }}">
-                                                        <button type="submit" name="dislike-ticket-comment" value="1"
-                                                                class="btn btn-sm comment-dislike-button {% if item.dislikedByUser %}btn-secondary{% else %}btn-outline-secondary{% endif %}"
-                                                                aria-label="Dislike comment">
-                                                            <i class="fa fa-thumbs-down"></i>
-                                                            <span class="comment-dislike-count">{{ item.dislikeCount }}</span>
-                                                        </button>
-                                                    </form>
-                                                </div>
-
-                                                {% if c.creator_id == request.user.id %}
-                                                    <form method="post" class="comment-edit-form d-none mt-3">
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="edit-ticket-comment" value="1">
-                                                        <input type="hidden" name="comment-id" value="{{ c.id }}">
-                                                        <textarea name="comment_text" class="comment-html d-none"></textarea>
-                                                        <div class="comment-quill-editor">{{ item.safeComment|safe }}</div>
-                                                        <div class="comment-validation alert alert-danger d-none mt-2">
-                                                            A comment cannot be empty.
-                                                        </div>
-                                                        <button type="submit" class="btn btn-primary btn-sm mt-2">
-                                                            Save
-                                                        </button>
-                                                        <button type="button"
-                                                                class="btn btn-light btn-sm mt-2 cancel-comment-edit">
-                                                            Cancel
-                                                        </button>
-                                                    </form>
-                                                {% endif %}
-                                            </div>
-                                        {% endwith %}
-                                    {% empty %}
-                                        <p class="text-muted">No comments yet.</p>
-                                    {% endfor %}
+                                    <div id="ticketCommentList" data-comments-url="{% url 'core:ticket-comments' ticket.id %}">
+                                        <p class="text-muted">Loading comments...</p>
+                                    </div>
 
                                     <form method="post" class="mt-3" id="addCommentForm">
                                         {% csrf_token %}
-                                        <input type="hidden" name="add-ticket-comment" value="1">
-                                        <textarea name="comment_text" id="newCommentHtml"
-                                                  class="comment-html d-none"></textarea>
-                                        <div id="newCommentEditor" class="comment-quill-editor"></div>
+                                        <textarea id="newCommentHtml" class="comment-html d-none"></textarea>
+                                        <div class="comment-composer">
+                                            <div id="newCommentEditor" class="comment-quill-editor"></div>
+                                        </div>
                                         <div class="comment-validation alert alert-danger d-none mt-2">
                                             A comment cannot be empty.
                                         </div>
@@ -521,6 +462,7 @@
         const ticketApiUrl = '{% url "core:ticketApiVersion1" %}?url={{ ticket.url|urlencode }}';
         const userLiveSearchUrl = '{% url "core:userLiveSearchApiVersion1" %}';
         const labelLiveSearchUrl = '{% url "core:labelLiveSearchApiVersion1" %}';
+        const ticketCommentListUrl = '{% url "core:ticket-comments" ticket.id %}';
         let ticketData = null;
 
         function renderInlineField(field) {
@@ -1104,61 +1046,232 @@
                 ['clean']
             ];
 
-            function initializeCommentEditor(form) {
-                if (form.commentQuill) return form.commentQuill;
+            const commentList = document.getElementById('ticketCommentList');
+            const commentEditors = new Map();
 
-                const host = form.querySelector('.comment-quill-editor');
-                const initialHtml = host.innerHTML;
-                host.replaceChildren();
-                form.commentQuill = new Quill(host, {
+            function initializeCommentEditor(host, initialHtml = '') {
+                const quillHost = document.createElement('div');
+                host.replaceChildren(quillHost);
+                const quill = new Quill(quillHost, {
                     theme: 'snow',
                     modules: {toolbar: commentToolbar}
                 });
-                form.commentQuill.root.innerHTML = initialHtml;
-                return form.commentQuill;
+                quill.root.innerHTML = initialHtml;
+                return quill;
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, character => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                })[character]);
+            }
+
+            function formatCommentDate(value) {
+                const date = new Date(value);
+                return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
+            }
+
+            function showCommentEmptyState() {
+                commentList.innerHTML = '<div class="comment-empty-state"><i class="far fa-comments" aria-hidden="true"></i><p class="mb-0">No comments yet. Start the conversation.</p></div>';
+            }
+
+            function createCommentElement(data) {
+                const creator = data.creator || {};
+                const name = [creator.first_name, creator.last_name].filter(Boolean).join(' ') || creator.username || 'User';
+                const initials = (creator.first_name || creator.username || name).slice(0, 1).toUpperCase();
+                const canEdit = creator.id === {{ request.user.id }};
+                const article = document.createElement('article');
+                article.className = 'comment-item mb-3';
+                article.dataset.commentId = data.id;
+
+                article.innerHTML = `
+                    <header class="comment-header">
+                        <span class="comment-avatar" aria-hidden="true">${escapeHtml(initials)}</span>
+                        <div class="comment-author">
+                            <strong>${escapeHtml(name)}</strong>
+                            <small class="text-muted">
+                                ${escapeHtml(formatCommentDate(data.createdDateTime))}
+                                ${data.edited ? '<span class="comment-edited">(edited)</span>' : ''}
+                            </small>
+                        </div>
+                        ${canEdit ? '<button type="button" class="btn btn-sm btn-link edit-comment-button ml-auto">Edit</button>' : ''}
+                    </header>
+                    <div class="comment-content"></div>
+                    <footer class="comment-footer">
+                        <div class="comment-reactions">
+                            <form method="post" class="comment-reaction-form">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(getCookie('csrftoken'))}">
+                                <input type="hidden" name="comment-id" value="${data.id}">
+                                <button type="submit" name="like-ticket-comment" value="1"
+                                        class="btn btn-sm comment-reaction-button comment-like-button ${data.inLikes ? 'is-active' : ''}"
+                                        aria-label="Like comment" aria-pressed="${Boolean(data.inLikes)}">
+                                    <i class="fa fa-thumbs-up"></i>
+                                    <span class="comment-like-count">${Number(data.likesCount) || 0}</span>
+                                </button>
+                            </form>
+                            <form method="post" class="comment-reaction-form">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(getCookie('csrftoken'))}">
+                                <input type="hidden" name="comment-id" value="${data.id}">
+                                <button type="submit" name="dislike-ticket-comment" value="1"
+                                        class="btn btn-sm comment-reaction-button comment-dislike-button ${data.inDisLikes ? 'is-active' : ''}"
+                                        aria-label="Dislike comment" aria-pressed="${Boolean(data.inDisLikes)}">
+                                    <i class="fa fa-thumbs-down"></i>
+                                    <span class="comment-dislike-count">${Number(data.disLikesCount) || 0}</span>
+                                </button>
+                            </form>
+                        </div>
+                    </footer>
+                    ${canEdit ? `
+                    <form class="comment-edit-form d-none mt-3">
+                        <div class="comment-quill-editor"></div>
+                        <div class="comment-validation alert alert-danger d-none mt-2">A comment cannot be empty.</div>
+                        <button type="submit" class="btn btn-primary btn-sm mt-2">Save</button>
+                        <button type="button" class="btn btn-light btn-sm mt-2 cancel-comment-edit">Cancel</button>
+                    </form>` : ''}
+                `;
+                article.querySelector('.comment-content').innerHTML = data.comment || '';
+                return article;
+            }
+
+            async function loadTicketComments() {
+                try {
+                    const response = await fetch(ticketCommentListUrl);
+                    const comments = await response.json();
+                    if (!response.ok) throw new Error('Unable to load comments.');
+                    commentList.replaceChildren();
+                    if (!comments.length) {
+                        showCommentEmptyState();
+                        return;
+                    }
+                    comments.forEach(comment => commentList.append(createCommentElement(comment)));
+                } catch (error) {
+                    commentList.textContent = error.message;
+                }
+            }
+
+            function displayApiError(error) {
+                const message = document.getElementById('inlineEditMessage');
+                message.className = 'alert alert-danger mt-2';
+                message.textContent = error.message;
+            }
+
+            function getApiError(data) {
+                if (typeof data === 'string') return data;
+                return Object.values(data || {}).flat().join(' ') || 'Unable to save comment.';
             }
 
             const addCommentForm = document.getElementById('addCommentForm');
-            if (addCommentForm) {
-                initializeCommentEditor(addCommentForm);
-            }
+            const addCommentQuill = initializeCommentEditor(
+                addCommentForm.querySelector('.comment-quill-editor')
+            );
 
-            document.querySelectorAll('.edit-comment-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    const comment = button.closest('.comment-item');
+            addCommentForm.addEventListener('submit', async event => {
+                event.preventDefault();
+                const validation = addCommentForm.querySelector('.comment-validation');
+                if (!addCommentQuill.getText().trim()) {
+                    validation.classList.remove('d-none');
+                    return;
+                }
+                validation.classList.add('d-none');
+                const button = addCommentForm.querySelector('button[type="submit"]');
+                button.disabled = true;
+                try {
+                    const response = await fetch(ticketCommentListUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({comment: addCommentQuill.root.innerHTML})
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(getApiError(data));
+                    commentList.querySelector('.comment-empty-state')?.remove();
+                    commentList.prepend(createCommentElement(data));
+                    addCommentQuill.setText('');
+                } catch (error) {
+                    displayApiError(error);
+                } finally {
+                    button.disabled = false;
+                }
+            });
+
+            commentList.addEventListener('click', event => {
+                const editButton = event.target.closest('.edit-comment-button');
+                if (editButton) {
+                    const comment = editButton.closest('.comment-item');
                     const form = comment.querySelector('.comment-edit-form');
                     form.classList.remove('d-none');
                     comment.querySelector('.comment-content').classList.add('d-none');
-                    button.classList.add('d-none');
-                    initializeCommentEditor(form).focus();
-                });
-            });
+                    comment.querySelector('.comment-footer').classList.add('d-none');
+                    editButton.classList.add('d-none');
+                    const quill = initializeCommentEditor(
+                        form.querySelector('.comment-quill-editor'),
+                        comment.querySelector('.comment-content').innerHTML
+                    );
+                    commentEditors.set(form, quill);
+                    quill.focus();
+                }
 
-            document.querySelectorAll('.cancel-comment-edit').forEach(button => {
-                button.addEventListener('click', () => {
-                    const comment = button.closest('.comment-item');
-                    comment.querySelector('.comment-edit-form').classList.add('d-none');
+                const cancelButton = event.target.closest('.cancel-comment-edit');
+                if (cancelButton) {
+                    const comment = cancelButton.closest('.comment-item');
+                    const form = cancelButton.closest('.comment-edit-form');
+                    form.classList.add('d-none');
                     comment.querySelector('.comment-content').classList.remove('d-none');
+                    comment.querySelector('.comment-footer').classList.remove('d-none');
                     comment.querySelector('.edit-comment-button').classList.remove('d-none');
-                });
+                }
             });
 
-            document.querySelectorAll('#addCommentForm, .comment-edit-form').forEach(form => {
-                form.addEventListener('submit', event => {
-                    const quill = initializeCommentEditor(form);
+            commentList.addEventListener('submit', async event => {
+                const form = event.target;
+                if (form.matches('.comment-edit-form')) {
+                    event.preventDefault();
+                    const quill = commentEditors.get(form);
                     const validation = form.querySelector('.comment-validation');
                     if (!quill.getText().trim()) {
-                        event.preventDefault();
                         validation.classList.remove('d-none');
                         return;
                     }
                     validation.classList.add('d-none');
-                    form.querySelector('.comment-html').value = quill.root.innerHTML;
-                });
+                    const comment = form.closest('.comment-item');
+                    const button = form.querySelector('button[type="submit"]');
+                    button.disabled = true;
+                    try {
+                        const response = await fetch(`${ticketCommentListUrl}${comment.dataset.commentId}/`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({comment: quill.root.innerHTML})
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(getApiError(data));
+                        comment.querySelector('.comment-content').innerHTML = data.comment;
+                        comment.querySelector('.comment-author small').innerHTML =
+                            `${escapeHtml(formatCommentDate(data.createdDateTime))} <span class="comment-edited">(edited)</span>`;
+                        form.classList.add('d-none');
+                        comment.querySelector('.comment-content').classList.remove('d-none');
+                        comment.querySelector('.comment-footer').classList.remove('d-none');
+                        comment.querySelector('.edit-comment-button').classList.remove('d-none');
+                    } catch (error) {
+                        displayApiError(error);
+                    } finally {
+                        button.disabled = false;
+                    }
+                }
             });
 
-            document.querySelectorAll('.comment-reaction-form').forEach(form => {
-                form.addEventListener('submit', async event => {
+            commentList.addEventListener('submit', async event => {
+                const form = event.target;
+                if (!form.matches('.comment-reaction-form')) return;
+                event.preventDefault();
                     event.preventDefault();
                     const button = event.submitter;
                     const comment = form.closest('.comment-item');
@@ -1183,10 +1296,10 @@
                         comment.querySelector('.comment-dislike-count').textContent = data.dislikeCount;
                         const likeButton = comment.querySelector('.comment-like-button');
                         const dislikeButton = comment.querySelector('.comment-dislike-button');
-                        likeButton.classList.toggle('btn-primary', data.likedByUser);
-                        likeButton.classList.toggle('btn-outline-secondary', !data.likedByUser);
-                        dislikeButton.classList.toggle('btn-secondary', data.dislikedByUser);
-                        dislikeButton.classList.toggle('btn-outline-secondary', !data.dislikedByUser);
+                        likeButton.classList.toggle('is-active', data.likedByUser);
+                        likeButton.setAttribute('aria-pressed', data.likedByUser);
+                        dislikeButton.classList.toggle('is-active', data.dislikedByUser);
+                        dislikeButton.setAttribute('aria-pressed', data.dislikedByUser);
                     } catch (error) {
                         const message = document.getElementById('inlineEditMessage');
                         message.className = 'alert alert-danger mt-2';
@@ -1194,8 +1307,8 @@
                     } finally {
                         button.disabled = false;
                     }
-                });
             });
+            loadTicketComments();
 
             document.addEventListener('click', event => {
                 if (event.target.closest('a, input, textarea, select, button')) return;

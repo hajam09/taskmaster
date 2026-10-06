@@ -19,6 +19,8 @@ from core.api import (
     UserLiveSearchApiVersion1,
     TicketApiVersion1,
     TicketLiveSearchApiVersion1,
+    TicketCommentListCreateView,
+    TicketCommentDetailView,
 )
 from core.views import (
     loginView,
@@ -159,4 +161,19 @@ urlpatterns += [
         TicketApiVersion1.as_view(),
         name='ticketApiVersion1'
     )
+]
+
+
+urlpatterns += [
+    path(
+        'tickets/<int:ticket_id>/comments/',
+        TicketCommentListCreateView.as_view(),
+        name='ticket-comments'
+    ),
+
+    path(
+        'tickets/<int:ticket_id>/comments/<int:pk>/',
+        TicketCommentDetailView.as_view(),
+        name='ticket-comment-detail'
+    ),
 ]

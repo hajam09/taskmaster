@@ -3,9 +3,10 @@ import json
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count, Exists, OuterRef
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import status, generics
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,12 +18,12 @@ from core.models import (
     Label,
     Project,
     Ticket,
-    Sprint
+    Sprint, TicketComment
 )
 from core.serializers import (
     TicketInlineUpdateSerializer,
     TicketSerializerVersion1,
-    sanitize_ticket_description,
+    sanitize_ticket_description, TicketCommentSerializer,
 )
 
 MAN_AVATAR = 'https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png'
@@ -526,3 +527,77 @@ class TicketApiVersion1(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return self.get(request, *args, **kwargs)
+
+
+
+class TicketCommentListCreateView(generics.ListCreateAPIView):
+    serializer_class = TicketCommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            TicketComment.objects.filter(ticket__id=self.kwargs.get('ticket_id')).select_related('creator').annotate(
+                likes_count=Count('likes', distinct=True),
+                dislikes_count=Count('dislikes', distinct=True),
+                in_likes=Exists(
+                    TicketComment.likes.through.objects.filter(
+                        ticketcomment_id=OuterRef('pk'),
+                        user_id=self.request.user.id,
+                    )
+                ),
+                in_dislikes=Exists(
+                    TicketComment.dislikes.through.objects.filter(
+                        ticketcomment_id=OuterRef('pk'),
+                        user_id=self.request.user.id,
+                    )
+                ),
+            ).order_by('-createdDateTime')
+        )
+
+    def perform_create(self, serializer):
+        ticket = get_object_or_404(Ticket, id=self.kwargs['ticket_id'])
+        serializer.save(
+            creator=self.request.user,
+            ticket=ticket,
+        )
+
+
+class TicketCommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = TicketCommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return TicketComment.objects.filter(
+            ticket__id=self.kwargs.get('ticket_id')
+        ).select_related('creator').annotate(
+            likes_count=Count('likes', distinct=True),
+            dislikes_count=Count('dislikes', distinct=True),
+            in_likes=Exists(
+                TicketComment.likes.through.objects.filter(
+                    ticketcomment_id=OuterRef('pk'),
+                    user_id=self.request.user.id,
+                )
+            ),
+            in_dislikes=Exists(
+                TicketComment.dislikes.through.objects.filter(
+                    ticketcomment_id=OuterRef('pk'),
+                    user_id=self.request.user.id,
+                )
+            ),
+        )
+
+    def perform_update(self, serializer):
+        if self.get_object().creator != self.request.user:
+            raise PermissionDenied(
+                'You can only edit your own comments.'
+            )
+
+        serializer.save(edited=True)
+
+    def perform_destroy(self, instance):
+        if instance.creator != self.request.user:
+            raise PermissionDenied(
+                'You can only delete your own comments.'
+            )
+
+        instance.delete()

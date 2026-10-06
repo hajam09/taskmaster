@@ -16,7 +16,8 @@ from core.models import (
     Project,
     Sprint,
     Team,
-    Ticket
+    Ticket,
+    TicketComment
 )
 
 
@@ -28,6 +29,7 @@ class Command(BaseCommand):
     NUMBER_OF_LABELS = 20
     NUMBER_OF_COLUMN_STATUS_PER_COLUMN = 2
     NUMBER_OF_TICKETS_PER_COLUMN_STATUS = 5
+    NUMBER_OF_TICKET_COMMENTS_PER_TICKET = 10
 
     def __init__(self):
         super().__init__()
@@ -42,6 +44,7 @@ class Command(BaseCommand):
         self.seedColumn()
         self.seedColumnStatus()
         self.seedTicket()
+        self.seedTicketComment()
 
     def seedUser(self):
         Profile.objects.filter(user__is_superuser=False).delete()
@@ -358,3 +361,20 @@ class Command(BaseCommand):
 
         for epic, chunk in zip(epicTickets, otherTicketsAsChunks):
             Ticket.objects.filter(pk__in=[t.pk for t in chunk]).update(epic=epic)
+
+    def seedTicketComment(self):
+        TicketComment.objects.all().delete()
+        users = list(User.objects.all())
+        tickets = list(Ticket.objects.all())
+
+        comments = [
+            TicketComment(
+                ticket=ticket,
+                creator=random.choice(users),
+                comment=self.faker.paragraph(nb_sentences=3)
+            )
+            for ticket in tickets
+            for _ in range(self.NUMBER_OF_TICKET_COMMENTS_PER_TICKET)
+
+        ]
+        TicketComment.objects.bulk_create(comments, batch_size=self.NUMBER_OF_TICKET_COMMENTS_PER_TICKET)

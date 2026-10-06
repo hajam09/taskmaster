@@ -2,8 +2,7 @@ import bleach
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from core.models import ColumnStatus, Label, Project, Ticket
-
+from core.models import ColumnStatus, Label, Project, Ticket, TicketComment
 
 DESCRIPTION_TAGS = [
     'a', 'blockquote', 'br', 'code', 'em', 'h1', 'h2', 'h3', 'i', 'li',
@@ -28,7 +27,6 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def get_icon(self, project):
         return project.icon
-
 
     class Meta:
         model = Project
@@ -93,3 +91,79 @@ class TicketInlineUpdateSerializer(serializers.ModelSerializer):
             self.fields['columnStatus'].queryset = ColumnStatus.objects.filter(
                 column__board_id=self.instance.columnStatus.column.board_id
             )
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+        ]
+        read_only_fields = [
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+        ]
+
+
+class TicketCommentSerializer(serializers.ModelSerializer):
+    creator = UserSerializer(read_only=True)
+    ticket = serializers.PrimaryKeyRelatedField(read_only=True)
+    comment = serializers.CharField()
+    createdDateTime = serializers.DateTimeField(read_only=True)
+
+    inLikes = serializers.BooleanField(
+        source='in_likes',
+        read_only=True,
+        default=False,
+    )
+
+    inDisLikes = serializers.BooleanField(
+        source='in_dislikes',
+        read_only=True,
+        default=False,
+    )
+
+    likesCount = serializers.IntegerField(
+        source='likes_count',
+        read_only=True,
+        default=0,
+    )
+
+    disLikesCount = serializers.IntegerField(
+        source='dislikes_count',
+        read_only=True,
+        default=0,
+    )
+
+    class Meta:
+        model = TicketComment
+        fields = [
+            'id',
+            'ticket',
+            'creator',
+            'comment',
+            'edited',
+            'createdDateTime',
+            'inLikes',
+            'inDisLikes',
+            'likesCount',
+            'disLikesCount',
+        ]
+
+    def validate_comment(self, comment):
+        sanitized = sanitize_ticket_description(comment)
+        if not bleach.clean(sanitized, tags=[], strip=True).strip():
+            raise serializers.ValidationError('A comment cannot be empty.')
+        return sanitized
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['comment'] = sanitize_ticket_description(representation['comment'])
+        return representation

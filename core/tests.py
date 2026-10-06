@@ -26,6 +26,7 @@ class TicketInlineUpdateApiTests(TestCase):
         self.label_search_url = reverse('core:labelLiveSearchApiVersion1')
         self.ticket_search_url = reverse('core:ticketLiveSearchApiVersion1')
         self.ticket_page_url = reverse('core:ticket-view', kwargs={'url': self.ticket.url})
+        self.comments_url = reverse('core:ticket-comments', kwargs={'ticket_id': self.ticket.id})
 
     @staticmethod
     def create_project(name, code):
@@ -256,62 +257,115 @@ class TicketInlineUpdateApiTests(TestCase):
             [ticket.id for ticket in sorted(subtasks, key=lambda ticket: ticket.url)[:10]],
         )
 
-    def test_ticket_page_creates_sanitized_comment_for_signed_in_user(self):
+    def test_comments_api_lists_comments_with_reaction_state(self):
+        comment = TicketComment.objects.create(
+            ticket=self.ticket,
+            creator=self.user,
+            comment='<p>Useful comment</p>',
+        )
+        comment.likes.add(self.user)
+
+        response = self.client.get(self.comments_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], comment.id)
+        self.assertTrue(response.data[0]['inLikes'])
+        self.assertEqual(response.data[0]['likesCount'], 1)
+        self.assertIn('createdDateTime', response.data[0])
+
+    def test_comments_api_creates_sanitized_comment_for_signed_in_user(self):
         response = self.client.post(
-            self.ticket_page_url,
-            {
-                'add-ticket-comment': '1',
-                'comment_text': '<p>Useful <strong>comment</strong><script>unsafe()</script></p>',
-            },
+            self.comments_url,
+            {'comment': '<p>Useful <strong>comment</strong><script>unsafe()</script></p>'},
+            format='json',
         )
 
-        self.assertRedirects(response, f'{self.ticket_page_url}#comments-tab', fetch_redirect_response=False)
+        self.assertEqual(response.status_code, 201)
+        self.assertFalse(response.data['inLikes'])
+        self.assertFalse(response.data['inDisLikes'])
+        self.assertEqual(response.data['likesCount'], 0)
+        self.assertEqual(response.data['disLikesCount'], 0)
         comment = TicketComment.objects.get(ticket=self.ticket)
         self.assertEqual(comment.creator, self.user)
         self.assertIn('<strong>comment</strong>', comment.comment)
         self.assertNotIn('<script>', comment.comment)
 
-    def test_ticket_page_allows_comment_creator_to_edit_comment(self):
+    def test_comments_api_rejects_empty_comments(self):
+        response = self.client.post(
+            self.comments_url,
+            {'comment': '<p><br></p>'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(TicketComment.objects.filter(ticket=self.ticket).exists())
+
+    def test_comment_detail_api_allows_creator_to_edit_comment(self):
         comment = TicketComment.objects.create(
             ticket=self.ticket,
             creator=self.user,
             comment='<p>Original comment</p>',
         )
-
-        response = self.client.post(
-            self.ticket_page_url,
-            {
-                'edit-ticket-comment': '1',
-                'comment-id': comment.id,
-                'comment_text': '<p>Edited comment</p>',
-            },
+        detail_url = reverse(
+            'core:ticket-comment-detail',
+            kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
         )
 
-        self.assertRedirects(response, f'{self.ticket_page_url}#comments-tab', fetch_redirect_response=False)
+        response = self.client.patch(
+            detail_url,
+            {'comment': '<p>Edited comment</p>'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
         comment.refresh_from_db()
         self.assertEqual(comment.comment, '<p>Edited comment</p>')
         self.assertTrue(comment.edited)
 
-    def test_ticket_page_prevents_other_users_from_editing_comment(self):
+    def test_comment_detail_api_prevents_other_users_from_editing_comment(self):
         other_user = User.objects.create_user(username='comment-owner')
         comment = TicketComment.objects.create(
             ticket=self.ticket,
             creator=other_user,
             comment='<p>Owner comment</p>',
         )
-
-        response = self.client.post(
-            self.ticket_page_url,
-            {
-                'edit-ticket-comment': '1',
-                'comment-id': comment.id,
-                'comment_text': '<p>Attempted edit</p>',
-            },
+        detail_url = reverse(
+            'core:ticket-comment-detail',
+            kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
         )
 
-        self.assertEqual(response.status_code, 404)
+        response = self.client.patch(
+            detail_url,
+            {'comment': '<p>Attempted edit</p>'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 403)
         comment.refresh_from_db()
         self.assertEqual(comment.comment, '<p>Owner comment</p>')
+
+    def test_comment_api_does_not_expose_comments_from_other_tickets(self):
+        other_ticket = Ticket.objects.create(
+            url='ONE-OTHER',
+            summary='Other ticket',
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+        other_comment = TicketComment.objects.create(
+            ticket=other_ticket,
+            creator=self.user,
+            comment='<p>Other ticket comment</p>',
+        )
+        detail_url = reverse(
+            'core:ticket-comment-detail',
+            kwargs={'ticket_id': self.ticket.id, 'pk': other_comment.id},
+        )
+
+        response = self.client.get(detail_url)
+
+        self.assertEqual(response.status_code, 404)
 
     def test_ticket_comment_like_toggles_and_removes_existing_dislike(self):
         comment = TicketComment.objects.create(
