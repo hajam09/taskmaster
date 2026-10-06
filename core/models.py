@@ -130,6 +130,10 @@ class Project(BaseModel):
             return True
         return user == self.lead or user in self.members.all()
 
+    @property
+    def icon(self):
+        return 'https://dummyimage.com/100x100/'
+
 
 class Board(BaseModel):
     class Types(models.TextChoices):
@@ -297,10 +301,9 @@ class Ticket(BaseModel):
     assignee = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING)
     reporter = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='ticketReporter')
     columnStatus = models.ForeignKey(ColumnStatus, on_delete=models.DO_NOTHING, related_name='columnStatusTickets')
-    subTask = models.ManyToManyField('Ticket', blank=True, related_name='ticketSubTask')
     label = models.ManyToManyField(Label, blank=True, related_name='ticketLabels')
-    watchers = models.ManyToManyField(User, blank=True, related_name='ticketWatchers')
 
+    parent = models.ForeignKey('Ticket', null=True, blank=True, on_delete=models.SET_NULL, related_name='subTasks')
     epic = models.ForeignKey(
         'Ticket',
         null=True,
@@ -336,16 +339,16 @@ class Ticket(BaseModel):
     }
 
     @property
-    def ticketTypeIcon(self):
+    def typeIcon(self):
         return self.icons.get(self.type)
 
     @property
-    def ticketPriorityIcon(self):
+    def priorityIcon(self):
         return self.icons.get(self.priority)
 
     @property
     def getUrl(self):
-        return reverse('core:ticket-view', kwargs={'url': self.url})
+        return reverse('ticket:ticket-view', kwargs={'url': self.url})
 
     @property
     def getIcon(self):
@@ -441,37 +444,35 @@ class TicketLink(BaseModel):
 #         return self.internalKey
 #
 #
-# class TicketComment(BaseModel):
-#     ticket = models.ForeignKey(Ticket, on_delete=models.DO_NOTHING, related_name='ticketComments')
-#     creator = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='ticketCommentCreator')
-#     comment = models.TextField()
-#     edited = models.BooleanField(default=False)
-#     likes = models.ManyToManyField(User, blank=True, related_name='ticketCommentLikes')
-#     dislikes = models.ManyToManyField(User, blank=True, related_name='ticketCommentDislikes')
-#
-#     class Meta:
-#         verbose_name = 'TicketComment'
-#         verbose_name_plural = 'TicketComments'
-#
-#     def like(self, request):
-#         if request.user not in self.likes.all():
-#             self.likes.add(request.user)
-#         else:
-#             self.likes.remove(request.user)
-#
-#         if request.user in self.dislikes.all():
-#             self.dislikes.remove(request.user)
-#
-#     def dislike(self, request):
-#         if request.user not in self.dislikes.all():
-#             self.dislikes.add(request.user)
-#         else:
-#             self.dislikes.remove(request.user)
-#
-#         if request.user in self.likes.all():
-#             self.likes.remove(request.user)
-#
-#
+class TicketComment(BaseModel):
+    ticket = models.ForeignKey(Ticket, on_delete=models.DO_NOTHING, related_name='ticketComments')
+    creator = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='ticketCommentCreator')
+    comment = models.TextField()
+    edited = models.BooleanField(default=False)
+    likes = models.ManyToManyField(User, blank=True, related_name='ticketCommentLikes')
+    dislikes = models.ManyToManyField(User, blank=True, related_name='ticketCommentDislikes')
+
+    class Meta:
+        verbose_name = 'TicketComment'
+        verbose_name_plural = 'TicketComments'
+
+    def like(self, request):
+        if request.user not in self.likes.all():
+            self.likes.add(request.user)
+        else:
+            self.likes.remove(request.user)
+
+        if request.user in self.dislikes.all():
+            self.dislikes.remove(request.user)
+
+    def dislike(self, request):
+        if request.user not in self.dislikes.all():
+            self.dislikes.add(request.user)
+        else:
+            self.dislikes.remove(request.user)
+
+        if request.user in self.likes.all():
+            self.likes.remove(request.user)
 
 
 class Sprint(BaseModel):
