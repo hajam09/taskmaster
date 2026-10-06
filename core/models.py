@@ -130,6 +130,10 @@ class Project(BaseModel):
             return True
         return user == self.lead or user in self.members.all()
 
+    @property
+    def icon(self):
+        return 'https://dummyimage.com/100x100/'
+
 
 class Board(BaseModel):
     class Types(models.TextChoices):
@@ -336,6 +340,14 @@ class Ticket(BaseModel):
     }
 
     @property
+    def typeIcon(self):
+        return self.icons.get(self.type)
+
+    @property
+    def priorityIcon(self):
+        return self.icons.get(self.priority)
+
+    @property
     def ticketTypeIcon(self):
         return self.icons.get(self.type)
 
@@ -441,37 +453,37 @@ class TicketLink(BaseModel):
 #         return self.internalKey
 #
 #
-# class TicketComment(BaseModel):
-#     ticket = models.ForeignKey(Ticket, on_delete=models.DO_NOTHING, related_name='ticketComments')
-#     creator = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='ticketCommentCreator')
-#     comment = models.TextField()
-#     edited = models.BooleanField(default=False)
-#     likes = models.ManyToManyField(User, blank=True, related_name='ticketCommentLikes')
-#     dislikes = models.ManyToManyField(User, blank=True, related_name='ticketCommentDislikes')
-#
-#     class Meta:
-#         verbose_name = 'TicketComment'
-#         verbose_name_plural = 'TicketComments'
-#
-#     def like(self, request):
-#         if request.user not in self.likes.all():
-#             self.likes.add(request.user)
-#         else:
-#             self.likes.remove(request.user)
-#
-#         if request.user in self.dislikes.all():
-#             self.dislikes.remove(request.user)
-#
-#     def dislike(self, request):
-#         if request.user not in self.dislikes.all():
-#             self.dislikes.add(request.user)
-#         else:
-#             self.dislikes.remove(request.user)
-#
-#         if request.user in self.likes.all():
-#             self.likes.remove(request.user)
-#
-#
+class TicketComment(BaseModel):
+    ticket = models.ForeignKey(Ticket, on_delete=models.DO_NOTHING, related_name='ticketComments')
+    creator = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='ticketCommentCreator')
+    comment = models.TextField()
+    edited = models.BooleanField(default=False)
+    likes = models.ManyToManyField(User, blank=True, related_name='ticketCommentLikes')
+    dislikes = models.ManyToManyField(User, blank=True, related_name='ticketCommentDislikes')
+
+    class Meta:
+        verbose_name = 'TicketComment'
+        verbose_name_plural = 'TicketComments'
+
+    def like(self, request):
+        if request.user not in self.likes.all():
+            self.likes.add(request.user)
+        else:
+            self.likes.remove(request.user)
+
+        if request.user in self.dislikes.all():
+            self.dislikes.remove(request.user)
+
+    def dislike(self, request):
+        if request.user not in self.dislikes.all():
+            self.dislikes.add(request.user)
+        else:
+            self.dislikes.remove(request.user)
+
+        if request.user in self.likes.all():
+            self.likes.remove(request.user)
+
+
 
 
 class Sprint(BaseModel):

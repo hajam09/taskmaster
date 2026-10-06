@@ -11,7 +11,8 @@ from core.models import (
     ColumnStatus,
     Ticket,
     TicketLink,
-    Sprint
+    Sprint,
+    TicketComment
 )
 
 
@@ -90,4 +91,9 @@ class TicketLinkAdmin(admin.ModelAdmin):
 
 @admin.register(Sprint)
 class SprintAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(TicketComment)
+class TicketCommentAdmin(admin.ModelAdmin):
     pass

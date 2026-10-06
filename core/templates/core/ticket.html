@@ -5,6 +5,8 @@
 {% load templateTags %}
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 
     <div class="container-fluid mt-4" style="max-width: 1600px">
 
@@ -15,7 +17,8 @@
                 </div>
                 <div class="col">
                     <a href="#"> {{ ticket.project.name }}</a> / <a href={{ ticket.getUrl }}> {{ ticket.url }}</a>
-                    <h4 class="mb-0">{{ ticket.summary }}</h4>
+                    <h4 class="mb-0 inline-editable" data-inline-field="summary" data-inline-kind="text"
+                        tabindex="0" title="Click to edit">{{ ticket.summary }}</h4>
                 </div>
             </div>
         </div>
@@ -37,6 +40,8 @@
             </form>
         </div>
 
+        <div id="inlineEditMessage" class="alert d-none mt-2" role="status"></div>
+
         <div class="row mt-4">
 
             <div class="col-lg-8">
@@ -50,14 +55,9 @@
                         </div>
 
                         <div id="descriptionPanel" class="collapse show mt-3">
-                            <div id="descriptionDisplay">
-                                {% if ticket.description|length > 1000 %}
-                                    <span id="shortDescription">{{ ticket.description|slice:":1000"|linebreaks }}</span>
-                                    <span id="fullDescription" class="d-none">{{ ticket.description|linebreaks }}</span>
-                                    <a href="#" id="toggleDescription">Show more</a>
-                                {% else %}
-                                    {{ ticket.description|default:"No description."|linebreaks }}
-                                {% endif %}
+                            <div id="descriptionDisplay" class="inline-editable" data-inline-field="description"
+                                 data-inline-kind="quill" tabindex="0" title="Click to edit">
+                                {{ ticket.description|default:"No description."|linebreaks }}
                             </div>
                         </div>
                     </div>
@@ -259,34 +259,105 @@
                             <span class="float-right">▼</span>
                         </div>
 
-                        <div class="activity-tabs mb-3">
-                            <button class="active">Comments</button>
-                            <button>History</button>
-                            <button>Worklog</button>
-                        </div>
-
                         <div id="activityPanel" class="collapse show mt-3">
-                            {% for c in ticket.ticketComments.all %}
-                                <div class="comment-item">
-                                    <strong>{{ c.creator.get_full_name }}</strong><br>
-                                    <small>{{ c.createdDateTime|date:"Y-m-d H:i" }}</small>
-                                    <p class="mt-1">{{ c.comment }}</p>
-                                </div>
-                            {% empty %}
-                                <p class="text-muted">No comments yet.</p>
-                            {% endfor %}
+                            <ul class="nav nav-pills mb-3" id="activityTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link active" id="comments-tab" data-toggle="pill"
+                                       href="#comments-panel" role="tab" aria-controls="comments-panel"
+                                       aria-selected="true">Comments</a>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link" id="history-tab" data-toggle="pill"
+                                       href="#history-panel" role="tab" aria-controls="history-panel"
+                                       aria-selected="false">History</a>
+                                </li>
+                            </ul>
 
-                            <form method="POST" class="mt-3">{% csrf_token %}
-                                <textarea name="comment_text" class="form-control" rows="3"
-                                          placeholder="Add a comment..."></textarea>
+                            <div class="tab-content" id="activityTabContent">
+                                <div class="tab-pane fade show active" id="comments-panel" role="tabpanel"
+                                     aria-labelledby="comments-tab">
+                                    {% for item in ticketComments %}
+                                        {% with c=item.comment %}
+                                            <div class="comment-item border rounded p-3 mb-3" data-comment-id="{{ c.id }}">
+                                                <strong>{{ c.creator.get_full_name|default:c.creator.username }}</strong>
+                                                <small class="text-muted ml-2">
+                                                    {{ c.createdDateTime|date:"Y-m-d H:i" }}
+                                                    {% if c.edited %}(edited){% endif %}
+                                                </small>
+                                                {% if c.creator_id == request.user.id %}
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-link float-right edit-comment-button">
+                                                        Edit
+                                                    </button>
+                                                {% endif %}
+                                                <div class="mt-2 comment-content">{{ item.safeComment|safe }}</div>
+                                                <div class="d-flex mt-3">
+                                                    <form method="post" class="mr-2 comment-reaction-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="comment-id" value="{{ c.id }}">
+                                                        <button type="submit" name="like-ticket-comment" value="1"
+                                                                class="btn btn-sm comment-like-button {% if item.likedByUser %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                                                                aria-label="Like comment">
+                                                            <i class="fa fa-thumbs-up"></i>
+                                                            <span class="comment-like-count">{{ item.likeCount }}</span>
+                                                        </button>
+                                                    </form>
+                                                    <form method="post" class="comment-reaction-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="comment-id" value="{{ c.id }}">
+                                                        <button type="submit" name="dislike-ticket-comment" value="1"
+                                                                class="btn btn-sm comment-dislike-button {% if item.dislikedByUser %}btn-secondary{% else %}btn-outline-secondary{% endif %}"
+                                                                aria-label="Dislike comment">
+                                                            <i class="fa fa-thumbs-down"></i>
+                                                            <span class="comment-dislike-count">{{ item.dislikeCount }}</span>
+                                                        </button>
+                                                    </form>
+                                                </div>
 
-                                <div class="form-group">
-                                    <label for="markdown">Markdown Content</label>
-                                    <textarea class="form-control" id="markdown" rows="6"
-                                              placeholder="Write Markdown here..."></textarea>
+                                                {% if c.creator_id == request.user.id %}
+                                                    <form method="post" class="comment-edit-form d-none mt-3">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="edit-ticket-comment" value="1">
+                                                        <input type="hidden" name="comment-id" value="{{ c.id }}">
+                                                        <textarea name="comment_text" class="comment-html d-none"></textarea>
+                                                        <div class="comment-quill-editor">{{ item.safeComment|safe }}</div>
+                                                        <div class="comment-validation alert alert-danger d-none mt-2">
+                                                            A comment cannot be empty.
+                                                        </div>
+                                                        <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                                            Save
+                                                        </button>
+                                                        <button type="button"
+                                                                class="btn btn-light btn-sm mt-2 cancel-comment-edit">
+                                                            Cancel
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        {% endwith %}
+                                    {% empty %}
+                                        <p class="text-muted">No comments yet.</p>
+                                    {% endfor %}
+
+                                    <form method="post" class="mt-3" id="addCommentForm">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="add-ticket-comment" value="1">
+                                        <textarea name="comment_text" id="newCommentHtml"
+                                                  class="comment-html d-none"></textarea>
+                                        <div id="newCommentEditor" class="comment-quill-editor"></div>
+                                        <div class="comment-validation alert alert-danger d-none mt-2">
+                                            A comment cannot be empty.
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                            Post Comment
+                                        </button>
+                                    </form>
                                 </div>
-                                <button class="btn btn-primary btn-sm mt-2">Post Comment</button>
-                            </form>
+                                <div class="tab-pane fade" id="history-panel" role="tabpanel"
+                                     aria-labelledby="history-tab">
+                                    <p class="text-muted">Ticket history will appear here.</p>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
@@ -302,14 +373,16 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <strong>Type</strong>
-                                <div>
+                                <div class="inline-editable" data-inline-field="type" data-inline-kind="select"
+                                     tabindex="0" title="Click to edit">
                                     <img src="{{ ticket.ticketTypeIcon }}" width="20">
                                     {{ ticket.get_type_display }}
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <strong>Priority</strong>
-                                <div>
+                                <div class="inline-editable" data-inline-field="priority" data-inline-kind="select"
+                                     tabindex="0" title="Click to edit">
                                     <img src="{{ ticket.ticketPriorityIcon }}" width="20">
                                     {{ ticket.get_priority_display }}
                                 </div>
@@ -317,7 +390,8 @@
 
                             <div class="col-md-6 mb-3">
                                 <strong>Assignee</strong>
-                                <div>
+                                <div class="inline-editable" data-inline-field="assignee" data-inline-kind="select"
+                                     tabindex="0" title="Click to edit">
                                     <img src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
                                          width="20">
                                     {% if ticket.assignee %}{{ ticket.assignee.get_full_name }} {% else %}
@@ -336,15 +410,25 @@
 
                             <div class="col-md-6 mb-3">
                                 <strong>Status</strong>
-                                <div>
+                                <div class="inline-editable" data-inline-field="columnStatus"
+                                     data-inline-kind="select" tabindex="0" title="Click to edit">
                                     <span class="badge text-light"
                                           style="background-color: {{ ticket.columnStatus.column.getColour }}">{{ ticket.columnStatus.name }}</span>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <strong>Resolution</strong>
-                                <div>
+                                <div class="inline-editable" data-inline-field="resolution"
+                                     data-inline-kind="select" tabindex="0" title="Click to edit">
                                     {{ ticket.get_resolution_display }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <strong>Story points</strong>
+                                <div class="inline-editable" data-inline-field="storyPoints" data-inline-kind="number"
+                                     tabindex="0" title="Click to edit">
+                                    {{ ticket.storyPoints|default:"-" }}
                                 </div>
                             </div>
 
@@ -371,31 +455,28 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <strong>Updated</strong>
-                                <div>
+                                <div data-ticket-modified>
                                     {{ ticket.modifiedDateTime|date:"d/m/y, H:i" }}
                                 </div>
                             </div>
-
+                        
                             <div class="col-md-6 mb-3">
-                                <strong>Team</strong>
+                                <strong>Board</strong>
                                 <div>
-                                    TODO
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <strong>Sprint</strong>
-                                <div>
-                                    TODO
+                                    <a href="{{ ticket.columnStatus.column.board.getUrl }}">
+                                        {{ ticket.columnStatus.column.board.name }}
+                                    </a>
                                 </div>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <strong>Labels</strong>
-                                <div>
+                                <div class="inline-editable" data-inline-field="label" data-inline-kind="multiple"
+                                     tabindex="0" title="Click to edit">
                                     {% for label in ticket.label.all %}
-                                        <a href="#"
+                                        <span
                                            class="badge badge-light border"
-                                           style="background-color: {{ label.colour }}; color: white">{{ label.name }}</a>
+                                           style="background-color: {{ label.colour }}; color: white">{{ label.name }}</span>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -437,13 +518,508 @@
     </div>
 
     <script>
+        const ticketApiUrl = '{% url "core:ticketApiVersion1" %}?url={{ ticket.url|urlencode }}';
+        const userLiveSearchUrl = '{% url "core:userLiveSearchApiVersion1" %}';
+        const labelLiveSearchUrl = '{% url "core:labelLiveSearchApiVersion1" %}';
+        let ticketData = null;
+
+        function renderInlineField(field) {
+            const name = field.dataset.inlineField;
+            const value = ticketData;
+            delete field.dataset.editing;
+
+            if (name === 'summary') {
+                field.textContent = value.summary || '';
+            } else if (name === 'description') {
+                const description = value.description || '';
+                if (/<(?:a|blockquote|br|code|em|h[1-3]|i|li|ol|p|pre|s|strong|u|ul)(?:\s|>)/i.test(description)) {
+                    field.innerHTML = description;
+                    field.style.whiteSpace = 'normal';
+                } else {
+                    field.textContent = description || 'No description.';
+                    field.style.whiteSpace = 'pre-wrap';
+                }
+            } else if (name === 'storyPoints') {
+                field.textContent = value.storyPoints ?? '-';
+            } else if (name === 'type' || name === 'priority') {
+                const item = value[name];
+                field.replaceChildren();
+                if (item && item.icon) {
+                    const icon = document.createElement('img');
+                    icon.src = item.icon;
+                    icon.width = 20;
+                    field.append(icon, document.createTextNode(' '));
+                }
+                field.append(document.createTextNode(item ? item.name : 'None'));
+            } else if (name === 'assignee') {
+                field.replaceChildren();
+                if (value.assignee) {
+                    const icon = document.createElement('img');
+                    icon.src = value.assignee.icon;
+                    icon.width = 20;
+                    field.append(icon, document.createTextNode(' ' + value.assignee.name));
+                } else {
+                    field.textContent = 'Unassigned';
+                }
+            } else if (name === 'columnStatus') {
+                field.replaceChildren();
+                if (value.columnStatus) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge text-light';
+                    badge.style.backgroundColor = value.columnStatus.column?.colour || '#42526E';
+                    badge.textContent = value.columnStatus.name;
+                    field.append(badge);
+                } else {
+                    field.textContent = 'No status';
+                }
+            } else if (name === 'resolution') {
+                field.textContent = value.resolution?.name || 'Unresolved';
+            } else if (name === 'label') {
+                field.replaceChildren();
+                value.label.forEach(label => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge badge-light border mr-1';
+                    badge.style.backgroundColor = label.colour;
+                    badge.style.color = 'white';
+                    badge.textContent = label.name;
+                    field.append(badge);
+                });
+                field.classList.toggle('text-muted', value.label.length === 0);
+                if (!value.label.length) field.textContent = 'Add labels';
+            }
+        }
+
+        function renderInlineValues(data, changedField = null) {
+            ticketData = data;
+            document.querySelectorAll('[data-inline-field]').forEach(field => {
+                if (changedField === null || field.dataset.inlineField === changedField) {
+                    renderInlineField(field);
+                }
+            });
+            const modified = document.querySelector('[data-ticket-modified]');
+            if (modified && data.modifiedDateTime) {
+                modified.textContent = new Date(data.modifiedDateTime).toLocaleString();
+            }
+        }
+
+        function beginInlineEdit(field) {
+            if (!ticketData || field.dataset.editing === 'true') return;
+
+            const name = field.dataset.inlineField;
+            const kind = field.dataset.inlineKind;
+            let editor;
+            let selectedValue;
+
+            if (kind === 'select' || kind === 'multiple') {
+                editor = document.createElement('select');
+                editor.className = 'form-control form-control-sm';
+                if (name === 'type') {
+                    editor.classList.add('ticket-type-list');
+                } else if (name === 'priority') {
+                    editor.classList.add('ticket-priority-list');
+                }
+                editor.multiple = kind === 'multiple';
+                const options = name === 'assignee' ? [] : (ticketData.editOptions[name] || []);
+                if (kind === 'select' && name !== 'columnStatus') {
+                    const placeholder = document.createElement('option');
+                    placeholder.value = '';
+                    placeholder.textContent = 'Select...';
+                    editor.append(placeholder);
+                }
+                options.forEach(option => {
+                    const item = document.createElement('option');
+                    item.value = option.key;
+                    item.textContent = option.value;
+                    editor.append(item);
+                });
+                if (kind === 'multiple') {
+                    selectedValue = ticketData.label.map(label => String(label.id));
+                    Array.from(editor.options).forEach(option => {
+                        option.selected = selectedValue.includes(option.value);
+                    });
+                } else if (name === 'assignee' && ticketData.assignee) {
+                    const assignee = ticketData.assignee;
+                    const selectedOption = new Option(assignee.name, assignee.id, true, true);
+                    selectedOption.icon = assignee.icon;
+                    editor.add(selectedOption);
+                } else if (name === 'columnStatus') {
+                    editor.value = ticketData.columnStatus ? String(ticketData.columnStatus.id) : '';
+                } else {
+                    editor.value = ticketData[name]?.value || '';
+                }
+            } else {
+                if (kind !== 'quill') {
+                    editor = document.createElement(kind === 'textarea' ? 'textarea' : 'input');
+                    editor.className = 'form-control form-control-sm';
+                    if (kind !== 'textarea') editor.type = kind;
+                    editor.value = ticketData[name] ?? '';
+                    if (name === 'storyPoints') {
+                        editor.min = '0';
+                        editor.step = '1';
+                    }
+                }
+            }
+
+            field.dataset.editing = 'true';
+            if (editor) field.replaceChildren(editor);
+            if (name === 'type' || name === 'priority') {
+                $(editor).select2({
+                    width: '100%',
+                    templateResult: option => renderTicketTypePriorityOption(option, name),
+                    templateSelection: option => renderTicketTypePriorityOption(option, name)
+                });
+            } else if (name === 'assignee') {
+                $(editor).select2({
+                    width: '100%',
+                    placeholder: 'Search users',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: userLiveSearchUrl,
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({query: params.term}),
+                        processResults: users => ({
+                            results: users.map(user => ({
+                                id: user.id,
+                                text: user.name || 'Unnamed user',
+                                icon: user.icon
+                            }))
+                        }),
+                        cache: true
+                    },
+                    templateResult: renderAssigneeOption,
+                    templateSelection: renderAssigneeOption
+                });
+            } else if (name === 'columnStatus') {
+                $(editor).select2({
+                    width: '100%',
+                    templateResult: renderColumnStatusOption,
+                    templateSelection: renderColumnStatusOption
+                });
+            } else if (name === 'label') {
+                ticketData.label.forEach(label => {
+                    const selectedOption = new Option(label.name, label.id, true, true);
+                    selectedOption.colour = label.colour;
+                    selectedOption.dataset.colour = label.colour || '';
+                    editor.add(selectedOption);
+                });
+                $(editor).select2({
+                    width: '100%',
+                    placeholder: 'Search labels',
+                    allowClear: true,
+                    closeOnSelect: false,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: labelLiveSearchUrl,
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({query: params.term}),
+                        processResults: labels => ({
+                            results: labels.map(label => ({
+                                id: label.id,
+                                text: label.name,
+                                colour: label.colour
+                            }))
+                        }),
+                        cache: true
+                    },
+                    templateResult: renderLabelOption,
+                    templateSelection: renderLabelOption
+                });
+            }
+
+            const actions = document.createElement('div');
+            actions.className = 'mt-1';
+            const saveButton = document.createElement('button');
+            saveButton.type = 'button';
+            saveButton.className = 'btn btn-sm btn-primary mr-1';
+            saveButton.textContent = 'Save';
+            const cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.className = 'btn btn-sm btn-light';
+            cancelButton.textContent = 'Cancel';
+            actions.append(saveButton, cancelButton);
+
+            if (kind === 'quill') {
+                const editorHost = document.createElement('div');
+                editorHost.className = 'ticket-description-editor';
+                field.replaceChildren(editorHost);
+                const quill = new Quill(editorHost, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{list: 'ordered'}, {list: 'bullet'}],
+                            ['blockquote', 'code-block'],
+                            ['link'],
+                            ['clean']
+                        ]
+                    }
+                });
+                quill.root.innerHTML = ticketData.description || '';
+                field.append(actions);
+                saveButton.addEventListener('click', () => {
+                    const html = quill.root.innerHTML;
+                    const isEmpty = quill.getText().trim() === '';
+                    saveInlineField(name, isEmpty ? null : html);
+                });
+                cancelButton.addEventListener('click', () => renderInlineField(field));
+                quill.focus();
+                return;
+            }
+
+            let saveStarted = false;
+            let cancelEdit = false;
+            const save = async () => {
+                if (saveStarted || cancelEdit) return;
+                saveStarted = true;
+                let updatedValue;
+                if (kind === 'multiple') {
+                    updatedValue = $(editor).val().map(Number);
+                } else if (kind === 'number') {
+                    updatedValue = editor.value === '' ? null : Number(editor.value);
+                } else if (kind === 'select') {
+                    updatedValue = editor.value === '' ? null :
+                        (name === 'assignee' || name === 'columnStatus' ? Number(editor.value) : editor.value);
+                } else {
+                    updatedValue = editor.value;
+                }
+                await saveInlineField(name, updatedValue);
+            };
+
+            if (kind === 'select') {
+                if (editor.classList.contains('select2-hidden-accessible')) {
+                    $(editor).on('change', save);
+                } else {
+                    editor.addEventListener('change', save);
+                }
+            } else if (name === 'label') {
+                $(editor).on('select2:close', save);
+            } else if (name === 'storyPoints') {
+                editor.addEventListener('blur', save);
+                editor.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') {
+                        cancelEdit = true;
+                        renderInlineField(field);
+                    }
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        save();
+                    }
+                });
+            } else {
+                field.append(actions);
+                saveButton.addEventListener('click', save);
+                cancelButton.addEventListener('click', () => renderInlineField(field));
+                editor.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') renderInlineField(field);
+                    if (event.key === 'Enter' && (kind !== 'textarea' || event.ctrlKey)) {
+                        event.preventDefault();
+                        save();
+                    }
+                });
+            }
+            if (editor.classList.contains('select2-hidden-accessible')) {
+                window.requestAnimationFrame(() => $(editor).select2('open'));
+            } else {
+                editor.focus();
+            }
+        }
+
+        function renderTicketTypePriorityOption(option, fieldName) {
+            if (!option.id) return option.text;
+
+            const item = (ticketData.editOptions[fieldName] || [])
+                .find(candidate => String(candidate.key) === String(option.id));
+            if (!item || !item.icon) return option.text;
+
+            const $option = $('<span></span>');
+            $('<img>')
+                .attr('src', item.icon)
+                .attr('alt', '')
+                .css({
+                    width: '16px',
+                    height: '16px',
+                    'margin-right': '6px',
+                    'vertical-align': 'text-bottom'
+                })
+                .appendTo($option);
+            $option.append(document.createTextNode(option.text));
+            return $option;
+        }
+
+        function renderAssigneeOption(option) {
+            if (!option.id) return option.text;
+
+            const $option = $('<span></span>');
+            if (option.icon) {
+                $('<img>')
+                    .attr('src', option.icon)
+                    .attr('alt', '')
+                    .css({
+                        width: '16px',
+                        height: '16px',
+                        'margin-right': '6px',
+                        'vertical-align': 'text-bottom'
+                    })
+                    .appendTo($option);
+            }
+            $option.append(document.createTextNode(option.text));
+            return $option;
+        }
+
+        function renderColumnStatusOption(option) {
+            if (!option.id) return option.text;
+
+            const status = (ticketData.editOptions.columnStatus || [])
+                .find(item => String(item.key) === String(option.id));
+            const $badge = $('<span></span>')
+                .addClass('badge badge-secondary')
+                .text(option.text || status?.value || '');
+            if (status?.colour) {
+                $badge.css({
+                    'background-color': status.colour,
+                    color: '#fff'
+                });
+            }
+            return $badge;
+        }
+
+        function renderLabelOption(option) {
+            if (!option.id) return option.text;
+
+            const $label = $('<span></span>');
+            const selectedLabel = ticketData.label.find(label => String(label.id) === String(option.id));
+            const colour = option.colour || selectedLabel?.colour || '#8c8f97';
+            $('<span></span>')
+                .css({
+                    display: 'inline-block',
+                    width: '12px',
+                    height: '12px',
+                    'border-radius': '50%',
+                    'background-color': colour,
+                    'margin-right': '7px',
+                    'vertical-align': 'middle'
+                })
+                .appendTo($label);
+            $label.append(document.createTextNode(option.text));
+            return $label;
+        }
+
+        async function saveInlineField(name, value) {
+            const message = document.getElementById('inlineEditMessage');
+            try {
+                const response = await fetch(ticketApiUrl, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({[name]: value})
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(JSON.stringify(data));
+                }
+                renderInlineValues(data, name);
+                message.className = 'alert alert-success mt-2';
+                message.textContent = 'Issue updated.';
+            } catch (error) {
+                renderInlineValues(ticketData, name);
+                message.className = 'alert alert-danger mt-2';
+                message.textContent = 'Could not update this issue: ' + error.message;
+            }
+            window.setTimeout(() => message.classList.add('d-none'), 4000);
+        }
+
+        function handleTicketDetailsDropdown(elementClassName, ajaxUrl, elementPlaceHolder) {
+            $(elementClassName).select2({
+                multiple: true,
+                placeholder: elementPlaceHolder,
+                allowClear: true,
+                minimumInputLength: 0,
+
+                ajax: {
+                    url: ajaxUrl,
+                    dataType: 'json',
+                    delay: 300,
+
+                    data: function (params) {
+                        return {
+                            query: params.term
+                        };
+                    },
+
+                    processResults: function (data) {
+                        return {
+                            results: data.map(function (ticket) {
+                                return {
+                                    id: ticket.id,
+                                    text: ticket.url,
+                                    icon: ticket.icon,
+                                    summary: ticket.summary
+                                };
+                            })
+                        };
+                    },
+
+                    cache: true
+                },
+
+                templateResult: function (ticket) {
+                    if (ticket.loading) {
+                        return ticket.text;
+                    }
+
+                    const $result = $('<span></span>');
+                    const $icon = $('<img>')
+                        .attr('src', ticket.icon)
+                        .css({
+                            width: '16px',
+                            height: '16px',
+                            'margin-bottom': '2px',
+                            'margin-right': '6px'
+                        });
+
+                    $result.append($icon);
+                    $result.append(
+                        document.createTextNode(
+                            ticket.text + ' ' + ticket.summary
+                        )
+                    );
+
+                    return $result;
+                },
+
+                templateSelection: function (ticket) {
+                    const $result = $('<span></span>');
+
+                    const $icon = $('<img>')
+                        .attr('src', ticket.icon)
+                        .css({
+                            width: '16px',
+                            height: '16px',
+                            'margin-bottom': '2px',
+                            'margin-right': '6px'
+                        });
+
+                    $result.append($icon);
+                    $result.append(
+                        document.createTextNode(ticket.text)
+                    );
+
+                    return $result;
+                }
+            });
+        }
 
         function handleSelect2Dropdown(elementClassName, ajaxUrl, elementPlaceHolder) {
             $(elementClassName).select2({
                 multiple: true,
                 placeholder: elementPlaceHolder,
                 allowClear: true,
-                minimumInputLength: 1,
+                minimumInputLength: 0,
 
                 ajax: {
                     url: ajaxUrl,
@@ -520,30 +1096,140 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-            const toggleLink = document.getElementById("toggleDescription");
-            if (toggleLink) {
-                const shortDesc = document.getElementById("shortDescription");
-                const fullDesc = document.getElementById("fullDescription");
+            const commentToolbar = [
+                ['bold', 'italic', 'underline', 'strike'],
+                [{list: 'ordered'}, {list: 'bullet'}],
+                ['blockquote', 'code-block'],
+                ['link'],
+                ['clean']
+            ];
 
-                toggleLink.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    if (fullDesc.classList.contains("d-none")) {
-                        fullDesc.classList.remove("d-none");
-                        shortDesc.classList.add("d-none");
-                        toggleLink.textContent = "Show less";
-                    } else {
-                        fullDesc.classList.add("d-none");
-                        shortDesc.classList.remove("d-none");
-                        toggleLink.textContent = "Show more";
+            function initializeCommentEditor(form) {
+                if (form.commentQuill) return form.commentQuill;
+
+                const host = form.querySelector('.comment-quill-editor');
+                const initialHtml = host.innerHTML;
+                host.replaceChildren();
+                form.commentQuill = new Quill(host, {
+                    theme: 'snow',
+                    modules: {toolbar: commentToolbar}
+                });
+                form.commentQuill.root.innerHTML = initialHtml;
+                return form.commentQuill;
+            }
+
+            const addCommentForm = document.getElementById('addCommentForm');
+            if (addCommentForm) {
+                initializeCommentEditor(addCommentForm);
+            }
+
+            document.querySelectorAll('.edit-comment-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const comment = button.closest('.comment-item');
+                    const form = comment.querySelector('.comment-edit-form');
+                    form.classList.remove('d-none');
+                    comment.querySelector('.comment-content').classList.add('d-none');
+                    button.classList.add('d-none');
+                    initializeCommentEditor(form).focus();
+                });
+            });
+
+            document.querySelectorAll('.cancel-comment-edit').forEach(button => {
+                button.addEventListener('click', () => {
+                    const comment = button.closest('.comment-item');
+                    comment.querySelector('.comment-edit-form').classList.add('d-none');
+                    comment.querySelector('.comment-content').classList.remove('d-none');
+                    comment.querySelector('.edit-comment-button').classList.remove('d-none');
+                });
+            });
+
+            document.querySelectorAll('#addCommentForm, .comment-edit-form').forEach(form => {
+                form.addEventListener('submit', event => {
+                    const quill = initializeCommentEditor(form);
+                    const validation = form.querySelector('.comment-validation');
+                    if (!quill.getText().trim()) {
+                        event.preventDefault();
+                        validation.classList.remove('d-none');
+                        return;
+                    }
+                    validation.classList.add('d-none');
+                    form.querySelector('.comment-html').value = quill.root.innerHTML;
+                });
+            });
+
+            document.querySelectorAll('.comment-reaction-form').forEach(form => {
+                form.addEventListener('submit', async event => {
+                    event.preventDefault();
+                    const button = event.submitter;
+                    const comment = form.closest('.comment-item');
+                    const formData = new FormData(form);
+                    formData.set(button.name, button.value);
+                    button.disabled = true;
+
+                    try {
+                        const response = await fetch(window.location.href, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+                        const data = await response.json();
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Unable to update reaction.');
+                        }
+
+                        comment.querySelector('.comment-like-count').textContent = data.likeCount;
+                        comment.querySelector('.comment-dislike-count').textContent = data.dislikeCount;
+                        const likeButton = comment.querySelector('.comment-like-button');
+                        const dislikeButton = comment.querySelector('.comment-dislike-button');
+                        likeButton.classList.toggle('btn-primary', data.likedByUser);
+                        likeButton.classList.toggle('btn-outline-secondary', !data.likedByUser);
+                        dislikeButton.classList.toggle('btn-secondary', data.dislikedByUser);
+                        dislikeButton.classList.toggle('btn-outline-secondary', !data.dislikedByUser);
+                    } catch (error) {
+                        const message = document.getElementById('inlineEditMessage');
+                        message.className = 'alert alert-danger mt-2';
+                        message.textContent = error.message;
+                    } finally {
+                        button.disabled = false;
                     }
                 });
-            }
+            });
+
+            document.addEventListener('click', event => {
+                if (event.target.closest('a, input, textarea, select, button')) return;
+                const field = event.target.closest('[data-inline-field]');
+                if (field) beginInlineEdit(field);
+            });
+
+            document.addEventListener('keydown', event => {
+                if ((event.key === 'Enter' || event.key === ' ') &&
+                    event.target.matches('[data-inline-field]')) {
+                    event.preventDefault();
+                    beginInlineEdit(event.target);
+                }
+            });
+
+            fetch(ticketApiUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Unable to load issue data.');
+                    return response.json();
+                })
+                .then(data => {
+                    renderInlineValues(data);
+                })
+                .catch(error => {
+                    const message = document.getElementById('inlineEditMessage');
+                    message.className = 'alert alert-danger mt-2';
+                    message.textContent = error.message;
+                });
 
             makeSortable('epicTicketsList');
             makeSortable('subtaskList');
             makeSortable('linkedIssuesList');
-            handleSelect2Dropdown('.subtasks-list', '{% url "core:subTaskTicketLiveSearchApiVersion1" %}', 'Add subtasks');
-            handleSelect2Dropdown('.all-tickets-list', '{% url "core:allTicketLiveSearchApiVersion1" %}', 'Search for tickets');
+            handleSelect2Dropdown('.subtasks-list', '{% url "core:ticketLiveSearchApiVersion1" %}?subTaskOnly=true', 'Add subtasks');
+            handleSelect2Dropdown('.all-tickets-list', '{% url "core:ticketLiveSearchApiVersion1" %}', 'Search for tickets');
         });
 
         function makeSortable(listId) {

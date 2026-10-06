@@ -72,3 +72,27 @@ input::-webkit-outer-spin-button {
     border-radius: 0.5rem;
     padding: 1.5rem;
 }
+
+.inline-editable {
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.inline-editable[data-inline-field="label"] {
+    display: block;
+    min-height: 1.5rem;
+}
+
+.ticket-description-editor .ql-editor {
+    min-height: 240px;
+}
+
+.comment-quill-editor .ql-editor {
+    min-height: 180px;
+}
+
+.inline-editable:hover,
+.inline-editable:focus {
+    outline: 1px dashed #6c757d;
+    outline-offset: 2px;
+}

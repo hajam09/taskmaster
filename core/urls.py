@@ -15,8 +15,10 @@ from core.api import (
     UserListApiVersion1,
     ProjectStatusListApiVersion1,
     LabelListApiVersion1,
-    AllTicketLiveSearchApiVersion1,
-    SubTaskTicketLiveSearchApiVersion1,
+    LabelLiveSearchApiVersion1,
+    UserLiveSearchApiVersion1,
+    TicketApiVersion1,
+    TicketLiveSearchApiVersion1,
 )
 from core.views import (
     loginView,
@@ -138,13 +140,23 @@ urlpatterns += [
         name='labelListApiVersion1'
     ),
     path(
-        'api/v1/allTicketLiveSearchApiVersion1/',
-        AllTicketLiveSearchApiVersion1.as_view(),
-        name='allTicketLiveSearchApiVersion1'
+        'api/v1/ticketLiveSearchApiVersion1/',
+        TicketLiveSearchApiVersion1.as_view(),
+        name='ticketLiveSearchApiVersion1'
     ),
     path(
-        'api/v1/subTaskTicketLiveSearchApiVersion1/',
-        SubTaskTicketLiveSearchApiVersion1.as_view(),
-        name='subTaskTicketLiveSearchApiVersion1'
+        'api/v1/userLiveSearchApiVersion1/',
+        UserLiveSearchApiVersion1.as_view(),
+        name='userLiveSearchApiVersion1'
     ),
+    path(
+        'api/v1/labelLiveSearchApiVersion1/',
+        LabelLiveSearchApiVersion1.as_view(),
+        name='labelLiveSearchApiVersion1'
+    ),
+    path(
+        'api/v1/ticketApiVersion1/',
+        TicketApiVersion1.as_view(),
+        name='ticketApiVersion1'
+    )
 ]

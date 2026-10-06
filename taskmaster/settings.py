@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'auditlog',
     'colorfield',
     'crispy_bootstrap4',
     'crispy_forms',
@@ -54,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'auditlog.middleware.CurrentUserMiddleware',
 ]
 
 ROOT_URLCONF = 'taskmaster.urls'
@@ -81,7 +83,7 @@ WSGI_APPLICATION = 'taskmaster.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': config('DATABASE_ENGINE', cast=str),
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
@@ -155,3 +157,9 @@ else:
     SECURE_HSTS_PRELOAD = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+AUDITLOG_ENABLED = True
+
+AUDITLOG_AUTO_REGISTER_APPS = [
+    "core",
+]

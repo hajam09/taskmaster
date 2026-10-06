@@ -4,7 +4,9 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -17,6 +19,13 @@ from core.models import (
     Ticket,
     Sprint
 )
+from core.serializers import (
+    TicketInlineUpdateSerializer,
+    TicketSerializerVersion1,
+    sanitize_ticket_description,
+)
+
+MAN_AVATAR = 'https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png'
 
 
 class BoardColumnAndStatusApiVersion1(APIView):
@@ -302,18 +311,72 @@ class LabelListApiVersion1(APIView):
         return Response(data=data, status=status.HTTP_200_OK)
 
 
-class BaseTicketLiveSearchApiVersion1(APIView):
-    ticketType = None
+class UserLiveSearchApiVersion1(APIView):
     limit = 20
+    initial_limit = 10
 
     def get_queryset(self):
         query = self.request.query_params.get('query', '').strip()
+        users = User.objects.only(
+            'id', 'first_name', 'last_name', 'username'
+        ).order_by('first_name', 'last_name', 'username')
+        if not query:
+            return users[:self.initial_limit]
+
+        filters = Q(first_name__icontains=query) | Q(last_name__icontains=query) | Q(username__icontains=query)
+        return users.filter(filters)[:self.limit]
+
+    def get(self, request, *args, **kwargs):
+        data = [
+            {
+                'id': user.id,
+                'name': f"{user.first_name} {user.last_name}".strip(),
+                'icon': MAN_AVATAR,
+            }
+            for user in self.get_queryset()
+        ]
+
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class LabelLiveSearchApiVersion1(APIView):
+    limit = 20
+    initial_limit = 10
+
+    def get_queryset(self):
+        query = self.request.query_params.get('query', '').strip()
+        labels = Label.objects.only('id', 'name', 'colour').order_by('name')
+        if not query:
+            return labels[:self.initial_limit]
+        return labels.filter(name__icontains=query)[:self.limit]
+
+    def get(self, request, *args, **kwargs):
+        data = [
+            {
+                'id': label.id,
+                'name': label.name,
+                'colour': label.colour,
+            }
+            for label in self.get_queryset()
+        ]
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class TicketLiveSearchApiVersion1(APIView):
+    limit = 20
+    initial_limit = 10
+
+    def get_queryset(self):
+        query = self.request.query_params.get('query', '').strip()
+        subTaskOnly = self.request.query_params.get('subTaskOnly', '').strip().lower() == 'true'
+        tickets = Ticket.objects.only('id', 'url', 'summary', 'type').order_by('url')
+        if subTaskOnly:
+            tickets = tickets.filter(type=Ticket.Type.SUB_TASK)
+        if not query:
+            return tickets[:self.initial_limit]
+
         filters = Q(url__icontains=query) | Q(summary__icontains=query)
-
-        if self.ticketType is not None:
-            filters &= Q(type=self.ticketType)
-
-        return Ticket.objects.filter(filters).only('id', 'url', 'summary', 'type').order_by('url')[:self.limit]
+        return tickets.filter(filters)[:self.limit]
 
     def get(self, request, *args, **kwargs):
         data = [
@@ -329,9 +392,139 @@ class BaseTicketLiveSearchApiVersion1(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class AllTicketLiveSearchApiVersion1(BaseTicketLiveSearchApiVersion1):
-    pass
+class TicketApiVersion1(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request, *args, **kwargs):
+        ticket = get_object_or_404(Ticket.objects.select_related(
+            'project', 'assignee', 'reporter', 'columnStatus__column', 'epic',
+        ).prefetch_related('label'), url=request.query_params.get('url'))
 
-class SubTaskTicketLiveSearchApiVersion1(BaseTicketLiveSearchApiVersion1):
-    ticketType = Ticket.Type.SUB_TASK
+        assignee = ticket.assignee
+        columnStatus = ticket.columnStatus
+        epic = ticket.epic
+
+        data = {
+            'id': ticket.id,
+            'url': ticket.url,
+            'href': ticket.getUrl,
+            'summary': ticket.summary,
+            'description': sanitize_ticket_description(ticket.description),
+            'storyPoints': ticket.storyPoints,
+            'createdDateTime': ticket.createdDateTime,
+            'modifiedDateTime': ticket.modifiedDateTime,
+            'project': {
+                'id': ticket.project.id,
+                'name': ticket.project.name,
+                'icon': ticket.project.icon,
+            },
+            'type': {
+                'name': ticket.get_type_display(),
+                'value': ticket.type,
+                'icon': ticket.typeIcon,
+            },
+            'priority': {
+                'name': ticket.get_priority_display(),
+                'value': ticket.priority,
+                'icon': ticket.priorityIcon,
+            },
+            'reporter': {
+                'id': ticket.reporter.id,
+                'name': ticket.reporter.get_full_name(),
+                'icon': MAN_AVATAR,
+            },
+            'assignee': None,
+            'resolution': {
+                'name': ticket.get_resolution_display(),
+                'value': ticket.resolution,
+            },
+            'label': [
+                {
+                    'id': l.id,
+                    'name': l.name,
+                    'colour': l.colour,
+                }
+                for l in ticket.label.all()
+            ],
+            'editOptions': {
+                'type': [
+                    {'key': value, 'value': label, 'icon': Ticket.icons.get(value)}
+                    for value, label in Ticket.Type.choices
+                ],
+                'priority': [
+                    {'key': value, 'value': label, 'icon': Ticket.icons.get(value)}
+                    for value, label in Ticket.Priority.choices
+                ],
+                'resolution': [
+                    {'key': value, 'value': label}
+                    for value, label in Ticket.Resolution.choices
+                ],
+                'columnStatus': [
+                    {
+                        'key': item.id,
+                        'value': item.name,
+                        'colour': item.column.getColour(),
+                    }
+                    for item in ColumnStatus.objects.filter(
+                        column__board_id=ticket.columnStatus.column.board_id
+                    ).order_by('orderNo')
+                ],
+            },
+            'team': None,
+            'sprint': None,
+            'votes': 2,
+            'watchers': 4,
+        }
+
+        if assignee:
+            data.update({
+                'assignee': {
+                    'id': ticket.assignee.id,
+                    'name': assignee.get_full_name(),
+                    'icon': MAN_AVATAR
+                },
+            })
+
+        if columnStatus:
+            column = columnStatus.column
+            columnStatus = {
+                'id': columnStatus.id,
+                'name': columnStatus.name
+            }
+
+            if column:
+                columnStatus.update({
+                    'column': {
+                        'id': column.id,
+                        'name': column.name,
+                        'colour': column.getColour(),
+                    }
+                })
+            data.update({
+                'columnStatus': columnStatus
+            })
+        else:
+            data['columnStatus'] = None
+
+        if epic:
+            data.update({
+                'epic': {
+                    'id': epic.id,
+                    'url': epic.url,
+                    'href': epic.getUrl,
+                    'summary': epic.summary,
+                    'icon': epic.typeIcon,
+                }
+            })
+        return Response(data=data, status=status.HTTP_200_OK)
+
+    def patch(self, request, *args, **kwargs):
+        ticket = get_object_or_404(Ticket, url=request.query_params.get('url'))
+        serializer = TicketInlineUpdateSerializer(
+            ticket,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return self.get(request, *args, **kwargs)

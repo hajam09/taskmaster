@@ -14,15 +14,13 @@ from django.db.models import (
     Value
 )
 from django.db.models.functions import Concat
-from django.http import HttpResponseForbidden
-from django.shortcuts import (
-    redirect
-)
-from django.shortcuts import render
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import DjangoUnicodeDecodeError
 from django.utils.encoding import force_str
+from django.utils.html import strip_tags
 from django.utils.http import urlsafe_base64_decode
 
 from core import service
@@ -49,9 +47,11 @@ from core.models import (
     Label,
     Column,
     Ticket,
+    TicketComment,
     TicketLink,
     Sprint
 )
+from core.serializers import sanitize_ticket_description
 
 
 def loginView(request):
@@ -723,7 +723,7 @@ def ticketView(request, url):
     context = {
         'ticket': ticket,
         'linkTypeChoices': TicketLink.LinkType.choices,
-        'ticketLinks': service.groupLinkedIssues(ticket)
+        'ticketLinks': service.groupLinkedIssues(ticket),
     }
 
     if request.method == 'POST' and 'delete-ticket' in request.POST:
@@ -735,6 +735,58 @@ def ticketView(request, url):
                 return redirect(url)
 
         return redirect(ticket.columnStatus.column.board.getUrl)
+
+    if request.method == 'POST' and 'add-ticket-comment' in request.POST:
+        comment = sanitize_ticket_description(request.POST.get('comment_text', ''))
+        if not strip_tags(comment).strip():
+            messages.error(request, 'A comment cannot be empty.')
+            return redirect(f'{request.path}#comments-tab')
+
+        TicketComment.objects.create(
+            ticket=ticket,
+            creator=request.user,
+            comment=comment,
+        )
+        messages.success(request, 'Comment added.')
+        return redirect(f'{request.path}#comments-tab')
+
+    if request.method == 'POST' and ('like-ticket-comment' in request.POST or
+                                     'dislike-ticket-comment' in request.POST):
+        comment = get_object_or_404(
+            TicketComment,
+            id=request.POST.get('comment-id'),
+            ticket=ticket,
+        )
+        if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+            return HttpResponseForbidden()
+        if 'like-ticket-comment' in request.POST:
+            comment.like(request)
+        else:
+            comment.dislike(request)
+        return JsonResponse({
+            'likeCount': comment.likes.count(),
+            'dislikeCount': comment.dislikes.count(),
+            'likedByUser': comment.likes.filter(id=request.user.id).exists(),
+            'dislikedByUser': comment.dislikes.filter(id=request.user.id).exists(),
+        })
+
+    if request.method == 'POST' and 'edit-ticket-comment' in request.POST:
+        comment = get_object_or_404(
+            TicketComment,
+            id=request.POST.get('comment-id'),
+            ticket=ticket,
+            creator=request.user,
+        )
+        updatedComment = sanitize_ticket_description(request.POST.get('comment_text', ''))
+        if not strip_tags(updatedComment).strip():
+            messages.error(request, 'A comment cannot be empty.')
+            return redirect(f'{request.path}#comments-tab')
+
+        comment.comment = updatedComment
+        comment.edited = True
+        comment.save()
+        messages.success(request, 'Comment updated.')
+        return redirect(f'{request.path}#comments-tab')
 
     if request.method == 'POST' and 'create-new-subtask' in request.POST:
         project = ticket.project
@@ -795,6 +847,19 @@ def ticketView(request, url):
                 'done': doneTickets,
                 'percent': progressPercent
             }
+    context['ticketComments'] = [
+        {
+            'comment': comment,
+            'safeComment': sanitize_ticket_description(comment.comment),
+            'likeCount': len(comment.likes.all()),
+            'dislikeCount': len(comment.dislikes.all()),
+            'likedByUser': request.user in comment.likes.all(),
+            'dislikedByUser': request.user in comment.dislikes.all(),
+        }
+        for comment in ticket.ticketComments.select_related('creator').prefetch_related(
+            'likes', 'dislikes'
+        ).order_by('-createdDateTime')
+    ]
     return render(request, f'core/ticket.html', context)
 
 
@@ -822,7 +887,3 @@ def newTicketView(request):
         'url': next((url for url in reversed(request.session.get('history', [])) if url != request.path), request.path)
     }
     return render(request, f'core/new-ticket.html', context)
-
-
-def yourWorkView(request):
-    pass
