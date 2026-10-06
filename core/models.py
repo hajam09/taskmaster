@@ -484,8 +484,6 @@ class TicketComment(BaseModel):
             self.likes.remove(request.user)
 
 
-
-
 class Sprint(BaseModel):
     board = models.ForeignKey(Board, on_delete=models.DO_NOTHING, related_name='boardSprints')
     name = models.CharField(max_length=128, unique=True)

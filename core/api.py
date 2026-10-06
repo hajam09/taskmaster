@@ -312,42 +312,40 @@ class LabelListApiVersion1(APIView):
 
 
 class UserLiveSearchApiVersion1(APIView):
-    limit = 20
-    initial_limit = 10
+    limit = 10
 
     def get_queryset(self):
         query = self.request.query_params.get('query', '').strip()
-        users = User.objects.only(
-            'id', 'first_name', 'last_name', 'username'
-        ).order_by('first_name', 'last_name', 'username')
-        if not query:
-            return users[:self.initial_limit]
+        users = User.objects.only('id', 'first_name', 'last_name').order_by('first_name', 'last_name')
 
-        filters = Q(first_name__icontains=query) | Q(last_name__icontains=query) | Q(username__icontains=query)
+        if not query:
+            return users[:self.limit]
+
+        filters = Q(first_name__icontains=query) | Q(last_name__icontains=query)
         return users.filter(filters)[:self.limit]
 
     def get(self, request, *args, **kwargs):
         data = [
             {
                 'id': user.id,
-                'name': f"{user.first_name} {user.last_name}".strip(),
+                'name': f'{user.first_name} {user.last_name}'.strip(),
                 'icon': MAN_AVATAR,
             }
             for user in self.get_queryset()
         ]
-
         return Response(data, status=status.HTTP_200_OK)
 
 
 class LabelLiveSearchApiVersion1(APIView):
-    limit = 20
-    initial_limit = 10
+    limit = 10
 
     def get_queryset(self):
         query = self.request.query_params.get('query', '').strip()
         labels = Label.objects.only('id', 'name', 'colour').order_by('name')
+
         if not query:
-            return labels[:self.initial_limit]
+            return labels[:self.limit]
+
         return labels.filter(name__icontains=query)[:self.limit]
 
     def get(self, request, *args, **kwargs):
@@ -363,17 +361,18 @@ class LabelLiveSearchApiVersion1(APIView):
 
 
 class TicketLiveSearchApiVersion1(APIView):
-    limit = 20
-    initial_limit = 10
+    limit = 10
 
     def get_queryset(self):
         query = self.request.query_params.get('query', '').strip()
         subTaskOnly = self.request.query_params.get('subTaskOnly', '').strip().lower() == 'true'
+
         tickets = Ticket.objects.only('id', 'url', 'summary', 'type').order_by('url')
         if subTaskOnly:
             tickets = tickets.filter(type=Ticket.Type.SUB_TASK)
+
         if not query:
-            return tickets[:self.initial_limit]
+            return tickets[:self.limit]
 
         filters = Q(url__icontains=query) | Q(summary__icontains=query)
         return tickets.filter(filters)[:self.limit]
@@ -388,7 +387,6 @@ class TicketLiveSearchApiVersion1(APIView):
             }
             for ticket in self.get_queryset()
         ]
-
         return Response(data, status=status.HTTP_200_OK)
 
 
