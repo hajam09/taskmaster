@@ -1,0 +1,1435 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load templateTags %}
+{% block extra_head %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/ticket-detail.css' %}">
+{% endblock %}
+{% block content %}
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
+    <main class="ticket-page container-fluid py-4">
+        <header class="card ticket-header mb-4">
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center">
+                    <img class="ticket-project-icon mr-3" data-ticket-icon width="40" height="40" alt="">
+                    <nav aria-label="Issue breadcrumb" class="mr-auto">
+                        <ol class="breadcrumb ticket-breadcrumb mb-1">
+                            <li class="breadcrumb-item"><span data-ticket-project></span></li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                                <a data-ticket-url></a>
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+                <h1 class="ticket-summary inline-editable mt-3 mb-0" data-inline-field="summary"
+                    data-inline-kind="text" role="button" tabindex="0" title="Click to edit"
+                    aria-label="Issue summary. Activate to edit."></h1>
+            </div>
+        </header>
+
+        <div id="inlineEditMessage" class="alert d-none mt-2" role="status"></div>
+
+        <div class="row">
+
+            <div class="col-lg-8">
+
+                <div class="card">
+                    <div class="card-body">
+                        <button class="btn btn-link collapse-header font-weight-bold p-0" type="button"
+                                data-toggle="collapse" data-target="#descriptionPanel" aria-expanded="true"
+                                aria-controls="descriptionPanel">
+                            Description
+                            <span class="collapse-indicator" aria-hidden="true"></span>
+                        </button>
+
+                        <div id="descriptionPanel" class="collapse show mt-3">
+                            <div id="descriptionDisplay" class="inline-editable" data-inline-field="description"
+                                 data-inline-kind="quill" role="button" tabindex="0" title="Click to edit"
+                                 aria-label="Issue description. Activate to edit."></div>
+                        </div>
+                    </div>
+                </div>
+                <div data-ticket-type-group="EPIC" hidden>
+                    {% url "ticket:ticket-epic-issues" ticket.id as ticket_collection_api_url %}
+                    {% url "ticket:ticketLiveSearchApiVersion1" as ticket_collection_search_url %}
+                    {% include "ticket/_ticket_collection.html" with collection_key="epicIssues" collection_heading="Issues in this epic" collection_api_url=ticket_collection_api_url collection_search_url=ticket_collection_search_url collection_search_params="excludeEpic=true" collection_create_placeholder="Create new issue" collection_empty_message="No issues available for this epic!" collection_create_success="Issue created and added to this epic." collection_add_success="Issues added to this epic." collection_select_placeholder="Search for issues" %}
+                </div>
+                <div data-ticket-type-group="NON_EPIC" hidden>
+                    {% url "ticket:ticket-subtasks" ticket.id as ticket_collection_api_url %}
+                    {% url "ticket:ticketLiveSearchApiVersion1" as ticket_collection_search_url %}
+                    {% include "ticket/_ticket_collection.html" with collection_key="subtasks" collection_heading="Subtasks" collection_api_url=ticket_collection_api_url collection_search_url=ticket_collection_search_url collection_search_params="subTaskOnly=true" collection_create_placeholder="Create new subtask" collection_empty_message="No subtasks available for this ticket!" collection_create_success="Subtask created." collection_add_success="Subtasks added." collection_select_placeholder="Search for issues" %}
+
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <button class="btn btn-link collapse-header font-weight-bold p-0" type="button"
+                                    data-toggle="collapse" data-target="#linkedIssuesPanel" aria-expanded="true"
+                                    aria-controls="linkedIssuesPanel">
+                                Linked Issues
+                                <span class="collapse-indicator" aria-hidden="true"></span>
+                            </button>
+
+                            <div id="linkedIssuesPanel" class="collapse show mt-3">
+                                <div id="linkedIssueMessage" class="alert d-none mt-2" role="status"></div>
+                                <form class="add-linked-issues-form">
+                                    <div class="form-row align-items-center flex-nowrap linked-issue-controls">
+                                        <div class="col-auto mb-2">
+                                            <select name="linkType" class="form-control form-control-sm"
+                                                    aria-label="Relationship type" required>
+                                                {% for value, label in linkTypeChoices %}
+                                                    <option value="{{ value }}">{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col mb-2">
+                                            <select class="form-control form-control-sm all-tickets-list" name="ticketIds"
+                                                    multiple="multiple" aria-label="Issues to link" required>
+                                            </select>
+                                        </div>
+                                        <div class="col-auto mb-2">
+                                            <button type="submit" class="btn btn-primary btn-sm" disabled>Link issues</button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <div id="linkedIssuesList" aria-live="polite">
+                                    <p class="text-muted">Loading linked issues...</p>
+                                </div>
+                                <p id="linkedIssuesEmpty" class="d-none mb-0">No linked issues.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% include "ticket/_activity.html" %}
+
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card">
+                    <h2 class="card-header h5 text-dark font-weight-bold">Details</h2>
+                    <div class="card-body">
+
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field">
+                                <strong>Type</strong>
+                                <div class="inline-editable" data-inline-field="type" data-inline-kind="select"
+                                     role="button" tabindex="0" title="Click to edit" aria-label="Issue type. Activate to edit."></div>
+                            </div>
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field">
+                                <strong>Priority</strong>
+                                <div class="inline-editable" data-inline-field="priority" data-inline-kind="select"
+                                     role="button" tabindex="0" title="Click to edit" aria-label="Priority. Activate to edit."></div>
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field">
+                                <strong>Assignee</strong>
+                                <div class="inline-editable" data-inline-field="assignee" data-inline-kind="select"
+                                     role="button" tabindex="0" title="Click to edit" aria-label="Assignee. Activate to edit."></div>
+                            </div>
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field">
+                                <strong>Reporter</strong>
+                                <div>
+                                    <img class="user-avatar mr-1" data-ticket-reporter-icon width="28" height="28" alt="">
+                                    <span data-ticket-reporter></span>
+                                </div>
+                            </div>
+
+
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field">
+                                <strong>Status</strong>
+                                <div class="inline-editable" data-inline-field="columnStatus"
+                                     data-inline-kind="select" role="button" tabindex="0" title="Click to edit"
+                                     aria-label="Status. Activate to edit.">
+                                    <span class="badge text-light"></span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field">
+                                <strong>Resolution</strong>
+                                <div class="inline-editable" data-inline-field="resolution"
+                                     data-inline-kind="select" role="button" tabindex="0" title="Click to edit"
+                                     aria-label="Resolution. Activate to edit."></div>
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field">
+                                <strong>Story points</strong>
+                                <div class="inline-editable" data-inline-field="storyPoints" data-inline-kind="number"
+                                     role="button" tabindex="0" title="Click to edit" aria-label="Story points. Activate to edit."></div>
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field">
+                                <strong>Created</strong>
+                                <div data-ticket-created></div>
+                            </div>
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field">
+                                <strong>Updated</strong>
+                                <div data-ticket-modified></div>
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field">
+                                <strong>Board</strong>
+                                <div>
+                                    <a data-ticket-board></a>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field">
+                                <strong>Labels</strong>
+                                <div class="inline-editable" data-inline-field="label" data-inline-kind="multiple"
+                                     role="button" tabindex="0" title="Click to edit" aria-label="Labels. Activate to edit."></div>
+                            </div>
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field" data-ticket-type-group="NON_EPIC" hidden>
+                                <strong>Epic</strong>
+                                <div class="inline-editable" data-inline-field="epic" data-inline-kind="select"
+                                     role="button" tabindex="0" title="Click to edit" aria-label="Epic. Activate to edit."></div>
+                            </div>
+                            <div class="col-12 col-md-6 mb-3 ticket-detail-field" data-ticket-type-group="NON_EPIC" hidden>
+                                <strong>Parent</strong>
+                                <div class="inline-editable" data-inline-field="parent" data-inline-kind="select"
+                                     role="button" tabindex="0" title="Click to edit" aria-label="Parent issue. Activate to edit."></div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const ticketApiUrl = '{% url "ticket:ticketApiVersion1" ticket.id %}';
+        const ticketTypeListUrl = '{% url "core:ticketTypeListApiVersion1" %}';
+        const ticketPriorityListUrl = '{% url "core:ticketPriorityListApiVersion1" %}';
+        const resolutionListUrl = '{% url "core:resolutionListApiVersion1" %}';
+        const userLiveSearchUrl = '{% url "ticket:userLiveSearchApiVersion1" %}';
+        const labelLiveSearchUrl = '{% url "ticket:labelLiveSearchApiVersion1" %}';
+        const ticketLiveSearchUrl = '{% url "ticket:ticketLiveSearchApiVersion1" %}';
+        const columnStatusLiveSearchUrl = '{% url "ticket:columnStatusLiveSearchApiVersion1" %}';
+        const ticketLinkedIssuesUrl = '{% url "ticket:ticket-linked-issues" ticket.id %}';
+
+        function sanitizeTicketRichText(value) {
+            const allowedTags = new Set([
+                'a', 'blockquote', 'br', 'code', 'em', 'h1', 'h2', 'h3', 'i', 'li',
+                'ol', 'p', 'pre', 's', 'strong', 'u', 'ul'
+            ]);
+            const source = new DOMParser().parseFromString(String(value || ''), 'text/html');
+            const output = document.createElement('div');
+
+            function appendSafeNode(parent, node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    parent.append(document.createTextNode(node.nodeValue || ''));
+                    return;
+                }
+                if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+                const tagName = node.tagName.toLowerCase();
+                if (!allowedTags.has(tagName)) {
+                    Array.from(node.childNodes).forEach(child => appendSafeNode(parent, child));
+                    return;
+                }
+
+                const safeElement = document.createElement(tagName);
+                if (tagName === 'a') {
+                    const href = node.getAttribute('href');
+                    if (href) {
+                        try {
+                            const protocol = new URL(href, document.baseURI).protocol;
+                            if (['http:', 'https:', 'mailto:'].includes(protocol)) {
+                                safeElement.setAttribute('href', href);
+                            }
+                        } catch (error) {
+                            // Ignore malformed links; their text remains readable.
+                        }
+                    }
+                    if (node.hasAttribute('title')) {
+                        safeElement.setAttribute('title', node.getAttribute('title'));
+                    }
+                }
+                Array.from(node.childNodes).forEach(child => appendSafeNode(safeElement, child));
+                parent.append(safeElement);
+            }
+
+            Array.from(source.body.childNodes).forEach(child => appendSafeNode(output, child));
+            return output.innerHTML;
+        }
+
+        let ticketData = null;
+        const ticketOptionRequests = new Map();
+
+        async function getSelectOptions(fieldName) {
+            const optionUrls = {
+                type: ticketTypeListUrl,
+                priority: ticketPriorityListUrl,
+                resolution: resolutionListUrl
+            };
+            const url = optionUrls[fieldName];
+            if (!ticketOptionRequests.has(fieldName)) {
+                ticketOptionRequests.set(fieldName, fetch(url).then(async response => {
+                    const data = await response.json().catch(() => null);
+                    if (!response.ok) throw new Error(getApiError(data));
+                    if (!Array.isArray(data)) throw new Error('The server returned invalid field options.');
+                    return data;
+                }).catch(error => {
+                    ticketOptionRequests.delete(fieldName);
+                    throw error;
+                }));
+            }
+            return ticketOptionRequests.get(fieldName);
+        }
+
+        function getApiError(data) {
+            if (typeof data === 'string') return data;
+            const messages = Object.values(data || {}).flat().map(value =>
+                typeof value === 'string' ? value : JSON.stringify(value)
+            );
+            return messages.join(' ') || 'Unable to complete the request.';
+        }
+
+        function renderInlineField(field) {
+            const name = field.dataset.inlineField;
+            const value = ticketData;
+            delete field.dataset.editing;
+
+            if (name === 'summary') {
+                field.textContent = value.summary || '';
+            } else if (name === 'description') {
+                const description = value.description || '';
+                if (/<(?:a|blockquote|br|code|em|h[1-3]|i|li|ol|p|pre|s|strong|u|ul)(?:\s|>)/i.test(description)) {
+                    field.innerHTML = sanitizeTicketRichText(description);
+                    field.style.whiteSpace = 'normal';
+                } else {
+                    field.textContent = description || 'No description.';
+                    field.style.whiteSpace = 'pre-wrap';
+                }
+            } else if (name === 'storyPoints') {
+                field.textContent = value.storyPoints ?? '-';
+            } else if (name === 'type' || name === 'priority') {
+                const item = value[name];
+                field.replaceChildren();
+                const label = item ? (item.value || item.name || item.key || 'None') : 'None';
+                if (item && item.icon) {
+                    const icon = document.createElement('img');
+                    icon.src = item.icon;
+                    icon.width = 20;
+                    field.append(icon, document.createTextNode(' '));
+                }
+                field.append(document.createTextNode(label));
+            } else if (name === 'assignee') {
+                field.replaceChildren();
+                if (value.assignee) {
+                    const icon = document.createElement('img');
+                    icon.src = value.assignee.icon;
+                    icon.width = 20;
+                    field.append(icon, document.createTextNode(' ' + value.assignee.name));
+                } else {
+                    field.textContent = 'Unassigned';
+                }
+            } else if (name === 'epic') {
+                field.replaceChildren();
+                field.classList.toggle('text-muted', !value.epic);
+                if (value.epic) {
+                    const icon = document.createElement('img');
+                    icon.src = value.epic.icon;
+                    icon.width = 20;
+                    icon.alt = '';
+                    const link = document.createElement('a');
+                    link.href = value.epic.href;
+                    link.textContent = ` ${value.epic.url} ${value.epic.summary}`;
+                    field.append(icon, link);
+                } else {
+                    field.textContent = 'Add epic';
+                }
+            } else if (name === 'parent') {
+                field.replaceChildren();
+                field.classList.toggle('text-muted', !value.parent);
+                if (value.parent) {
+                    const icon = document.createElement('img');
+                    icon.src = value.parent.icon;
+                    icon.width = 20;
+                    icon.alt = '';
+                    const link = document.createElement('a');
+                    link.href = value.parent.href;
+                    link.textContent = ` ${value.parent.url} ${value.parent.summary}`;
+                    field.append(icon, link);
+                } else {
+                    field.textContent = 'Add parent';
+                }
+            } else if (name === 'columnStatus') {
+                field.replaceChildren();
+                if (value.columnStatus) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge text-light';
+                    badge.style.backgroundColor = value.columnStatus.column?.colour || '#42526E';
+                    badge.textContent = value.columnStatus.name;
+                    field.append(badge);
+                } else {
+                    field.textContent = 'No status';
+                }
+            } else if (name === 'resolution') {
+                const resolution = value.resolution || {};
+                field.textContent = resolution.value || resolution.name || 'Unresolved';
+            } else if (name === 'label') {
+                field.replaceChildren();
+                value.label.forEach(label => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge badge-light border mr-1';
+                    badge.style.backgroundColor = label.colour;
+                    badge.style.color = 'white';
+                    badge.textContent = label.name;
+                    field.append(badge);
+                });
+                field.classList.toggle('text-muted', value.label.length === 0);
+                if (!value.label.length) field.textContent = 'Add labels';
+            }
+        }
+
+        function renderInlineValues(data, changedField = null) {
+            ticketData = data;
+            const project = document.querySelector('[data-ticket-project]');
+            if (project) project.textContent = data.project?.name || '';
+            const reporter = document.querySelector('[data-ticket-reporter]');
+            if (reporter) reporter.textContent = data.reporter?.name || '';
+            const reporterIcon = document.querySelector('[data-ticket-reporter-icon]');
+            if (reporterIcon) {
+                reporterIcon.hidden = !data.reporter?.icon;
+                if (data.reporter?.icon) reporterIcon.src = data.reporter.icon;
+                reporterIcon.alt = data.reporter?.name ? `${data.reporter.name} avatar` : '';
+            }
+            const ticketIcon = document.querySelector('[data-ticket-icon]');
+            if (ticketIcon && data.project?.icon) ticketIcon.src = data.project.icon;
+            const ticketUrl = document.querySelector('[data-ticket-url]');
+            if (ticketUrl) {
+                ticketUrl.href = data.href || '#';
+                ticketUrl.textContent = data.url || '';
+            }
+            const watchersCount = document.querySelector('[data-ticket-watchers-count]');
+            if (watchersCount) watchersCount.textContent = data.watchersCount ?? 0;
+            const created = document.querySelector('[data-ticket-created]');
+            if (created && data.createdDateTime) {
+                created.textContent = new Date(data.createdDateTime).toLocaleString();
+            }
+            const board = document.querySelector('[data-ticket-board]');
+            if (board) {
+                board.href = data.board?.href || '#';
+                board.textContent = data.board?.name || '';
+                board.parentElement.hidden = !data.board;
+            }
+            const isEpic = data.type?.key === 'EPIC';
+            document.querySelectorAll('[data-ticket-type-group]').forEach(group => {
+                group.hidden = (group.dataset.ticketTypeGroup === 'EPIC') !== isEpic;
+            });
+            document.querySelectorAll('[data-inline-field]').forEach(field => {
+                if (changedField === null || field.dataset.inlineField === changedField) {
+                    renderInlineField(field);
+                }
+            });
+            const modified = document.querySelector('[data-ticket-modified]');
+            if (modified && data.modifiedDateTime) {
+                modified.textContent = new Date(data.modifiedDateTime).toLocaleString();
+            }
+        }
+
+        async function beginInlineEdit(field) {
+            if (!ticketData || field.dataset.editing === 'true') return;
+
+            const name = field.dataset.inlineField;
+            const kind = field.dataset.inlineKind;
+            let options = null;
+            if (name === 'type' || name === 'priority' || name === 'resolution') {
+                try {
+                    options = await getSelectOptions(name);
+                } catch (error) {
+                    const message = document.getElementById('inlineEditMessage');
+                    message.className = 'alert alert-danger mt-2';
+                    message.textContent = `Unable to load ${name} options: ${error.message}`;
+                    return;
+                }
+                if (!ticketData || field.dataset.editing === 'true') return;
+            }
+            let editor;
+            let selectedValue;
+
+            if (kind === 'select' || kind === 'multiple') {
+                editor = document.createElement('select');
+                editor.className = 'form-control form-control-sm';
+                if (name === 'type') {
+                    editor.classList.add('ticket-type-list');
+                } else if (name === 'priority') {
+                    editor.classList.add('ticket-priority-list');
+                }
+                editor.multiple = kind === 'multiple';
+                if (options === null) options = [];
+                if (kind === 'select' && name !== 'columnStatus') {
+                    const placeholder = document.createElement('option');
+                    placeholder.value = '';
+                    placeholder.textContent = 'Select...';
+                    editor.append(placeholder);
+                }
+                options.forEach(option => {
+                    const item = document.createElement('option');
+                    item.value = option.key;
+                    item.textContent = option.value || option.name || option.label || option.text;
+                    if (option.icon) item.dataset.icon = option.icon;
+                    editor.append(item);
+                });
+                if (kind === 'multiple') {
+                    selectedValue = ticketData.label.map(label => String(label.id));
+                    Array.from(editor.options).forEach(option => {
+                        option.selected = selectedValue.includes(option.value);
+                    });
+                } else if (name === 'assignee' && ticketData.assignee) {
+                    const assignee = ticketData.assignee;
+                    const selectedOption = new Option(assignee.name, assignee.id, true, true);
+                    selectedOption.icon = assignee.icon;
+                    editor.add(selectedOption);
+                } else if (name === 'epic' && ticketData.epic) {
+                    const epic = ticketData.epic;
+                    const selectedOption = new Option(`${epic.url} ${epic.summary}`, epic.id, true, true);
+                    selectedOption.icon = epic.icon;
+                    editor.add(selectedOption);
+                } else if (name === 'parent' && ticketData.parent) {
+                    const parent = ticketData.parent;
+                    const selectedOption = new Option(`${parent.url} ${parent.summary}`, parent.id, true, true);
+                    selectedOption.icon = parent.icon;
+                    editor.add(selectedOption);
+                } else if (name === 'columnStatus') {
+                    editor.value = ticketData.columnStatus ? String(ticketData.columnStatus.id) : '';
+                } else if (name === 'epic' || name === 'parent') {
+                    editor.value = ticketData[name] ? String(ticketData[name].id) : '';
+                } else if (name === 'type' || name === 'priority' || name === 'resolution') {
+                    editor.value = ticketData[name]?.key || '';
+                } else {
+                    editor.value = ticketData[name]?.value || '';
+                }
+            } else {
+                if (kind !== 'quill') {
+                    editor = document.createElement(kind === 'textarea' ? 'textarea' : 'input');
+                    editor.className = 'form-control form-control-sm';
+                    if (kind !== 'textarea') editor.type = kind;
+                    editor.value = ticketData[name] ?? '';
+                    if (name === 'storyPoints') {
+                        editor.min = '0';
+                        editor.step = '1';
+                    }
+                }
+            }
+
+            field.dataset.editing = 'true';
+            if (editor) field.replaceChildren(editor);
+            if (name === 'type' || name === 'priority') {
+                $(editor).select2({
+                    width: '100%',
+                    templateResult: renderTicketTypePriorityOption,
+                    templateSelection: renderTicketTypePriorityOption
+                });
+            } else if (name === 'assignee') {
+                $(editor).select2({
+                    width: '100%',
+                    placeholder: 'Search users',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: userLiveSearchUrl,
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({query: params.term}),
+                        processResults: users => ({
+                            results: users.map(user => ({
+                                id: user.id,
+                                text: user.name || 'Unnamed user',
+                                icon: user.icon
+                            }))
+                        }),
+                        cache: true
+                    },
+                    templateResult: renderAssigneeOption,
+                    templateSelection: renderAssigneeOption
+                });
+            } else if (name === 'parent') {
+                $(editor).select2({
+                    width: '100%',
+                    placeholder: 'Search tickets',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: ticketLiveSearchUrl,
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({
+                            query: params.term,
+                            excludeEpic: true,
+                            excludeTicketIds: ticketData.id
+                        }),
+                        processResults: tickets => ({
+                            results: tickets.map(ticket => ({
+                                id: ticket.id,
+                                text: `${ticket.url} ${ticket.summary}`,
+                                icon: ticket.icon
+                            }))
+                        }),
+                        cache: true
+                    },
+                    templateResult: renderAssigneeOption,
+                    templateSelection: renderAssigneeOption
+                });
+            } else if (name === 'epic') {
+                $(editor).select2({
+                    width: '100%',
+                    placeholder: 'Search epics',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: ticketLiveSearchUrl,
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({query: params.term, epicOnly: true}),
+                        processResults: tickets => ({
+                            results: tickets.map(ticket => ({
+                                id: ticket.id,
+                                text: `${ticket.url} ${ticket.summary}`,
+                                icon: ticket.icon
+                            }))
+                        }),
+                        cache: true
+                    },
+                    templateResult: renderAssigneeOption,
+                    templateSelection: renderAssigneeOption
+                });
+            } else if (name === 'columnStatus') {
+                $(editor).select2({
+                    width: '100%',
+                    placeholder: 'Search statuses',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: columnStatusLiveSearchUrl,
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({query: params.term, boardId: ticketData.board?.id}),
+                        processResults: statuses => ({
+                            results: statuses.map(status => ({
+                                id: status.id,
+                                text: status.name,
+                                colour: status.colour
+                            }))
+                        }),
+                        cache: true
+                    },
+                    templateResult: renderColumnStatusOption,
+                    templateSelection: renderColumnStatusOption
+                });
+            } else if (name === 'label') {
+                ticketData.label.forEach(label => {
+                    const selectedOption = new Option(label.name, label.id, true, true);
+                    selectedOption.colour = label.colour;
+                    selectedOption.dataset.colour = label.colour || '';
+                    editor.add(selectedOption);
+                });
+                $(editor).select2({
+                    width: '100%',
+                    placeholder: 'Search labels',
+                    allowClear: true,
+                    closeOnSelect: false,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: labelLiveSearchUrl,
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({query: params.term}),
+                        processResults: labels => ({
+                            results: labels.map(label => ({
+                                id: label.id,
+                                text: label.name,
+                                colour: label.colour
+                            }))
+                        }),
+                        cache: true
+                    },
+                    templateResult: renderLabelOption,
+                    templateSelection: renderLabelOption
+                });
+            }
+
+            const actions = document.createElement('div');
+            actions.className = 'mt-1';
+            const saveButton = document.createElement('button');
+            saveButton.type = 'button';
+            saveButton.className = 'btn btn-sm btn-primary mr-1';
+            saveButton.textContent = 'Save';
+            const cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.className = 'btn btn-sm btn-light';
+            cancelButton.textContent = 'Cancel';
+            actions.append(saveButton, cancelButton);
+
+            if (kind === 'quill') {
+                const editorHost = document.createElement('div');
+                editorHost.className = 'ticket-description-editor';
+                field.replaceChildren(editorHost);
+                const quill = new Quill(editorHost, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{list: 'ordered'}, {list: 'bullet'}],
+                            ['blockquote', 'code-block'],
+                            ['link'],
+                            ['clean']
+                        ]
+                    }
+                });
+                quill.root.setAttribute('aria-label', 'Issue description');
+                quill.root.innerHTML = sanitizeTicketRichText(ticketData.description);
+                field.append(actions);
+                saveButton.addEventListener('click', () => {
+                    const html = quill.root.innerHTML;
+                    const isEmpty = quill.getText().trim() === '';
+                    saveInlineField(name, isEmpty ? null : html);
+                });
+                cancelButton.addEventListener('click', () => renderInlineField(field));
+                quill.focus();
+                return;
+            }
+
+            let saveStarted = false;
+            let cancelEdit = false;
+            const save = async () => {
+                if (saveStarted || cancelEdit) return;
+                if (kind === 'number' && !editor.checkValidity()) {
+                    editor.reportValidity();
+                    return;
+                }
+                if (name === 'columnStatus' &&
+                    !window.confirm('Change this issue status?')) {
+                    renderInlineField(field);
+                    return;
+                }
+                saveStarted = true;
+                let updatedValue;
+                if (kind === 'multiple') {
+                    updatedValue = $(editor).val().map(Number);
+                } else if (kind === 'number') {
+                    updatedValue = editor.value === '' ? null : Number(editor.value);
+                } else if (kind === 'select') {
+                    updatedValue = editor.value === '' ? null :
+                        (name === 'assignee' || name === 'columnStatus' || name === 'epic' || name === 'parent'
+                            ? Number(editor.value)
+                            : editor.value);
+                } else {
+                    updatedValue = editor.value;
+                }
+                await saveInlineField(name, updatedValue);
+            };
+
+            if (kind === 'select') {
+                if (editor.classList.contains('select2-hidden-accessible')) {
+                    $(editor).on('change', save);
+                } else {
+                    editor.addEventListener('change', save);
+                }
+            } else if (name === 'label') {
+                $(editor).on('select2:close', save);
+            } else if (name === 'storyPoints') {
+                editor.addEventListener('blur', save);
+                editor.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') {
+                        cancelEdit = true;
+                        renderInlineField(field);
+                    }
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        save();
+                    }
+                });
+            } else {
+                field.append(actions);
+                saveButton.addEventListener('click', save);
+                cancelButton.addEventListener('click', () => renderInlineField(field));
+                editor.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') renderInlineField(field);
+                    if (event.key === 'Enter' && (kind !== 'textarea' || event.ctrlKey)) {
+                        event.preventDefault();
+                        save();
+                    }
+                });
+            }
+            if (editor.classList.contains('select2-hidden-accessible')) {
+                window.requestAnimationFrame(() => $(editor).select2('open'));
+            } else {
+                editor.focus();
+            }
+        }
+
+        function renderTicketTypePriorityOption(option) {
+            if (!option.id) return option.text;
+            const icon = option.element?.dataset.icon;
+            if (!icon) return option.text;
+
+            const $option = $('<span></span>');
+            $('<img>')
+                .attr('src', icon)
+                .attr('alt', '')
+                .css({
+                    width: '16px',
+                    height: '16px',
+                    'margin-right': '6px',
+                    'vertical-align': 'text-bottom'
+                })
+                .appendTo($option);
+            $option.append(document.createTextNode(option.text));
+            return $option;
+        }
+
+        function renderAssigneeOption(option) {
+            if (!option.id) return option.text;
+
+            const $option = $('<span></span>');
+            if (option.icon) {
+                $('<img>')
+                    .attr('src', option.icon)
+                    .attr('alt', '')
+                    .css({
+                        width: '16px',
+                        height: '16px',
+                        'margin-right': '6px',
+                        'vertical-align': 'text-bottom'
+                    })
+                    .appendTo($option);
+            }
+            $option.append(document.createTextNode(option.text));
+            return $option;
+        }
+
+        function renderColumnStatusOption(option) {
+            if (!option.id) return option.text;
+
+            const statusLookup = ticketData?.editOptions?.columnStatus || [];
+            const status = statusLookup.find(item => String(item.key) === String(option.id)) || {
+                colour: option.colour || option.color || null,
+                value: option.text
+            };
+            const $badge = $('<span></span>')
+                .addClass('badge badge-secondary')
+                .text(option.text || status.value || '');
+            if (status.colour) {
+                $badge.css({
+                    'background-color': status.colour,
+                    color: '#fff'
+                });
+            }
+            return $badge;
+        }
+
+        function renderLabelOption(option) {
+            if (!option.id) return option.text;
+
+            const $label = $('<span></span>');
+            const selectedLabel = ticketData.label.find(label => String(label.id) === String(option.id));
+            const colour = option.colour || selectedLabel?.colour || '#8c8f97';
+            $('<span></span>')
+                .css({
+                    display: 'inline-block',
+                    width: '12px',
+                    height: '12px',
+                    'border-radius': '50%',
+                    'background-color': colour,
+                    'margin-right': '7px',
+                    'vertical-align': 'middle'
+                })
+                .appendTo($label);
+            $label.append(document.createTextNode(option.text));
+            return $label;
+        }
+
+        async function saveInlineField(name, value) {
+            const message = document.getElementById('inlineEditMessage');
+            const field = Array.from(document.querySelectorAll('[data-inline-field]'))
+                .find(element => element.dataset.inlineField === name);
+            field?.setAttribute('aria-busy', 'true');
+            try {
+                const response = await fetch(ticketApiUrl, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({[name]: value})
+                });
+                const data = await response.json().catch(() => null);
+                if (!response.ok) {
+                    throw new Error(getApiError(data));
+                }
+                if (!data || typeof data !== 'object') throw new Error('The server returned an invalid issue response.');
+                renderInlineValues(data, name);
+                document.dispatchEvent(new CustomEvent('ticket:updated', {
+                    detail: {field: name, data: data}
+                }));
+                message.className = 'alert alert-success mt-2';
+                message.textContent = 'Issue updated.';
+            } catch (error) {
+                renderInlineValues(ticketData, name);
+                message.className = 'alert alert-danger mt-2';
+                message.textContent = 'Could not update this issue: ' + error.message;
+            } finally {
+                field?.removeAttribute('aria-busy');
+            }
+            window.setTimeout(() => message.classList.add('d-none'), 4000);
+        }
+
+        function handleTicketDetailsDropdown(elementClassName, ajaxUrl, elementPlaceHolder) {
+            $(elementClassName).select2({
+                multiple: true,
+                placeholder: elementPlaceHolder,
+                allowClear: true,
+                minimumInputLength: 0,
+
+                ajax: {
+                    url: ajaxUrl,
+                    dataType: 'json',
+                    delay: 300,
+
+                    data: function (params) {
+                        return {
+                            query: params.term
+                        };
+                    },
+
+                    processResults: function (data) {
+                        return {
+                            results: data.map(function (ticket) {
+                                return {
+                                    id: ticket.id,
+                                    text: ticket.url,
+                                    icon: ticket.icon,
+                                    summary: ticket.summary
+                                };
+                            })
+                        };
+                    },
+
+                    cache: true
+                },
+
+                templateResult: function (ticket) {
+                    if (ticket.loading) {
+                        return ticket.text;
+                    }
+
+                    const $result = $('<span></span>');
+                    const $icon = $('<img>')
+                        .attr('src', ticket.icon)
+                        .css({
+                            width: '16px',
+                            height: '16px',
+                            'margin-bottom': '2px',
+                            'margin-right': '6px'
+                        });
+
+                    $result.append($icon);
+                    $result.append(
+                        document.createTextNode(
+                            ticket.text + ' ' + ticket.summary
+                        )
+                    );
+
+                    return $result;
+                },
+
+                templateSelection: function (ticket) {
+                    const $result = $('<span></span>');
+
+                    const $icon = $('<img>')
+                        .attr('src', ticket.icon)
+                        .css({
+                            width: '16px',
+                            height: '16px',
+                            'margin-bottom': '2px',
+                            'margin-right': '6px'
+                        });
+
+                    $result.append($icon);
+                    $result.append(
+                        document.createTextNode(ticket.text)
+                    );
+
+                    return $result;
+                }
+            });
+        }
+
+        function handleSelect2Dropdown(elementClassName, ajaxUrl, elementPlaceHolder) {
+            const isLinkedIssueSearch = elementClassName === '.all-tickets-list';
+            $(elementClassName).select2({
+                multiple: true,
+                width: '100%',
+                placeholder: elementPlaceHolder,
+                allowClear: true,
+                minimumInputLength: 0,
+
+                ajax: {
+                    url: ajaxUrl,
+                    dataType: 'json',
+                    delay: 300,
+
+                    data: function (params) {
+                        return {
+                            query: params.term
+                        };
+                    },
+
+                    processResults: function (data) {
+                        const linkedIds = new Set(
+                            Array.from(
+                                document.querySelectorAll('#linkedIssuesList [identifier]'),
+                                item => Number(item.getAttribute('identifier'))
+                            )
+                        );
+                        const availableTickets = isLinkedIssueSearch
+                            ? data.filter(ticket => !linkedIds.has(Number(ticket.id)))
+                            : data;
+                        return {
+                            results: availableTickets.map(function (ticket) {
+                                return {
+                                    id: ticket.id,
+                                    text: ticket.url,
+                                    icon: ticket.icon,
+                                    summary: ticket.summary
+                                };
+                            })
+                        };
+                    },
+
+                    cache: true
+                },
+
+                templateResult: function (ticket) {
+                    if (ticket.loading) {
+                        return ticket.text;
+                    }
+
+                    const $result = $('<span></span>');
+                    const $icon = $('<img>')
+                        .attr('src', ticket.icon)
+                        .css({
+                            width: '16px',
+                            height: '16px',
+                            'margin-bottom': '2px',
+                            'margin-right': '6px'
+                        });
+
+                    $result.append($icon);
+                    $result.append(
+                        document.createTextNode(
+                            ticket.text + ' ' + ticket.summary
+                        )
+                    );
+
+                    return $result;
+                },
+
+                templateSelection: function (ticket) {
+                    const $result = $('<span></span>');
+
+                    const $icon = $('<img>')
+                        .attr('src', ticket.icon)
+                        .css({
+                            width: '16px',
+                            height: '16px',
+                            'margin-bottom': '2px',
+                            'margin-right': '6px'
+                        });
+
+                    $result.append($icon);
+                    $result.append(
+                        document.createTextNode(ticket.text)
+                    );
+
+                    return $result;
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            function displayApiError(error) {
+                const message = document.getElementById('inlineEditMessage');
+                message.className = 'alert alert-danger mt-2';
+                message.textContent = error.message;
+            }
+
+            function getApiError(data) {
+                if (typeof data === 'string') return data;
+                return Object.values(data || {}).flat().join(' ') || 'Unable to complete the request.';
+            }
+
+            function createTicketElement(subtask) {
+                const item = document.createElement('li');
+                item.className = 'list-group-item ticket-object-component mt-1';
+                item.id = `ticket-${subtask.id}`;
+                item.setAttribute('identifier', subtask.id);
+
+                const type = subtask.type || {};
+                const typeIcon = document.createElement('img');
+                if (type.icon) typeIcon.src = type.icon;
+                typeIcon.width = 20;
+                typeIcon.alt = '';
+                typeIcon.title = type.value || type.name || '';
+                typeIcon.className = 'img-rounded';
+                typeIcon.loading = 'lazy';
+                item.append(typeIcon, document.createTextNode(' '));
+
+                const priority = subtask.priority || {};
+                const priorityIcon = document.createElement('img');
+                if (priority.icon) priorityIcon.src = priority.icon;
+                priorityIcon.width = 20;
+                priorityIcon.alt = '';
+                priorityIcon.title = priority.value || priority.name || '';
+                priorityIcon.className = 'img-rounded';
+                priorityIcon.loading = 'lazy';
+                priorityIcon.style.marginLeft = '10px';
+                item.append(priorityIcon, document.createTextNode(' '));
+
+                const link = document.createElement('a');
+                link.className = `ml-2${subtask.isDone ? ' strikethrough' : ''}`;
+                link.href = subtask.href || '#';
+                link.textContent = subtask.url;
+                item.append(link, document.createTextNode(' '));
+
+                const summary = document.createElement('span');
+                summary.title = subtask.summary || '';
+                const summaryText = subtask.summary || '';
+                summary.textContent = summaryText.length > 70
+                    ? `${summaryText.slice(0, 70).trimEnd()}...`
+                    : summaryText;
+                item.append(summary);
+
+                const points = document.createElement('span');
+                points.className = 'badge badge-pill float-right ml-3';
+                points.style.cssText = 'background-color: #f0f0f0; margin-top: 4.5px;';
+                points.textContent = subtask.storyPoints ?? '';
+                item.append(points);
+
+                const status = document.createElement('span');
+                status.className = 'badge badge-primary float-right ml-3';
+                status.style.backgroundColor = subtask.columnStatus.column?.colour || '#42526E';
+                status.style.marginTop = '4.5px';
+                status.textContent = subtask.columnStatus?.name || 'No status';
+                item.append(status);
+                return item;
+            }
+
+            function renderTicketCollection(collection, tickets) {
+                const list = collection.querySelector('.ticket-collection-list');
+                const emptyState = collection.querySelector('.ticket-collection-empty');
+                collection.querySelector('.ticket-collection-loading').classList.add('d-none');
+                list.replaceChildren(...tickets.map(createTicketElement));
+                emptyState.classList.toggle('d-none', tickets.length > 0);
+
+                const progress = collection.querySelector('.ticket-collection-progress');
+                const progressBar = collection.querySelector('.ticket-collection-progress-bar');
+                const doneCount = tickets.filter(ticket => ticket.isDone).length;
+                const percent = tickets.length ? Math.floor(doneCount * 100 / tickets.length) : 0;
+                progress.classList.toggle('d-none', tickets.length === 0);
+                collection.querySelector('.ticket-collection-progress-count').textContent =
+                    `${doneCount} of ${tickets.length} done`;
+                progressBar.style.width = `${percent}%`;
+                progressBar.setAttribute('aria-valuenow', percent);
+                progressBar.textContent = `${percent}%`;
+            }
+
+            const initializedCollections = new Set();
+            async function initializeTicketCollections(ticketType) {
+                const ticketTypeGroup = ticketType === 'EPIC' ? 'EPIC' : 'NON_EPIC';
+                const collections = Array.from(document.querySelectorAll('.ticket-collection'))
+                    .filter(collection =>
+                        collection.closest('[data-ticket-type-group]')?.dataset.ticketTypeGroup === ticketTypeGroup &&
+                        !initializedCollections.has(collection)
+                    );
+                await Promise.all(collections.map(async collection => {
+                    initializedCollections.add(collection);
+                    const apiUrl = collection.dataset.apiUrl;
+                    const searchParams = new URLSearchParams(collection.dataset.searchParams);
+                    if (collection.dataset.searchParams.includes('subTaskOnly')) {
+                        searchParams.set('excludeTicketIds', collection.dataset.excludeTicketId);
+                    }
+                    const searchUrl = `${collection.dataset.searchUrl}?${searchParams}`;
+                    const select = collection.querySelector('.ticket-collection-select');
+                    const list = collection.querySelector('.ticket-collection-list');
+                    const message = collection.querySelector('.ticket-collection-message');
+                    const createForm = collection.querySelector('.ticket-collection-create-form');
+                    const addForm = collection.querySelector('.ticket-collection-add-form');
+                    const createButton = createForm.querySelector('button[type="submit"]');
+                    const addButton = addForm.querySelector('button[type="submit"]');
+                    let tickets = [];
+
+                    createButton.disabled = true;
+                    addButton.disabled = true;
+                    handleSelect2Dropdown(select, searchUrl, collection.dataset.selectPlaceholder);
+                    makeSortableElement(list);
+
+                    function showMessage(text, isError = false) {
+                        message.className = `alert mt-2 ticket-collection-message ${isError ? 'alert-danger' : 'alert-success'}`;
+                        message.textContent = text;
+                    }
+
+                    createForm.addEventListener('submit', async event => {
+                        event.preventDefault();
+                        const form = event.currentTarget;
+                        const button = form.querySelector('button[type="submit"]');
+                        button.disabled = true;
+                        try {
+                            const response = await fetch(apiUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify({summary: form.elements.summary.value})
+                            });
+                            const data = await response.json();
+                            if (!response.ok) throw new Error(getApiError(data));
+                            tickets = [...tickets, data];
+                            renderTicketCollection(collection, tickets);
+                            form.reset();
+                            showMessage(collection.dataset.createSuccess);
+                        } catch (error) {
+                            showMessage(error.message, true);
+                        } finally {
+                            button.disabled = false;
+                        }
+                    });
+
+                    addForm.addEventListener('submit', async event => {
+                        event.preventDefault();
+                        const form = event.currentTarget;
+                        const button = form.querySelector('button[type="submit"]');
+                        const ticketIds = Array.from(
+                            form.elements.ticketIds.selectedOptions,
+                            option => Number(option.value)
+                        );
+                        button.disabled = true;
+                        try {
+                            const response = await fetch(apiUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify({ticketIds})
+                            });
+                            const data = await response.json();
+                            if (!response.ok) throw new Error(getApiError(data));
+                            tickets = data;
+                            renderTicketCollection(collection, tickets);
+                            $(form.elements.ticketIds).val(null).trigger('change');
+                            showMessage(collection.dataset.addSuccess);
+                        } catch (error) {
+                            showMessage(error.message, true);
+                        } finally {
+                            button.disabled = false;
+                        }
+                    });
+
+                    try {
+                        const response = await fetch(apiUrl);
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(getApiError(data));
+                        tickets = data;
+                        renderTicketCollection(collection, tickets);
+                    } catch (error) {
+                        showMessage(error.message, true);
+                    } finally {
+                        collection.querySelector('.ticket-collection-loading').classList.add('d-none');
+                        createButton.disabled = false;
+                        addButton.disabled = false;
+                    }
+                }));
+            }
+
+            function renderLinkedIssues(groups) {
+                const linkedIssuesList = document.getElementById('linkedIssuesList');
+                const linkedIssuesEmpty = document.getElementById('linkedIssuesEmpty');
+
+                linkedIssuesList.replaceChildren(...groups.map((group, index) => {
+                    const section = document.createElement('div');
+                    section.className = 'linked-issue-group mt-3';
+                    const heading = document.createElement('small');
+                    heading.className = 'text-muted';
+                    heading.textContent = group.linkType;
+                    section.append(heading);
+
+                    const list = document.createElement('ul');
+                    list.className = 'list-group list-group-flush linked-issue-group-list';
+                    list.id = `linked-issue-group-${index}`;
+                    group.tickets.forEach(ticket => {
+                        const item = createTicketElement(ticket);
+                        item.id = `linked-ticket-${ticket.id}-${index}`;
+                        list.append(item);
+                    });
+                    section.append(list);
+                    return section;
+                }));
+                linkedIssuesEmpty.classList.toggle('d-none', groups.length > 0);
+            }
+
+            let linkedIssuesLoaded = false;
+            async function loadLinkedIssues() {
+                const response = await fetch(ticketLinkedIssuesUrl);
+                const data = await response.json();
+                if (!response.ok) throw new Error(getApiError(data));
+                renderLinkedIssues(data);
+                linkedIssuesLoaded = true;
+            }
+
+            const addLinkedIssuesForm = document.querySelector('.add-linked-issues-form');
+            function showLinkedIssueLoadError(error) {
+                const message = document.getElementById('linkedIssueMessage');
+                message.className = 'alert alert-danger mt-2';
+                message.textContent = error.message;
+                document.getElementById('linkedIssuesList').replaceChildren();
+            }
+
+            async function initializeLinkedIssues() {
+                if (!addLinkedIssuesForm || linkedIssuesLoaded) return;
+                try {
+                    await loadLinkedIssues();
+                    addLinkedIssuesForm.querySelector('button[type="submit"]').disabled = false;
+                } catch (error) {
+                    showLinkedIssueLoadError(error);
+                }
+            }
+
+            document.addEventListener('ticket:updated', event => {
+                if (event.detail.field !== 'type') return;
+                initializeTicketCollections(event.detail.data.type?.key);
+                if (event.detail.data.type?.key !== 'EPIC') initializeLinkedIssues();
+            });
+
+            if (addLinkedIssuesForm) {
+                addLinkedIssuesForm.addEventListener('submit', async event => {
+                    event.preventDefault();
+                    const form = event.currentTarget;
+                    const button = form.querySelector('button[type="submit"]');
+                    const ticketIds = Array.from(
+                        form.elements.ticketIds.selectedOptions,
+                        option => Number(option.value)
+                    );
+                    const message = document.getElementById('linkedIssueMessage');
+                    const alreadyLinkedIds = new Set(
+                        Array.from(
+                            document.querySelectorAll('#linkedIssuesList [identifier]'),
+                            item => Number(item.getAttribute('identifier'))
+                        )
+                    );
+                    const invalidIds = ticketIds.filter(id => id === ticketData?.id || alreadyLinkedIds.has(id));
+                    if (!ticketIds.length || invalidIds.length) {
+                        message.className = 'alert alert-warning mt-2';
+                        message.textContent = invalidIds.length
+                            ? 'Choose issues that are not this issue and are not already linked.'
+                            : 'Choose at least one issue to link.';
+                        return;
+                    }
+                    button.disabled = true;
+                    try {
+                        const response = await fetch(ticketLinkedIssuesUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({
+                                linkType: form.elements.linkType.value,
+                                ticketIds
+                            })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(getApiError(data));
+                        renderLinkedIssues(data);
+                        $(form.elements.ticketIds).val(null).trigger('change');
+                        message.className = 'alert alert-success mt-2';
+                        message.textContent = 'Issues linked.';
+                    } catch (error) {
+                        message.className = 'alert alert-danger mt-2';
+                        message.textContent = error.message;
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+            }
+
+            document.addEventListener('click', event => {
+                if (event.target.closest('a, input, textarea, select, button')) return;
+                const field = event.target.closest('[data-inline-field]');
+                if (field) beginInlineEdit(field);
+            });
+
+            document.addEventListener('keydown', event => {
+                if ((event.key === 'Enter' || event.key === ' ') &&
+                    event.target.matches('[data-inline-field]')) {
+                    event.preventDefault();
+                    beginInlineEdit(event.target);
+                }
+            });
+
+            fetch(ticketApiUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Unable to load issue data.');
+                    return response.json();
+                })
+                .then(data => {
+                    renderInlineValues(data);
+                    initializeTicketCollections(data.type?.key);
+                    if (data.type?.key !== 'EPIC') initializeLinkedIssues();
+                })
+                .catch(error => {
+                    const message = document.getElementById('inlineEditMessage');
+                    message.className = 'alert alert-danger mt-2';
+                    message.textContent = error.message;
+                });
+
+            handleSelect2Dropdown(
+                '.all-tickets-list',
+                '{% url "ticket:ticketLiveSearchApiVersion1" %}?excludeTicketIds={{ ticket.id }}',
+                'Search for issues'
+            );
+        });
+
+        function makeSortable(listId) {
+            const el = document.getElementById(listId);
+            if (!el) return;  // Skip if the element doesn't exist
+
+            makeSortableElement(el);
+        }
+
+        function makeSortableElement(el) {
+            new Sortable(el, {
+                animation: 150,
+                onEnd: function () {
+                    const identifiers = Array.from(
+                        el.querySelectorAll('li[identifier]')
+                    ).map(li => li.getAttribute('identifier'));
+
+                    fetch('{% url "ticket:ticketOrderNoUpdateApiV1" %}', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify(identifiers)
+                    }).then(response => {
+                        if (!response.ok) throw new Error('Unable to save the new issue order.');
+                    }).catch(error => {
+                        const message = document.getElementById('inlineEditMessage');
+                        message.className = 'alert alert-danger mt-2';
+                        message.textContent = error.message;
+                    });
+                }
+            });
+        }
+
+    </script>
+{% endblock %}

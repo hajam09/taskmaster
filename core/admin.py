@@ -11,7 +11,8 @@ from core.models import (
     ColumnStatus,
     Ticket,
     TicketLink,
-    Sprint
+    Sprint,
+    TicketComment
 )
 
 
@@ -48,15 +49,14 @@ class ColumnAdmin(admin.ModelAdmin):
 @admin.register(ColumnStatus)
 class ColumnStatusAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'orderNo')
+    list_filter = ['column__board']
 
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
     list_display = ('id', 'url', 'type', 'orderNo')
     filter_horizontal = (
-        'subTask',
         'label',
-        'watchers',
     )
     search_fields = (
         'url',
@@ -66,12 +66,7 @@ class TicketAdmin(admin.ModelAdmin):
         'type',
         'priority',
     )
-
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name in ['subTask']:
-            if request._obj_ is not None:
-                kwargs['queryset'] = Ticket.objects.exclude(pk=request._obj_.pk)
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
+    list_filter = ['type']
 
     def get_form(self, request, obj=None, **kwargs):
         request._obj_ = obj
@@ -90,4 +85,9 @@ class TicketLinkAdmin(admin.ModelAdmin):
 
 @admin.register(Sprint)
 class SprintAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(TicketComment)
+class TicketCommentAdmin(admin.ModelAdmin):
     pass

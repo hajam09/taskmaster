@@ -72,3 +72,138 @@ input::-webkit-outer-spin-button {
     border-radius: 0.5rem;
     padding: 1.5rem;
 }
+
+.inline-editable {
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.inline-editable[data-inline-field="label"] {
+    display: block;
+    min-height: 1.5rem;
+}
+
+.ticket-description-editor .ql-editor {
+    min-height: 240px;
+}
+
+.comment-quill-editor .ql-editor {
+    min-height: 180px;
+}
+
+.comment-item {
+    padding: 1rem 1.1rem;
+    border: 1px solid #e5e8ec;
+    border-radius: 0.5rem;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(9, 30, 66, 0.06);
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+    gap: 0.7rem;
+}
+
+.comment-avatar {
+    display: inline-flex;
+    flex: 0 0 2.25rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e9f2ff;
+    color: #0747a6;
+    font-weight: 700;
+}
+
+.comment-author {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.35;
+}
+
+.comment-author small {
+    font-size: 0.75rem;
+}
+
+.comment-edited {
+    margin-left: 0.25rem;
+    font-style: italic;
+}
+
+.comment-content {
+    padding: 0.9rem 0 0.75rem 2.95rem;
+    overflow-wrap: anywhere;
+}
+
+.comment-content > :last-child {
+    margin-bottom: 0;
+}
+
+.comment-footer {
+    margin-left: 2.95rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid #f0f1f3;
+}
+
+.comment-reactions {
+    display: flex;
+    gap: 0.45rem;
+}
+
+.comment-reaction-button {
+    min-width: 3.5rem;
+    border: 1px solid #dfe1e6;
+    border-radius: 1rem;
+    background: #f7f8f9;
+    color: #42526e;
+}
+
+.comment-reaction-button:hover,
+.comment-reaction-button.is-active {
+    border-color: #b3d4ff;
+    background: #deebff;
+    color: #0747a6;
+}
+
+.comment-reaction-button:disabled {
+    opacity: 0.65;
+}
+
+.comment-empty-state {
+    padding: 1.5rem 1rem;
+    border: 1px dashed #dfe1e6;
+    border-radius: 0.5rem;
+    color: #6b778c;
+    text-align: center;
+}
+
+.comment-empty-state i {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.comment-composer {
+    overflow: hidden;
+    border: 1px solid #dfe1e6;
+    border-radius: 0.35rem;
+}
+
+.comment-composer .ql-toolbar.ql-snow {
+    border: 0;
+    border-bottom: 1px solid #dfe1e6;
+}
+
+.comment-composer .ql-container.ql-snow {
+    border: 0;
+}
+
+.inline-editable:hover,
+.inline-editable:focus {
+    outline: 1px dashed #6c757d;
+    outline-offset: 2px;
+}

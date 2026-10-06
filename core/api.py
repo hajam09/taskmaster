@@ -3,7 +3,6 @@ import json
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Q
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,6 +16,8 @@ from core.models import (
     Ticket,
     Sprint
 )
+
+MAN_AVATAR = 'https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png'
 
 
 class BoardColumnAndStatusApiVersion1(APIView):
@@ -88,7 +89,7 @@ class ScrumBoardBacklogTicketUpdateApiVersion1(APIView):
         zone = self.request.data.get('zone')
         ticketIds = self.request.data.get('tickets', [])
 
-        Sprint.tickets.through.objects.filter(ticket_id__in=ticketIds).delete()
+        Sprint.tickets.through.objects.filter(ticketId__in=ticketIds).delete()
         tickets = list(Ticket.objects.filter(id__in=ticketIds))
 
         if zone == 'sprint':
@@ -300,38 +301,3 @@ class LabelListApiVersion1(APIView):
             for item in Label.objects.order_by('name').values_list('name', flat=True)
         ]
         return Response(data=data, status=status.HTTP_200_OK)
-
-
-class BaseTicketLiveSearchApiVersion1(APIView):
-    ticketType = None
-    limit = 20
-
-    def get_queryset(self):
-        query = self.request.query_params.get('query', '').strip()
-        filters = Q(url__icontains=query) | Q(summary__icontains=query)
-
-        if self.ticketType is not None:
-            filters &= Q(type=self.ticketType)
-
-        return Ticket.objects.filter(filters).only('id', 'url', 'summary', 'type').order_by('url')[:self.limit]
-
-    def get(self, request, *args, **kwargs):
-        data = [
-            {
-                'id': ticket.id,
-                'url': ticket.url,
-                'icon': ticket.ticketTypeIcon,
-                'summary': ticket.summary,
-            }
-            for ticket in self.get_queryset()
-        ]
-
-        return Response(data, status=status.HTTP_200_OK)
-
-
-class AllTicketLiveSearchApiVersion1(BaseTicketLiveSearchApiVersion1):
-    pass
-
-
-class SubTaskTicketLiveSearchApiVersion1(BaseTicketLiveSearchApiVersion1):
-    ticketType = Ticket.Type.SUB_TASK

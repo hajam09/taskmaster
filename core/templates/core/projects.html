@@ -9,24 +9,27 @@
         <div class="card idCardWideComponent">
             <legend>
                 <h2 class="heading-h2 text-center">Projects</h2>
-                <button type="button" class="btn btn-sm float-right mr-2" id="add-project-btn">Add Project</button>
+                <button type="button" class="btn btn-sm float-right mr-2" id="add-project-btn"
+                        data-add-project="{% if request.GET.add == 'true' or form.errors %}true{% else %}false{% endif %}">
+                    {% if request.GET.add == 'true' or form.errors %}Cancel{% else %}Add Project{% endif %}
+                </button>
             </legend>
-            <form method="post" class="p-4" id="form-id-new-project"
-                  style="display: {% if form.errors %}block{% else %}none{% endif %}">
-                {% csrf_token %}
-                {% for field in form %}
-                    {% renderFormFields field %}
-                    {% for error in field.errors %}
-                        <p class="text-center" style="color: red;"><small>{{ error }}</small></p>
+            {% if request.GET.add == 'true' or form.errors %}
+                <form method="post" class="p-4 add-project-form" id="form-id-new-project">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        {% renderFormFields field %}
+                        {% for error in field.errors %}
+                            <p class="text-center" style="color: red;"><small>{{ error }}</small></p>
+                        {% endfor %}
+                        <br>
                     {% endfor %}
-                    <br>
-                {% endfor %}
 
-                <div class="text-right">
-                    <input type="button" class="btn btn-sm btn-cancel" id="close-project-btn" value="Cancel">
-                    <input type="submit" class="btn btn-sm btn-submit" value="Submit">
-                </div>
-            </form>
+                    <div class="text-right">
+                        <input type="submit" class="btn btn-sm btn-submit" value="Submit">
+                    </div>
+                </form>
+            {% endif %}
 
             <div class="form-row align-items-center mt-4 flex-nowrap">
                 <div class="col-2">
@@ -86,15 +89,12 @@
     <script type="application/javascript">
         function initialiseProjectForm() {
             const newProjectBtn = document.getElementById('add-project-btn');
-            const closeProjectBtn = document.getElementById('close-project-btn');
-            const newProjectForm = document.getElementById('form-id-new-project');
 
             newProjectBtn.addEventListener('click', function () {
-                newProjectForm.style.display = (newProjectForm.style.display === 'none' || newProjectForm.style.display === '') ? 'block' : 'none';
-            });
-
-            closeProjectBtn.addEventListener('click', function () {
-                newProjectForm.style.display = 'none';
+                const params = new URLSearchParams(window.location.search);
+                const shouldAdd = newProjectBtn.dataset.addProject !== 'true';
+                params.set('add', String(shouldAdd));
+                window.location.href = `${window.location.pathname}?${params.toString()}`;
             });
         }
 

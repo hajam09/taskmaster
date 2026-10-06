@@ -8,24 +8,27 @@
         <div class="card idCardWideComponent">
             <legend>
                 <h2 class="heading-h2 text-center">Labels</h2>
-                <button type="button" class="btn btn-sm float-right mr-2" id="add-label-btn">Add label</button>
+                <button type="button" class="btn btn-sm float-right mr-2" id="add-label-btn"
+                        data-add-label="{% if request.GET.add == 'true' or form.errors %}true{% else %}false{% endif %}">
+                    {% if request.GET.add == 'true' or form.errors %}Cancel{% else %}Add label{% endif %}
+                </button>
             </legend>
-            <form method="post" class="p-4" id="form-id-new-label"
-                  style="display: {% if form.errors %}block{% else %}none{% endif %}">
-                {% csrf_token %}
-                {% for field in form %}
-                    {% renderFormFields field %}
-                    {% for error in field.errors %}
-                        <p class="text-center" style="color: red;"><small>{{ error }}</small></p>
+            {% if request.GET.add == 'true' or form.errors %}
+                <form method="post" class="p-4 add-label-form" id="form-id-new-label">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        {% renderFormFields field %}
+                        {% for error in field.errors %}
+                            <p class="text-center" style="color: red;"><small>{{ error }}</small></p>
+                        {% endfor %}
+                        <br>
                     {% endfor %}
-                    <br>
-                {% endfor %}
 
-                <div class="text-right">
-                    <input type="button" class="btn btn-sm btn-cancel" id="close-label-btn" value="Cancel">
-                    <input type="submit" class="btn btn-sm btn-submit" value="Submit">
-                </div>
-            </form>
+                    <div class="text-right">
+                        <input type="submit" class="btn btn-sm btn-submit" value="Submit">
+                    </div>
+                </form>
+            {% endif %}
 
             <form class="form-inline" method="get">
                 <div class="form-group mb-2 mr-2">
@@ -65,15 +68,12 @@
     <script type="application/javascript">
         function initialiseLabelForm() {
             const newLabelBtn = document.getElementById('add-label-btn');
-            const closeLabelBtn = document.getElementById('close-label-btn');
-            const newLabelForm = document.getElementById('form-id-new-label');
 
             newLabelBtn.addEventListener('click', function () {
-                newLabelForm.style.display = (newLabelForm.style.display === 'none' || newLabelForm.style.display === '') ? 'block' : 'none';
-            });
-
-            closeLabelBtn.addEventListener('click', function () {
-                newLabelForm.style.display = 'none';
+                const params = new URLSearchParams(window.location.search);
+                const shouldAdd = newLabelBtn.dataset.addLabel !== 'true';
+                params.set('add', String(shouldAdd));
+                window.location.href = `${window.location.pathname}?${params.toString()}`;
             });
         }
 
