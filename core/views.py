@@ -10,7 +10,6 @@ from django.core.cache import cache
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import (
     F,
-    Max,
     Value
 )
 from django.db.models.functions import Concat
@@ -710,10 +709,6 @@ def ticketView(request, url):
     ).prefetch_related(
         'epicTickets__columnStatus__column',
 
-        # Direct subtasks of THIS ticket
-        'subTask__columnStatus__column',
-        'subTask__epic',
-
         # Parent tickets + THEIR subtasks
         'ticketSubTask__subTask__columnStatus__column',
     ).get(url=url)
@@ -733,29 +728,7 @@ def ticketView(request, url):
 
         return redirect(ticket.columnStatus.column.board.getUrl)
 
-    if request.method == 'POST' and 'create-new-subtask' in request.POST:
-        project = ticket.project
-        orderNo = Ticket.objects.filter(project=project).aggregate(Max('orderNo'))['orderNo__max'] or 0
-
-        sTicket = Ticket(
-            url=f'{project.code}-{orderNo + 1}',
-            summary=request.POST['task-name'],
-            type=Ticket.Type.SUB_TASK,
-            priority=ticket.priority,
-            project=project,
-            reporter=request.user,
-            columnStatus=ticket.columnStatus,
-        )
-        sTicket.save()
-
-        ticket.subTask.add(sTicket)
-        return redirect(request.path)
-
-    elif request.method == 'POST' and 'add-subtasks' in request.POST:
-        ticket.subTask.add(*request.POST.getlist('task-ids'))
-        return redirect(request.path)
-
-    elif request.method == 'POST' and 'add-linked-issue' in request.POST:
+    if request.method == 'POST' and 'add-linked-issue' in request.POST:
         linkType = TicketLink.LinkType(request.POST.get('link-type'))
         targetTickets = Ticket.objects.filter(id__in=request.POST.getlist('task-ids'))
 
@@ -780,18 +753,6 @@ def ticketView(request, url):
             'done': doneTickets,
             'percent': progressPercent
         }
-    else:
-        sts = [et for et in ticket.subTask.all()]
-        if sts:
-            dts = [st for st in sts if st.columnStatus.column.status == 'DONE']
-            totalTickets = len(sts)
-            doneTickets = len(dts)
-            progressPercent = int((doneTickets / totalTickets) * 100) if totalTickets > 0 else 0
-            context['subTaskProgress'] = {
-                'total': totalTickets,
-                'done': doneTickets,
-                'percent': progressPercent
-            }
     return render(request, f'core/ticket.html', context)
 
 

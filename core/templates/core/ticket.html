@@ -119,7 +119,7 @@
                                     </div>
 
                                     <div id="parentTaskTicketsPanel" class="collapse show mt-3">
-                                        <div id="subtaskList">
+                                        <div id="parentSubtaskList">
                                             {% for st in pt.subTask.all %}
                                                 {% if st != ticket %}
                                                     {% ticketHorizontalBarComponent st %}
@@ -143,45 +143,41 @@
                                 <span class="float-right">▼</span>
                             </div>
 
-                            {% if subTaskProgress %}
-                                <div class="my-3">
-                                    <div class="mb-2">
-                                        <small>{{ subTaskProgress.done }} of {{ subTaskProgress.total }} done</small>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar progress-bar-striped progress-bar-animated"
-                                             role="progressbar"
-                                             aria-valuenow="{{ subTaskProgress.percent }}"
-                                             aria-valuemin="0"
-                                             aria-valuemax="100"
-                                             style="width: {{ subTaskProgress.percent }}%;">
-                                            {{ subTaskProgress.percent }}%
-                                        </div>
+                            <div class="my-3 d-none" id="subTaskProgress">
+                                <div class="mb-2">
+                                    <small><span id="subTaskProgressCount">0 of 0 done</span></small>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                         id="subTaskProgressBar"
+                                         role="progressbar"
+                                         aria-valuenow="0"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100"
+                                         style="width: 0%;">
+                                        0%
                                     </div>
                                 </div>
-                            {% endif %}
+                            </div>
 
                             <div id="subTasksPanel" class="collapse show mt-3">
-                                <form method="post">
-                                    {% csrf_token %}
-                                    <input name="create-new-subtask" hidden>
+                                <div id="subtaskMessage" class="alert d-none mt-2" role="status"></div>
+                                <form class="create-subtask-form">
                                     <div class="form-row">
                                         <div class="col-12 col-md mb-2">
                                             <input type="text" class="form-control form-control-sm w-100"
-                                                   name="task-name" placeholder="Create new subtask" required>
+                                                   name="summary" placeholder="Create new subtask" required>
                                         </div>
                                         <div class="col-auto mb-2">
-                                            <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+                                            <button type="submit" class="btn btn-primary btn-sm">Create</button>
                                         </div>
                                     </div>
                                 </form>
 
-                                <form method="post">
-                                    {% csrf_token %}
-                                    <input name="add-subtasks" hidden>
+                                <form class="add-subtasks-form">
                                     <div class="form-row">
                                         <div class="col-12 col-md mb-2">
-                                            <select class="form-control form-control-sm subtasks-list" name="task-ids"
+                                            <select class="form-control form-control-sm subtasks-list" name="ticket_ids"
                                                     multiple="multiple" required>
                                             </select>
                                         </div>
@@ -191,13 +187,8 @@
                                     </div>
                                 </form>
 
-                                <div id="subtaskList">
-                                    {% for st in ticket.subTask.all %}
-                                        {% ticketHorizontalBarComponent st %}
-                                    {% empty %}
-                                        <i>No subtasks available for this ticket!</i>
-                                    {% endfor %}
-                                </div>
+                                <ul class="list-group list-group-flush" id="subtaskList"></ul>
+                                <i id="subtaskEmpty">No subtasks available for this ticket!</i>
                             </div>
                         </div>
                     </div>
@@ -463,6 +454,7 @@
         const userLiveSearchUrl = '{% url "core:userLiveSearchApiVersion1" %}';
         const labelLiveSearchUrl = '{% url "core:labelLiveSearchApiVersion1" %}';
         const ticketCommentListUrl = '{% url "core:ticket-comments" ticket.id %}';
+        const ticketSubTaskListUrl = '{% url "core:ticket-subtasks" ticket.id %}';
         let ticketData = null;
 
         function renderInlineField(field) {
@@ -1048,6 +1040,7 @@
 
             const commentList = document.getElementById('ticketCommentList');
             const commentEditors = new Map();
+            let currentSubtasks = [];
 
             function initializeCommentEditor(host, initialHtml = '') {
                 const quillHost = document.createElement('div');
@@ -1161,7 +1154,89 @@
 
             function getApiError(data) {
                 if (typeof data === 'string') return data;
-                return Object.values(data || {}).flat().join(' ') || 'Unable to save comment.';
+                return Object.values(data || {}).flat().join(' ') || 'Unable to complete the request.';
+            }
+
+            function createSubtaskElement(subtask) {
+                const item = document.createElement('li');
+                item.className = 'list-group-item ticket-object-component mt-1';
+                item.id = `ticket-${subtask.id}`;
+                item.setAttribute('identifier', subtask.id);
+
+                const typeIcon = document.createElement('img');
+                if (subtask.typeIcon) typeIcon.src = subtask.typeIcon;
+                typeIcon.width = 20;
+                typeIcon.alt = '';
+                typeIcon.title = subtask.typeDisplay || '';
+                typeIcon.className = 'img-rounded';
+                typeIcon.loading = 'lazy';
+                item.append(typeIcon, document.createTextNode(' '));
+
+                const priorityIcon = document.createElement('img');
+                if (subtask.priorityIcon) priorityIcon.src = subtask.priorityIcon;
+                priorityIcon.width = 20;
+                priorityIcon.alt = '';
+                priorityIcon.title = subtask.priorityDisplay || '';
+                priorityIcon.className = 'img-rounded';
+                priorityIcon.loading = 'lazy';
+                priorityIcon.style.marginLeft = '10px';
+                item.append(priorityIcon, document.createTextNode(' '));
+
+                const link = document.createElement('a');
+                link.className = `ml-2${subtask.isDone ? ' strikethrough' : ''}`;
+                link.href = subtask.href;
+                link.textContent = subtask.url;
+                item.append(link, document.createTextNode(' '));
+
+                const summary = document.createElement('span');
+                summary.title = subtask.summary;
+                summary.textContent = subtask.summary.length > 70
+                    ? `${subtask.summary.slice(0, 70).trimEnd()}...`
+                    : subtask.summary;
+                item.append(summary);
+
+                const points = document.createElement('span');
+                points.className = 'badge badge-pill float-right ml-3';
+                points.style.cssText = 'background-color: #f0f0f0; margin-top: 4.5px;';
+                points.textContent = subtask.storyPoints ?? '';
+                item.append(points);
+
+                const status = document.createElement('span');
+                status.className = 'badge badge-primary float-right ml-3';
+                status.style.marginTop = '4.5px';
+                status.textContent = subtask.statusName;
+                item.append(status);
+                return item;
+            }
+
+            function renderSubtasks(subtasks) {
+                currentSubtasks = subtasks;
+                const list = document.getElementById('subtaskList');
+                const emptyState = document.getElementById('subtaskEmpty');
+                list.replaceChildren(...subtasks.map(createSubtaskElement));
+                emptyState.classList.toggle('d-none', subtasks.length > 0);
+
+                if (subtasks.length) {
+                    const doneCount = subtasks.filter(subtask => subtask.isDone).length;
+                    const percent = Math.floor(doneCount * 100 / subtasks.length);
+                    const progress = document.getElementById('subTaskProgress');
+                    const progressBar = document.getElementById('subTaskProgressBar');
+                    progress.classList.remove('d-none');
+                    progressBar.style.width = `${percent}%`;
+                    progressBar.setAttribute('aria-valuenow', percent);
+                    progressBar.textContent = `${percent}%`;
+                    document.getElementById('subTaskProgressCount').textContent =
+                        `${doneCount} of ${subtasks.length} done`;
+                } else {
+                    document.getElementById('subTaskProgress').classList.add('d-none');
+                }
+            }
+
+            async function loadSubtasks() {
+                const response = await fetch(ticketSubTaskListUrl);
+                const data = await response.json();
+                if (!response.ok) throw new Error(getApiError(data));
+                renderSubtasks(data);
             }
 
             const addCommentForm = document.getElementById('addCommentForm');
@@ -1188,6 +1263,7 @@
                         },
                         body: JSON.stringify({comment: addCommentQuill.root.innerHTML})
                     });
+
                     const data = await response.json();
                     if (!response.ok) throw new Error(getApiError(data));
                     commentList.querySelector('.comment-empty-state')?.remove();
@@ -1199,6 +1275,72 @@
                     button.disabled = false;
                 }
             });
+
+            const createSubtaskForm = document.querySelector('.create-subtask-form');
+            const addSubtasksForm = document.querySelector('.add-subtasks-form');
+            if (createSubtaskForm && addSubtasksForm) {
+                createSubtaskForm.addEventListener('submit', async event => {
+                    event.preventDefault();
+                    const form = event.currentTarget;
+                    const button = form.querySelector('button[type="submit"]');
+                    const message = document.getElementById('subtaskMessage');
+                    button.disabled = true;
+                    try {
+                        const response = await fetch(ticketSubTaskListUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({summary: form.elements.summary.value})
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(getApiError(data));
+                        renderSubtasks([...currentSubtasks, data]);
+                        form.reset();
+                        message.className = 'alert alert-success mt-2';
+                        message.textContent = 'Subtask created.';
+                    } catch (error) {
+                        message.className = 'alert alert-danger mt-2';
+                        message.textContent = error.message;
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+
+                addSubtasksForm.addEventListener('submit', async event => {
+                    event.preventDefault();
+                    const form = event.currentTarget;
+                    const button = form.querySelector('button[type="submit"]');
+                    const selectedIds = Array.from(
+                        form.elements.ticket_ids.selectedOptions,
+                        option => Number(option.value)
+                    );
+                    const message = document.getElementById('subtaskMessage');
+                    button.disabled = true;
+                    try {
+                        const response = await fetch(ticketSubTaskListUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({ticket_ids: selectedIds})
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(getApiError(data));
+                        renderSubtasks(data);
+                        $(form.elements.ticket_ids).val(null).trigger('change');
+                        message.className = 'alert alert-success mt-2';
+                        message.textContent = 'Subtasks added.';
+                    } catch (error) {
+                        message.className = 'alert alert-danger mt-2';
+                        message.textContent = error.message;
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+            }
 
             commentList.addEventListener('click', event => {
                 const editButton = event.target.closest('.edit-comment-button');
@@ -1347,6 +1489,13 @@
             makeSortable('linkedIssuesList');
             handleSelect2Dropdown('.subtasks-list', '{% url "core:ticketLiveSearchApiVersion1" %}?subTaskOnly=true', 'Add subtasks');
             handleSelect2Dropdown('.all-tickets-list', '{% url "core:ticketLiveSearchApiVersion1" %}', 'Search for tickets');
+            if (createSubtaskForm) {
+                loadSubtasks().catch(error => {
+                    const message = document.getElementById('subtaskMessage');
+                    message.className = 'alert alert-danger mt-2';
+                    message.textContent = error.message;
+                });
+            }
         });
 
         function makeSortable(listId) {

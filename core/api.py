@@ -23,7 +23,8 @@ from core.models import (
 from core.serializers import (
     TicketInlineUpdateSerializer,
     TicketSerializerVersion1,
-    sanitize_ticket_description, TicketCommentSerializer,
+    sanitize_ticket_description, TicketCommentSerializer, TicketSubTaskSerializer,
+    TicketSubTaskCreateSerializer, TicketSubTaskAttachSerializer,
 )
 
 MAN_AVATAR = 'https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png'
@@ -529,6 +530,51 @@ class TicketApiVersion1(APIView):
         return self.get(request, *args, **kwargs)
 
 
+class TicketSubTaskListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TicketSubTaskSerializer
+
+    def get_ticket(self):
+        if not hasattr(self, 'ticket'):
+            self.ticket = get_object_or_404(
+                Ticket.objects.select_related('project', 'columnStatus__column'),
+                id=self.kwargs['ticket_id'],
+            )
+        return self.ticket
+
+    def get_queryset(self):
+        return self.get_ticket().subTask.select_related(
+            'columnStatus__column',
+        ).order_by('orderNo')
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            if 'ticket_ids' in self.request.data:
+                return TicketSubTaskAttachSerializer
+            return TicketSubTaskCreateSerializer
+        return TicketSubTaskSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['ticket'] = self.get_ticket()
+        return context
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if isinstance(serializer, TicketSubTaskAttachSerializer):
+            self.get_ticket().subTask.add(*serializer.validated_data['ticket_ids'])
+            return Response(
+                TicketSubTaskSerializer(self.get_queryset(), many=True).data,
+                status=status.HTTP_200_OK,
+            )
+
+        subtask = serializer.save()
+        return Response(
+            TicketSubTaskSerializer(subtask).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 class TicketCommentListCreateView(generics.ListCreateAPIView):
     serializer_class = TicketCommentSerializer

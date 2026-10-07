@@ -1,8 +1,10 @@
 import bleach
 from django.contrib.auth.models import User
+from django.db import transaction
+from django.db.models import Max
 from rest_framework import serializers
 
-from core.models import ColumnStatus, Label, Project, Ticket, TicketComment
+from core.models import Column, ColumnStatus, Label, Project, Ticket, TicketComment
 
 DESCRIPTION_TAGS = [
     'a', 'blockquote', 'br', 'code', 'em', 'h1', 'h2', 'h3', 'i', 'li',
@@ -50,6 +52,69 @@ class TicketSerializerVersion1(serializers.ModelSerializer):
             'id', 'url', 'href', 'summary', 'description', 'storyPoints', 'createdDateTime', 'modifiedDateTime',
             'project',
         ]
+
+
+class TicketSubTaskSerializer(serializers.ModelSerializer):
+    href = serializers.CharField(source='getUrl', read_only=True)
+    typeIcon = serializers.CharField(source='ticketTypeIcon', read_only=True, allow_null=True)
+    priorityIcon = serializers.CharField(source='ticketPriorityIcon', read_only=True, allow_null=True)
+    typeDisplay = serializers.CharField(source='get_type_display', read_only=True)
+    priorityDisplay = serializers.CharField(source='get_priority_display', read_only=True)
+    statusName = serializers.CharField(source='columnStatus.name', read_only=True)
+    isDone = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Ticket
+        fields = [
+            'id', 'url', 'href', 'summary', 'storyPoints', 'typeIcon', 'priorityIcon',
+            'typeDisplay', 'priorityDisplay', 'statusName', 'isDone',
+        ]
+
+    def get_isDone(self, ticket):
+        return ticket.columnStatus.column.status == Column.Status.DONE
+
+
+class TicketSubTaskCreateSerializer(serializers.Serializer):
+    summary = serializers.CharField(max_length=2048, allow_blank=False, trim_whitespace=True)
+
+    def create(self, validated_data):
+        parent = self.context['ticket']
+        with transaction.atomic():
+            project = Project.objects.select_for_update().get(pk=parent.project_id)
+            max_order_no = Ticket.objects.filter(project=project).aggregate(
+                max_order_no=Max('orderNo')
+            )['max_order_no'] or 0
+            subtask = Ticket.objects.create(
+                url=f'{project.code}-{max_order_no + 1}',
+                summary=validated_data['summary'],
+                type=Ticket.Type.SUB_TASK,
+                priority=parent.priority,
+                project=project,
+                reporter=self.context['request'].user,
+                columnStatus=parent.columnStatus,
+            )
+            parent.subTask.add(subtask)
+        return subtask
+
+
+class TicketSubTaskAttachSerializer(serializers.Serializer):
+    ticket_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=False,
+    )
+
+    def validate_ticket_ids(self, ticket_ids):
+        parent = self.context['ticket']
+        tickets = Ticket.objects.filter(
+            id__in=ticket_ids,
+            type=Ticket.Type.SUB_TASK,
+        )
+        tickets_by_id = {ticket.id: ticket for ticket in tickets}
+        if len(tickets_by_id) != len(set(ticket_ids)):
+            raise serializers.ValidationError('One or more selected tickets are not subtasks.')
+        if parent.id in tickets_by_id:
+            raise serializers.ValidationError('A ticket cannot be a subtask of itself.')
+        return [tickets_by_id[ticket_id] for ticket_id in dict.fromkeys(ticket_ids)]
 
 
 class TicketInlineUpdateSerializer(serializers.ModelSerializer):

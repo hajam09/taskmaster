@@ -21,6 +21,7 @@ from core.api import (
     TicketLiveSearchApiVersion1,
     TicketCommentListCreateView,
     TicketCommentDetailView,
+    TicketSubTaskListCreateView,
 )
 from core.views import (
     loginView,
@@ -165,6 +166,11 @@ urlpatterns += [
 
 
 urlpatterns += [
+    path(
+        'tickets/<int:ticket_id>/subtasks/',
+        TicketSubTaskListCreateView.as_view(),
+        name='ticket-subtasks'
+    ),
     path(
         'tickets/<int:ticket_id>/comments/',
         TicketCommentListCreateView.as_view(),

@@ -27,6 +27,7 @@ class TicketInlineUpdateApiTests(TestCase):
         self.ticket_search_url = reverse('core:ticketLiveSearchApiVersion1')
         self.ticket_page_url = reverse('core:ticket-view', kwargs={'url': self.ticket.url})
         self.comments_url = reverse('core:ticket-comments', kwargs={'ticket_id': self.ticket.id})
+        self.subtasks_url = reverse('core:ticket-subtasks', kwargs={'ticket_id': self.ticket.id})
 
     @staticmethod
     def create_project(name, code):
@@ -256,6 +257,84 @@ class TicketInlineUpdateApiTests(TestCase):
             [item['id'] for item in response.data],
             [ticket.id for ticket in sorted(subtasks, key=lambda ticket: ticket.url)[:10]],
         )
+
+    def test_ticket_subtasks_api_lists_only_the_parent_tickets_subtasks(self):
+        subtask = Ticket.objects.create(
+            url='ONE-2',
+            summary='Implement API',
+            type=Ticket.Type.SUB_TASK,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+        unrelated_subtask = Ticket.objects.create(
+            url='ONE-3',
+            summary='Unrelated',
+            type=Ticket.Type.SUB_TASK,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+        self.ticket.subTask.add(subtask)
+
+        response = self.client.get(self.subtasks_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item['id'] for item in response.data], [subtask.id])
+        self.assertNotIn(unrelated_subtask.id, [item['id'] for item in response.data])
+        self.assertEqual(response.data[0]['href'], subtask.getUrl)
+
+    def test_ticket_subtasks_api_creates_subtask_from_summary(self):
+        response = self.client.post(
+            self.subtasks_url,
+            {'summary': 'New subtask'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        subtask = Ticket.objects.get(url='ONE-2')
+        self.assertEqual(subtask.summary, 'New subtask')
+        self.assertEqual(subtask.type, Ticket.Type.SUB_TASK)
+        self.assertEqual(subtask.reporter, self.user)
+        self.assertTrue(self.ticket.subTask.filter(id=subtask.id).exists())
+        self.assertEqual(response.data['id'], subtask.id)
+
+    def test_ticket_subtasks_api_attaches_existing_subtasks(self):
+        subtask = Ticket.objects.create(
+            url='ONE-2',
+            summary='Existing subtask',
+            type=Ticket.Type.SUB_TASK,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+
+        response = self.client.post(
+            self.subtasks_url,
+            {'ticket_ids': [subtask.id]},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item['id'] for item in response.data], [subtask.id])
+        self.assertTrue(self.ticket.subTask.filter(id=subtask.id).exists())
+
+    def test_ticket_subtasks_api_rejects_non_subtasks(self):
+        response = self.client.post(
+            self.subtasks_url,
+            {'ticket_ids': [self.ticket.id]},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(self.ticket.subTask.exists())
+
+    def test_ticket_page_renders_subtasks_from_the_api(self):
+        response = self.client.get(self.ticket_page_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="subtaskList"')
+        self.assertNotContains(response, 'ticket.subTask.all')
 
     def test_comments_api_lists_comments_with_reaction_state(self):
         comment = TicketComment.objects.create(
