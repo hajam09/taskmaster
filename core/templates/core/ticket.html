@@ -1273,33 +1273,37 @@
                 if (!form.matches('.comment-reaction-form')) return;
                 event.preventDefault();
                     event.preventDefault();
-                    const button = event.submitter;
-                    const comment = form.closest('.comment-item');
-                    const formData = new FormData(form);
-                    formData.set(button.name, button.value);
-                    button.disabled = true;
+                        const button = event.submitter;
+                        const comment = form.closest('.comment-item');
+                        button.disabled = true;
 
                     try {
-                        const response = await fetch(window.location.href, {
+                        const response = await fetch(
+                            `${ticketCommentListUrl}${comment.dataset.commentId}/`,
+                            {
                             method: 'POST',
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            body: formData
-                        });
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify({
+                                    reaction: button.name === 'like-ticket-comment' ? 'like' : 'dislike'
+                                })
+                            }
+                        );
                         const data = await response.json();
                         if (!response.ok) {
-                            throw new Error(data.error || 'Unable to update reaction.');
+                            throw new Error(getApiError(data));
                         }
 
-                        comment.querySelector('.comment-like-count').textContent = data.likeCount;
-                        comment.querySelector('.comment-dislike-count').textContent = data.dislikeCount;
+                        comment.querySelector('.comment-like-count').textContent = data.likesCount;
+                        comment.querySelector('.comment-dislike-count').textContent = data.disLikesCount;
                         const likeButton = comment.querySelector('.comment-like-button');
                         const dislikeButton = comment.querySelector('.comment-dislike-button');
-                        likeButton.classList.toggle('is-active', data.likedByUser);
-                        likeButton.setAttribute('aria-pressed', data.likedByUser);
-                        dislikeButton.classList.toggle('is-active', data.dislikedByUser);
-                        dislikeButton.setAttribute('aria-pressed', data.dislikedByUser);
+                        likeButton.classList.toggle('is-active', data.inLikes);
+                        likeButton.setAttribute('aria-pressed', data.inLikes);
+                        dislikeButton.classList.toggle('is-active', data.inDisLikes);
+                        dislikeButton.setAttribute('aria-pressed', data.inDisLikes);
                     } catch (error) {
                         const message = document.getElementById('inlineEditMessage');
                         message.className = 'alert alert-danger mt-2';

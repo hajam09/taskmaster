@@ -594,6 +594,22 @@ class TicketCommentDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         serializer.save(edited=True)
 
+    def post(self, request, *args, **kwargs):
+        comment = self.get_object()
+        reaction = request.data.get('reaction')
+        if reaction == 'like':
+            comment.like(request)
+        elif reaction == 'dislike':
+            comment.dislike(request)
+        else:
+            return Response(
+                {'reaction': 'Choose either "like" or "dislike".'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        comment = self.get_queryset().get(pk=comment.pk)
+        return Response(self.get_serializer(comment).data, status=status.HTTP_200_OK)
+
     def perform_destroy(self, instance):
         if instance.creator != self.request.user:
             raise PermissionDenied(

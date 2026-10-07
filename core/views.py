@@ -14,7 +14,7 @@ from django.db.models import (
     Value
 )
 from django.db.models.functions import Concat
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -46,7 +46,6 @@ from core.models import (
     Label,
     Column,
     Ticket,
-    TicketComment,
     TicketLink,
     Sprint
 )
@@ -733,26 +732,6 @@ def ticketView(request, url):
                 return redirect(url)
 
         return redirect(ticket.columnStatus.column.board.getUrl)
-
-    if request.method == 'POST' and ('like-ticket-comment' in request.POST or
-                                     'dislike-ticket-comment' in request.POST):
-        comment = get_object_or_404(
-            TicketComment,
-            id=request.POST.get('comment-id'),
-            ticket=ticket,
-        )
-        if request.headers.get('x-requested-with') != 'XMLHttpRequest':
-            return HttpResponseForbidden()
-        if 'like-ticket-comment' in request.POST:
-            comment.like(request)
-        else:
-            comment.dislike(request)
-        return JsonResponse({
-            'likeCount': comment.likes.count(),
-            'dislikeCount': comment.dislikes.count(),
-            'likedByUser': comment.likes.filter(id=request.user.id).exists(),
-            'dislikedByUser': comment.dislikes.filter(id=request.user.id).exists(),
-        })
 
     if request.method == 'POST' and 'create-new-subtask' in request.POST:
         project = ticket.project

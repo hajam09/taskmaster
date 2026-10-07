@@ -376,21 +376,29 @@ class TicketInlineUpdateApiTests(TestCase):
         comment.dislikes.add(self.user)
 
         response = self.client.post(
-            self.ticket_page_url,
-            {'like-ticket-comment': '1', 'comment-id': comment.id},
-            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            reverse(
+                'core:ticket-comment-detail',
+                kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
+            ),
+            {'reaction': 'like'},
+            format='json',
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['likeCount'], 1)
-        self.assertEqual(response.json()['dislikeCount'], 0)
+        self.assertEqual(response.data['likesCount'], 1)
+        self.assertEqual(response.data['disLikesCount'], 0)
+        self.assertTrue(response.data['inLikes'])
+        self.assertFalse(response.data['inDisLikes'])
         self.assertTrue(comment.likes.filter(id=self.user.id).exists())
         self.assertFalse(comment.dislikes.filter(id=self.user.id).exists())
 
         self.client.post(
-            self.ticket_page_url,
-            {'like-ticket-comment': '1', 'comment-id': comment.id},
-            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            reverse(
+                'core:ticket-comment-detail',
+                kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
+            ),
+            {'reaction': 'like'},
+            format='json',
         )
         self.assertFalse(comment.likes.filter(id=self.user.id).exists())
 
@@ -403,13 +411,35 @@ class TicketInlineUpdateApiTests(TestCase):
         comment.likes.add(self.user)
 
         response = self.client.post(
-            self.ticket_page_url,
-            {'dislike-ticket-comment': '1', 'comment-id': comment.id},
-            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            reverse(
+                'core:ticket-comment-detail',
+                kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
+            ),
+            {'reaction': 'dislike'},
+            format='json',
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['likeCount'], 0)
-        self.assertEqual(response.json()['dislikeCount'], 1)
+        self.assertEqual(response.data['likesCount'], 0)
+        self.assertEqual(response.data['disLikesCount'], 1)
+        self.assertFalse(response.data['inLikes'])
+        self.assertTrue(response.data['inDisLikes'])
         self.assertTrue(comment.dislikes.filter(id=self.user.id).exists())
         self.assertFalse(comment.likes.filter(id=self.user.id).exists())
+
+    def test_comment_detail_api_rejects_invalid_reaction(self):
+        comment = TicketComment.objects.create(
+            ticket=self.ticket,
+            creator=self.user,
+            comment='<p>Comment</p>',
+        )
+        detail_url = reverse(
+            'core:ticket-comment-detail',
+            kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
+        )
+
+        response = self.client.post(detail_url, {'reaction': 'applaud'}, format='json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(comment.likes.exists())
+        self.assertFalse(comment.dislikes.exists())
