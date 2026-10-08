@@ -301,9 +301,17 @@ class Ticket(BaseModel):
     assignee = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING)
     reporter = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='ticketReporter')
     columnStatus = models.ForeignKey(ColumnStatus, on_delete=models.DO_NOTHING, related_name='columnStatusTickets')
-    subTask = models.ManyToManyField('Ticket', blank=True, related_name='ticketSubTask')
     label = models.ManyToManyField(Label, blank=True, related_name='ticketLabels')
     watchers = models.ManyToManyField(User, blank=True, related_name='ticketWatchers')
+
+    parent = models.ForeignKey(
+        'Ticket',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='subTasks',
+        limit_choices_to={'type': 'SUB_TASK'}
+    )
 
     epic = models.ForeignKey(
         'Ticket',
@@ -357,7 +365,7 @@ class Ticket(BaseModel):
 
     @property
     def getUrl(self):
-        return reverse('core:ticket-view', kwargs={'url': self.url})
+        return reverse('ticket:ticket-view', kwargs={'url': self.url})
 
     @property
     def getIcon(self):

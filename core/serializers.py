@@ -1,27 +1,15 @@
 import bleach
 from django.contrib.auth.models import User
-from django.db import transaction
 from django.db.models import Max
 from rest_framework import serializers
 
-from core.models import Column, ColumnStatus, Label, Project, Ticket, TicketComment
+from core import service
+from core.models import Column, ColumnStatus, Label, Project, Ticket, TicketComment, TicketLink
 
 DESCRIPTION_TAGS = [
     'a', 'blockquote', 'br', 'code', 'em', 'h1', 'h2', 'h3', 'i', 'li',
     'ol', 'p', 'pre', 's', 'strong', 'u', 'ul',
 ]
-
-
-def sanitize_ticket_description(description):
-    if description is None:
-        return ''
-    return bleach.clean(
-        description,
-        tags=DESCRIPTION_TAGS,
-        attributes={'a': ['href', 'title']},
-        protocols=['http', 'https', 'mailto'],
-        strip=True,
-    )
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -44,7 +32,7 @@ class TicketSerializerVersion1(serializers.ModelSerializer):
         return ticket.getUrl
 
     def get_description(self, ticket):
-        return sanitize_ticket_description(ticket.description)
+        return service.sanitiseTicketDescription(ticket.description)
 
     class Meta:
         model = Ticket
@@ -79,58 +67,61 @@ class TicketSubTaskCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         parent = self.context['ticket']
-        with transaction.atomic():
-            project = Project.objects.select_for_update().get(pk=parent.project_id)
-            max_order_no = Ticket.objects.filter(project=project).aggregate(
-                max_order_no=Max('orderNo')
-            )['max_order_no'] or 0
-            subtask = Ticket.objects.create(
-                url=f'{project.code}-{max_order_no + 1}',
-                summary=validated_data['summary'],
-                type=Ticket.Type.SUB_TASK,
-                priority=parent.priority,
-                project=project,
-                reporter=self.context['request'].user,
-                columnStatus=parent.columnStatus,
-            )
-            parent.subTask.add(subtask)
+        project = parent.project
+        maxOrderNo = Ticket.objects.filter(project=project).aggregate(maxOrderNo=Max('orderNo'))['maxOrderNo'] or 0
+        subtask = Ticket.objects.create(
+            url=f'{project.code}-{maxOrderNo + 1}',
+            summary=validated_data['summary'],
+            type=Ticket.Type.SUB_TASK,
+            priority=parent.priority,
+            project=project,
+            reporter=self.context['request'].user,
+            columnStatus=parent.columnStatus,
+            parent=parent
+        )
         return subtask
 
 
 class TicketSubTaskAttachSerializer(serializers.Serializer):
-    ticket_ids = serializers.ListField(
-        child=serializers.IntegerField(min_value=1),
-        allow_empty=False,
-    )
+    ticketIds = serializers.ListField(child=serializers.IntegerField(min_value=1), allow_empty=False)
 
-    def validate_ticket_ids(self, ticket_ids):
-        parent = self.context['ticket']
-        tickets = Ticket.objects.filter(
-            id__in=ticket_ids,
-            type=Ticket.Type.SUB_TASK,
+
+class EpicIssueCreateSerializer(serializers.Serializer):
+    summary = serializers.CharField(max_length=2048, allow_blank=False, trim_whitespace=True)
+
+    def create(self, validated_data):
+        epic = self.context['ticket']
+        project = epic.project
+        maxOrderNo = Ticket.objects.filter(project=project).aggregate(maxOrderNo=Max('orderNo'))['maxOrderNo'] or 0
+        return Ticket.objects.create(
+            url=f'{project.code}-{maxOrderNo + 1}',
+            summary=validated_data['summary'],
+            type=Ticket.Type.STORY,
+            priority=epic.priority,
+            project=project,
+            reporter=self.context['request'].user,
+            columnStatus=epic.columnStatus,
+            epic=epic,
         )
-        tickets_by_id = {ticket.id: ticket for ticket in tickets}
-        if len(tickets_by_id) != len(set(ticket_ids)):
-            raise serializers.ValidationError('One or more selected tickets are not subtasks.')
-        if parent.id in tickets_by_id:
-            raise serializers.ValidationError('A ticket cannot be a subtask of itself.')
-        return [tickets_by_id[ticket_id] for ticket_id in dict.fromkeys(ticket_ids)]
+
+
+class EpicIssueAttachSerializer(serializers.Serializer):
+    ticketIds = serializers.ListField(child=serializers.IntegerField(min_value=1), allow_empty=False)
+
+
+class TicketLinkCreateSerializer(serializers.Serializer):
+    linkType = serializers.ChoiceField(choices=TicketLink.LinkType.choices)
+    ticketIds = serializers.ListField(child=serializers.IntegerField(min_value=1), allow_empty=False)
 
 
 class TicketInlineUpdateSerializer(serializers.ModelSerializer):
-    assignee = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
+    assignee = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), allow_null=True, required=False)
+    columnStatus = serializers.PrimaryKeyRelatedField(queryset=ColumnStatus.objects.none(), required=False)
+    label = serializers.PrimaryKeyRelatedField(queryset=Label.objects.all(), many=True, required=False)
+    epic = serializers.PrimaryKeyRelatedField(
+        queryset=Ticket.objects.filter(type=Ticket.Type.EPIC),
         allow_null=True,
-        required=False,
-    )
-    columnStatus = serializers.PrimaryKeyRelatedField(
-        queryset=ColumnStatus.objects.none(),
-        required=False,
-    )
-    label = serializers.PrimaryKeyRelatedField(
-        queryset=Label.objects.all(),
-        many=True,
-        required=False,
+        required=False
     )
 
     class Meta:
@@ -145,10 +136,16 @@ class TicketInlineUpdateSerializer(serializers.ModelSerializer):
             'columnStatus',
             'resolution',
             'label',
+            'epic',
         ]
 
     def validate_description(self, description):
-        return sanitize_ticket_description(description)
+        return service.sanitiseTicketDescription(description)
+
+    def validate_epic(self, epic):
+        if epic is not None and epic == self.instance:
+            raise serializers.ValidationError('A ticket cannot be its own epic.')
+        return epic
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -161,20 +158,8 @@ class TicketInlineUpdateSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = [
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'email',
-        ]
-        read_only_fields = [
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'email',
-        ]
+        fields = ['id', 'username', 'first_name', 'last_name', 'email']
+        read_only_fields = ['id', 'username', 'first_name', 'last_name', 'email']
 
 
 class TicketCommentSerializer(serializers.ModelSerializer):
@@ -182,30 +167,10 @@ class TicketCommentSerializer(serializers.ModelSerializer):
     ticket = serializers.PrimaryKeyRelatedField(read_only=True)
     comment = serializers.CharField()
     createdDateTime = serializers.DateTimeField(read_only=True)
-
-    inLikes = serializers.BooleanField(
-        source='in_likes',
-        read_only=True,
-        default=False,
-    )
-
-    inDisLikes = serializers.BooleanField(
-        source='in_dislikes',
-        read_only=True,
-        default=False,
-    )
-
-    likesCount = serializers.IntegerField(
-        source='likes_count',
-        read_only=True,
-        default=0,
-    )
-
-    disLikesCount = serializers.IntegerField(
-        source='dislikes_count',
-        read_only=True,
-        default=0,
-    )
+    inLikes = serializers.BooleanField(source='in_likes', read_only=True, default=False)
+    inDisLikes = serializers.BooleanField(source='in_dislikes', read_only=True, default=False)
+    likesCount = serializers.IntegerField(source='likes_count', read_only=True, default=0)
+    disLikesCount = serializers.IntegerField(source='dislikes_count', read_only=True, default=0)
 
     class Meta:
         model = TicketComment
@@ -223,12 +188,12 @@ class TicketCommentSerializer(serializers.ModelSerializer):
         ]
 
     def validate_comment(self, comment):
-        sanitized = sanitize_ticket_description(comment)
+        sanitized = service.sanitiseTicketDescription(comment)
         if not bleach.clean(sanitized, tags=[], strip=True).strip():
             raise serializers.ValidationError('A comment cannot be empty.')
         return sanitized
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['comment'] = sanitize_ticket_description(representation['comment'])
+        representation['comment'] = service.sanitiseTicketDescription(representation['comment'])
         return representation

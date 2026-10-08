@@ -1,5 +1,6 @@
 import re
 
+import bleach
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -54,6 +55,10 @@ ticketLinkInverts = {
     TicketLink.LinkType.IS_PARENT_TASK_OF: TicketLink.LinkType.IS_SUBTASK_OK,
     TicketLink.LinkType.IS_SUBTASK_OK: TicketLink.LinkType.IS_PARENT_TASK_OF,
 }
+
+DESCRIPTION_TAGS = [
+    'a', 'blockquote', 'br', 'code', 'em', 'h1', 'h2', 'h3', 'i', 'li', 'ol', 'p', 'pre', 's', 'strong', 'u', 'ul'
+]
 
 
 def updateOrderNoForListOfObjects(model, ids):
@@ -227,3 +232,17 @@ def sendEmailToNotifyUserAddedToTeam(request, user: User):
     emailMessage = EmailMessage(emailSubject, message, settings.EMAIL_HOST_USER, [user.email])
     emailMessage.send()
     return
+
+
+def sanitiseTicketDescription(description):
+    if description is None:
+        return ''
+
+    cleanedText = bleach.clean(
+        description,
+        tags=DESCRIPTION_TAGS,
+        attributes={'a': ['href', 'title']},
+        protocols=['http', 'https', 'mailto'],
+        strip=True,
+    )
+    return cleanedText

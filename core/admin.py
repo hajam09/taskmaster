@@ -55,7 +55,6 @@ class ColumnStatusAdmin(admin.ModelAdmin):
 class TicketAdmin(admin.ModelAdmin):
     list_display = ('id', 'url', 'type', 'orderNo')
     filter_horizontal = (
-        'subTask',
         'label',
         'watchers',
     )
@@ -67,12 +66,6 @@ class TicketAdmin(admin.ModelAdmin):
         'type',
         'priority',
     )
-
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name in ['subTask']:
-            if request._obj_ is not None:
-                kwargs['queryset'] = Ticket.objects.exclude(pk=request._obj_.pk)
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_form(self, request, obj=None, **kwargs):
         request._obj_ = obj

@@ -22,14 +22,16 @@ from core.models import (
 
 
 class Command(BaseCommand):
-    NUMBER_OF_USERS = 14
-    NUMBER_OF_TEAMS = 3
-    NUMBER_OF_PROJECTS = 2
-    NUMBER_OF_BOARDS_PER_PROJECT = 2
+    NUMBER_OF_USERS = 100
+    NUMBER_OF_TEAMS = 10
+    NUMBER_OF_PROJECTS = 8
+    NUMBER_OF_BOARDS_PER_PROJECT = 3
     NUMBER_OF_LABELS = 20
     NUMBER_OF_COLUMN_STATUS_PER_COLUMN = 2
-    NUMBER_OF_TICKETS_PER_COLUMN_STATUS = 5
-    NUMBER_OF_TICKET_COMMENTS_PER_TICKET = 10
+    NUMBER_OF_TICKETS_PER_COLUMN_STATUS = 10
+    NUMBER_OF_EPICS_PER_PROJECT = 3
+    PERCENTAGE_OF_TICKETS_IN_EPIC = 60
+    NUMBER_OF_TICKET_COMMENTS_PER_TICKET = 20
 
     def __init__(self):
         super().__init__()
@@ -187,7 +189,7 @@ class Command(BaseCommand):
             Ticket.Type.TASK: 1,
             Ticket.Type.TEST: 1,
             Ticket.Type.SPIKE: 1,
-            Ticket.Type.EPIC: 0.08,  # EPIC is rare
+            Ticket.Type.EPIC: 0,
         }
 
         ticket = Ticket(
@@ -223,7 +225,6 @@ class Command(BaseCommand):
         return tickets
 
     def seedTicket(self):
-        Ticket.subTask.through.objects.all().delete()
         Ticket.label.through.objects.all().delete()
         Ticket.watchers.through.objects.all().delete()
         Sprint.tickets.through.objects.all().delete()
@@ -350,17 +351,51 @@ class Command(BaseCommand):
             sprintTickets = item['tickets']
             sprint.tickets.add(*sprintTickets)
 
-        epicTickets = list(Ticket.objects.filter(type=Ticket.Type.EPIC))
-        otherTickets = list(Ticket.objects.exclude(type=Ticket.Type.EPIC))
-        random.shuffle(otherTickets)
-        X = len(epicTickets) + 1
-        otherTicketsAsChunks = [[] for _ in range(X)]
+        epicTickets = []
+        for project in Project.objects.all():
+            projectTickets = Ticket.objects.filter(project=project)
+            counter = [projectTickets.count()]
+            columnStatuses = list(ColumnStatus.objects.filter(column__board__project=project))
 
-        for index, ticket in enumerate(otherTickets):
-            otherTicketsAsChunks[index % X].append(ticket)
+            for _ in range(self.NUMBER_OF_EPICS_PER_PROJECT):
+                epic = self._createTicket(
+                    project,
+                    counter,
+                    assignees,
+                    users,
+                    random.choice(columnStatuses),
+                )
+                epic.type = Ticket.Type.EPIC
+                epicTickets.append(epic)
 
-        for epic, chunk in zip(epicTickets, otherTicketsAsChunks):
-            Ticket.objects.filter(pk__in=[t.pk for t in chunk]).update(epic=epic)
+        Ticket.objects.bulk_create(epicTickets)
+        Ticket.objects.update(orderNo=F('id'))
+
+        for project in Project.objects.all():
+            parentTickets = list(
+                Ticket.objects.filter(project=project).exclude(type=Ticket.Type.SUB_TASK)
+            )
+            subtaskTickets = list(
+                Ticket.objects.filter(project=project, type=Ticket.Type.SUB_TASK)
+            )
+
+            for ticket in subtaskTickets:
+                ticket.parent = random.choice(parentTickets)
+
+            Ticket.objects.bulk_update(subtaskTickets, ['parent'])
+
+        for project in Project.objects.all():
+            epicTickets = list(Ticket.objects.filter(project=project, type=Ticket.Type.EPIC))
+            otherTickets = list(Ticket.objects.filter(project=project).exclude(type=Ticket.Type.EPIC))
+            ticketsToAssign = random.sample(
+                otherTickets,
+                len(otherTickets) * self.PERCENTAGE_OF_TICKETS_IN_EPIC // 100,
+            )
+
+            for index, ticket in enumerate(ticketsToAssign):
+                ticket.epic = epicTickets[index % len(epicTickets)]
+
+            Ticket.objects.bulk_update(ticketsToAssign, ['epic'])
 
     def seedTicketComment(self):
         TicketComment.objects.all().delete()

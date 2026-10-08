@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from core.models import Board, Column, ColumnStatus, Label, Project, Ticket, TicketComment
+from core.models import Board, Column, ColumnStatus, Label, Project, Ticket, TicketComment, TicketLink
 
 
 class TicketInlineUpdateApiTests(TestCase):
@@ -21,13 +21,15 @@ class TicketInlineUpdateApiTests(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
         self.client.force_login(user=self.user)
-        self.api_url = reverse('core:ticketApiVersion1')
-        self.user_search_url = reverse('core:userLiveSearchApiVersion1')
-        self.label_search_url = reverse('core:labelLiveSearchApiVersion1')
-        self.ticket_search_url = reverse('core:ticketLiveSearchApiVersion1')
-        self.ticket_page_url = reverse('core:ticket-view', kwargs={'url': self.ticket.url})
-        self.comments_url = reverse('core:ticket-comments', kwargs={'ticket_id': self.ticket.id})
-        self.subtasks_url = reverse('core:ticket-subtasks', kwargs={'ticket_id': self.ticket.id})
+        self.api_url = reverse('ticket:ticketApiVersion1')
+        self.user_search_url = reverse('ticket:userLiveSearchApiVersion1')
+        self.label_search_url = reverse('ticket:labelLiveSearchApiVersion1')
+        self.ticket_search_url = reverse('ticket:ticketLiveSearchApiVersion1')
+        self.ticket_page_url = reverse('ticket:ticket-view', kwargs={'url': self.ticket.url})
+        self.comments_url = reverse('ticket:ticket-comments', kwargs={'ticketId': self.ticket.id})
+        self.subtasks_url = reverse('ticket:ticket-subtasks', kwargs={'ticketId': self.ticket.id})
+        self.epic_issues_url = reverse('ticket:ticket-epic-issues', kwargs={'ticketId': self.ticket.id})
+        self.linked_issues_url = reverse('ticket:ticket-linked-issues', kwargs={'ticketId': self.ticket.id})
 
     @staticmethod
     def create_project(name, code):
@@ -120,6 +122,60 @@ class TicketInlineUpdateApiTests(TestCase):
         self.assertEqual(response.data['columnStatus']['id'], second_status.id)
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.columnStatus_id, second_status.id)
+
+    def test_patch_assigns_and_clears_epic(self):
+        epic = Ticket.objects.create(
+            url='ONE-2',
+            summary='Product epic',
+            type=Ticket.Type.EPIC,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+
+        response = self.client.patch(
+            self.api_url,
+            {'epic': epic.id},
+            format='json',
+            QUERY_STRING=f'url={self.ticket.url}',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['epic']['id'], epic.id)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.epic, epic)
+
+        response = self.client.patch(
+            self.api_url,
+            {'epic': None},
+            format='json',
+            QUERY_STRING=f'url={self.ticket.url}',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.data['epic'])
+        self.ticket.refresh_from_db()
+        self.assertIsNone(self.ticket.epic)
+
+    def test_patch_rejects_non_epic_as_epic(self):
+        other_ticket = Ticket.objects.create(
+            url='ONE-2',
+            summary='Regular issue',
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+
+        response = self.client.patch(
+            self.api_url,
+            {'epic': other_ticket.id},
+            format='json',
+            QUERY_STRING=f'url={self.ticket.url}',
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.ticket.refresh_from_db()
+        self.assertIsNone(self.ticket.epic)
 
     def test_description_html_is_sanitized_before_saving(self):
         response = self.client.patch(
@@ -258,6 +314,130 @@ class TicketInlineUpdateApiTests(TestCase):
             [ticket.id for ticket in sorted(subtasks, key=lambda ticket: ticket.url)[:10]],
         )
 
+    def test_epic_live_search_returns_only_epics(self):
+        epic = Ticket.objects.create(
+            url='ONE-2',
+            summary='Project epic',
+            type=Ticket.Type.EPIC,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+        Ticket.objects.create(
+            url='ONE-3',
+            summary='Regular issue',
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+
+        response = self.client.get(self.ticket_search_url, {'epicOnly': 'true'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item['id'] for item in response.data], [epic.id])
+
+    def test_ticket_page_shows_epic_field_when_no_epic_is_assigned(self):
+        response = self.client.get(self.ticket_page_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-inline-field="epic"')
+        self.assertContains(response, 'Add epic')
+
+    def test_index_dashboard_shows_my_work_and_hides_private_project_tickets(self):
+        self.ticket.assignee = self.user
+        self.ticket.save(update_fields=['assignee'])
+        private_project = Project.objects.create(
+            name='Private project',
+            code='PRIVATE',
+            description='',
+            lead=User.objects.create_user(username='private-lead'),
+            isPrivate=True,
+        )
+        private_status = self.create_status(private_project, 'Private To Do')
+        private_ticket = Ticket.objects.create(
+            url='PRIVATE-1',
+            summary='Private assigned issue',
+            project=private_project,
+            reporter=self.user,
+            assignee=self.user,
+            columnStatus=private_status,
+        )
+
+        response = self.client.get(reverse('core:index-view'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['openTicketCount'], 1)
+        self.assertContains(response, self.ticket.url)
+        self.assertNotContains(response, private_ticket.url)
+
+    def test_index_dashboard_requires_login(self):
+        self.client.logout()
+
+        response = self.client.get(reverse('core:index-view'))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], '/login?next=/')
+
+    def test_boards_page_only_renders_add_form_when_requested(self):
+        boards_url = reverse('core:boards-view')
+
+        response = self.client.get(boards_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'class="p-4 add-board-form"')
+
+        response = self.client.get(boards_url, {'add': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="p-4 add-board-form"')
+
+        response = self.client.get(boards_url, {'add': 'false'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'class="p-4 add-board-form"')
+
+    def test_projects_page_only_renders_add_form_when_requested(self):
+        projects_url = reverse('core:projects-view')
+
+        response = self.client.get(projects_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'class="p-4 add-project-form"')
+
+        response = self.client.get(projects_url, {'add': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="p-4 add-project-form"')
+
+        response = self.client.get(projects_url, {'add': 'false'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'class="p-4 add-project-form"')
+
+    def test_teams_page_only_renders_add_form_when_requested(self):
+        teams_url = reverse('core:teams-view')
+
+        response = self.client.get(teams_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'class="p-4 add-team-form"')
+
+        response = self.client.get(teams_url, {'add': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="p-4 add-team-form"')
+
+        response = self.client.get(teams_url, {'add': 'false'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'class="p-4 add-team-form"')
+
+    def test_labels_page_only_renders_add_form_when_requested(self):
+        labels_url = reverse('core:labels-view')
+
+        response = self.client.get(labels_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'class="p-4 add-label-form"')
+
+        response = self.client.get(labels_url, {'add': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="p-4 add-label-form"')
+
+        response = self.client.get(labels_url, {'add': 'false'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'class="p-4 add-label-form"')
+
     def test_ticket_subtasks_api_lists_only_the_parent_tickets_subtasks(self):
         subtask = Ticket.objects.create(
             url='ONE-2',
@@ -311,7 +491,7 @@ class TicketInlineUpdateApiTests(TestCase):
 
         response = self.client.post(
             self.subtasks_url,
-            {'ticket_ids': [subtask.id]},
+            {'ticketIds': [subtask.id]},
             format='json',
         )
 
@@ -322,12 +502,184 @@ class TicketInlineUpdateApiTests(TestCase):
     def test_ticket_subtasks_api_rejects_non_subtasks(self):
         response = self.client.post(
             self.subtasks_url,
-            {'ticket_ids': [self.ticket.id]},
+            {'ticketIds': [self.ticket.id]},
             format='json',
         )
 
         self.assertEqual(response.status_code, 400)
         self.assertFalse(self.ticket.subTask.exists())
+
+    def test_epic_issues_api_lists_creates_and_attaches_issues(self):
+        epic = Ticket.objects.create(
+            url='ONE-2',
+            summary='Epic',
+            type=Ticket.Type.EPIC,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+        epic_issues_url = reverse('ticket:ticket-epic-issues', kwargs={'ticketId': epic.id})
+        existing_issue = Ticket.objects.create(
+            url='ONE-3',
+            summary='Existing issue',
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+
+        response = self.client.get(epic_issues_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, [])
+
+        response = self.client.post(
+            epic_issues_url,
+            {'summary': 'New epic issue'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 201)
+        created_issue = Ticket.objects.get(summary='New epic issue')
+        self.assertEqual(created_issue.type, Ticket.Type.STORY)
+        self.assertEqual(created_issue.epic, epic)
+        self.assertEqual([issue['id'] for issue in response.data], [created_issue.id])
+
+        response = self.client.post(
+            epic_issues_url,
+            {'ticketIds': [existing_issue.id]},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 200)
+        existing_issue.refresh_from_db()
+        self.assertEqual(existing_issue.epic, epic)
+        self.assertEqual(
+            {issue['id'] for issue in response.data},
+            {created_issue.id, existing_issue.id},
+        )
+
+    def test_epic_issues_api_rejects_epic_tickets_and_non_epic_parent(self):
+        epic = Ticket.objects.create(
+            url='ONE-2',
+            summary='Epic',
+            type=Ticket.Type.EPIC,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+        epic_issues_url = reverse('ticket:ticket-epic-issues', kwargs={'ticketId': epic.id})
+
+        response = self.client.post(
+            epic_issues_url,
+            {'ticketIds': [epic.id]},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 400)
+
+        response = self.client.get(self.epic_issues_url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_epic_ticket_page_shows_issue_create_and_attach_forms(self):
+        epic = Ticket.objects.create(
+            url='ONE-2',
+            summary='Epic',
+            type=Ticket.Type.EPIC,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+
+        response = self.client.get(reverse('ticket:ticket-view', kwargs={'url': epic.url}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'create-epic-issue-form')
+        self.assertContains(response, 'add-epic-issues-form')
+        self.assertContains(response, 'No issues found for this epic.')
+        self.assertContains(response, 'id="epicIssueProgress"')
+        self.assertNotIn('epicProgress', response.context)
+
+    def test_ticket_linked_issues_api_lists_outgoing_and_incoming_links(self):
+        outgoing_ticket = Ticket.objects.create(
+            url='ONE-2',
+            summary='Outgoing',
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+        incoming_ticket = Ticket.objects.create(
+            url='ONE-3',
+            summary='Incoming',
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+        TicketLink.objects.create(
+            source=self.ticket,
+            target=outgoing_ticket,
+            linkType=TicketLink.LinkType.BLOCKS,
+        )
+        TicketLink.objects.create(
+            source=incoming_ticket,
+            target=self.ticket,
+            linkType=TicketLink.LinkType.BLOCKS,
+        )
+
+        response = self.client.get(self.linked_issues_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['linkTypes'][0], {
+            'value': TicketLink.LinkType.LINKED_TO_ACTION,
+            'label': TicketLink.LinkType.LINKED_TO_ACTION.label,
+        })
+        groups_by_type = {group['linkType']: group['tickets'] for group in response.data['linkedIssues']}
+        self.assertEqual(groups_by_type[TicketLink.LinkType.BLOCKS.label][0]['id'], outgoing_ticket.id)
+        self.assertEqual(groups_by_type[TicketLink.LinkType.IS_BLOCKED_BY.label][0]['id'], incoming_ticket.id)
+
+    def test_ticket_linked_issues_api_creates_links_without_page_refresh(self):
+        target = Ticket.objects.create(
+            url='ONE-2',
+            summary='Linked target',
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+
+        response = self.client.post(
+            self.linked_issues_url,
+            {
+                'linkType': TicketLink.LinkType.BLOCKS,
+                'ticketIds': [target.id],
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(TicketLink.objects.filter(
+            source=self.ticket,
+            target=target,
+            linkType=TicketLink.LinkType.BLOCKS,
+        ).exists())
+        group = next(group for group in response.data['linkedIssues'] if group['linkType'] == 'blocks')
+        self.assertEqual(group['tickets'][0]['id'], target.id)
+
+    def test_ticket_linked_issues_api_rejects_self_links_and_invalid_link_types(self):
+        self_link_response = self.client.post(
+            self.linked_issues_url,
+            {
+                'linkType': TicketLink.LinkType.BLOCKS,
+                'ticketIds': [self.ticket.id],
+            },
+            format='json',
+        )
+        invalid_type_response = self.client.post(
+            self.linked_issues_url,
+            {
+                'linkType': 'NOT_A_LINK_TYPE',
+                'ticketIds': [self.ticket.id + 1],
+            },
+            format='json',
+        )
+
+        self.assertEqual(self_link_response.status_code, 400)
+        self.assertEqual(invalid_type_response.status_code, 400)
+        self.assertFalse(TicketLink.objects.exists())
 
     def test_ticket_page_renders_subtasks_from_the_api(self):
         response = self.client.get(self.ticket_page_url)
@@ -335,6 +687,7 @@ class TicketInlineUpdateApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="subtaskList"')
         self.assertNotContains(response, 'ticket.subTask.all')
+        self.assertNotContains(response, 'ticketLinks')
 
     def test_comments_api_lists_comments_with_reaction_state(self):
         comment = TicketComment.objects.create(
@@ -387,8 +740,8 @@ class TicketInlineUpdateApiTests(TestCase):
             comment='<p>Original comment</p>',
         )
         detail_url = reverse(
-            'core:ticket-comment-detail',
-            kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
+            'ticket:ticket-comment-detail',
+            kwargs={'ticketId': self.ticket.id, 'pk': comment.id},
         )
 
         response = self.client.patch(
@@ -410,8 +763,8 @@ class TicketInlineUpdateApiTests(TestCase):
             comment='<p>Owner comment</p>',
         )
         detail_url = reverse(
-            'core:ticket-comment-detail',
-            kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
+            'ticket:ticket-comment-detail',
+            kwargs={'ticketId': self.ticket.id, 'pk': comment.id},
         )
 
         response = self.client.patch(
@@ -438,8 +791,8 @@ class TicketInlineUpdateApiTests(TestCase):
             comment='<p>Other ticket comment</p>',
         )
         detail_url = reverse(
-            'core:ticket-comment-detail',
-            kwargs={'ticket_id': self.ticket.id, 'pk': other_comment.id},
+            'ticket:ticket-comment-detail',
+            kwargs={'ticketId': self.ticket.id, 'pk': other_comment.id},
         )
 
         response = self.client.get(detail_url)
@@ -456,8 +809,8 @@ class TicketInlineUpdateApiTests(TestCase):
 
         response = self.client.post(
             reverse(
-                'core:ticket-comment-detail',
-                kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
+                'ticket:ticket-comment-detail',
+                kwargs={'ticketId': self.ticket.id, 'pk': comment.id},
             ),
             {'reaction': 'like'},
             format='json',
@@ -473,8 +826,8 @@ class TicketInlineUpdateApiTests(TestCase):
 
         self.client.post(
             reverse(
-                'core:ticket-comment-detail',
-                kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
+                'ticket:ticket-comment-detail',
+                kwargs={'ticketId': self.ticket.id, 'pk': comment.id},
             ),
             {'reaction': 'like'},
             format='json',
@@ -491,8 +844,8 @@ class TicketInlineUpdateApiTests(TestCase):
 
         response = self.client.post(
             reverse(
-                'core:ticket-comment-detail',
-                kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
+                'ticket:ticket-comment-detail',
+                kwargs={'ticketId': self.ticket.id, 'pk': comment.id},
             ),
             {'reaction': 'dislike'},
             format='json',
@@ -513,8 +866,8 @@ class TicketInlineUpdateApiTests(TestCase):
             comment='<p>Comment</p>',
         )
         detail_url = reverse(
-            'core:ticket-comment-detail',
-            kwargs={'ticket_id': self.ticket.id, 'pk': comment.id},
+            'ticket:ticket-comment-detail',
+            kwargs={'ticketId': self.ticket.id, 'pk': comment.id},
         )
 
         response = self.client.post(detail_url, {'reaction': 'applaud'}, format='json')

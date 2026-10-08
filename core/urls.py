@@ -6,7 +6,6 @@ from core.api import (
     ScrumBoardBacklogTicketUpdateApiVersion1,
     StartSprintEventApiVersion1,
     CompleteSprintEventApiVersion1,
-    TicketOrderNoUpdateApiV1,
     TicketTypeListApiVersion1,
     TicketPriorityListApiVersion1,
     ColumnStatusListApiVersion1,
@@ -15,15 +14,9 @@ from core.api import (
     UserListApiVersion1,
     ProjectStatusListApiVersion1,
     LabelListApiVersion1,
-    LabelLiveSearchApiVersion1,
-    UserLiveSearchApiVersion1,
-    TicketApiVersion1,
-    TicketLiveSearchApiVersion1,
-    TicketCommentListCreateView,
-    TicketCommentDetailView,
-    TicketSubTaskListCreateView,
 )
 from core.views import (
+    indexView,
     loginView,
     registerView,
     logoutView,
@@ -42,13 +35,13 @@ from core.views import (
     labelsView,
     labelView,
     ticketsView,
-    ticketView,
     newTicketView,
 )
 
 app_name = 'core'
 
 urlpatterns = [
+    path('', indexView, name='index-view'),
     path('login/', loginView, name='login-view'),
     path('register/', registerView, name='register-view'),
     path('logout/', logoutView, name='logout-view'),
@@ -68,7 +61,6 @@ urlpatterns = [
     path('labels/<slug:url>/', labelView, name='label-view'),
     path('tickets/', ticketsView, name='tickets-view'),
     path('tickets/new/', newTicketView, name='new-ticket-view'),
-    path('tickets/<slug:url>/', ticketView, name='ticket-view'),
 ]
 
 urlpatterns += [
@@ -96,11 +88,6 @@ urlpatterns += [
         'api/v1/completeSprintEventApiVersion1/',
         CompleteSprintEventApiVersion1.as_view(),
         name='completeSprintEventApiVersion1'
-    ),
-    path(
-        'api/v1/ticketOrderNoUpdateApiV1/',
-        TicketOrderNoUpdateApiV1.as_view(),
-        name='ticketOrderNoUpdateApiV1'
     ),
     path(
         'api/v1/ticketTypeListApiVersion1/',
@@ -141,45 +128,5 @@ urlpatterns += [
         'api/v1/labelListApiVersion1/',
         LabelListApiVersion1.as_view(),
         name='labelListApiVersion1'
-    ),
-    path(
-        'api/v1/ticketLiveSearchApiVersion1/',
-        TicketLiveSearchApiVersion1.as_view(),
-        name='ticketLiveSearchApiVersion1'
-    ),
-    path(
-        'api/v1/userLiveSearchApiVersion1/',
-        UserLiveSearchApiVersion1.as_view(),
-        name='userLiveSearchApiVersion1'
-    ),
-    path(
-        'api/v1/labelLiveSearchApiVersion1/',
-        LabelLiveSearchApiVersion1.as_view(),
-        name='labelLiveSearchApiVersion1'
-    ),
-    path(
-        'api/v1/ticketApiVersion1/',
-        TicketApiVersion1.as_view(),
-        name='ticketApiVersion1'
-    )
-]
-
-
-urlpatterns += [
-    path(
-        'tickets/<int:ticket_id>/subtasks/',
-        TicketSubTaskListCreateView.as_view(),
-        name='ticket-subtasks'
-    ),
-    path(
-        'tickets/<int:ticket_id>/comments/',
-        TicketCommentListCreateView.as_view(),
-        name='ticket-comments'
-    ),
-
-    path(
-        'tickets/<int:ticket_id>/comments/<int:pk>/',
-        TicketCommentDetailView.as_view(),
-        name='ticket-comment-detail'
     ),
 ]

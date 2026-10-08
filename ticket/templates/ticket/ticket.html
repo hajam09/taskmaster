@@ -72,67 +72,81 @@
                                 <span class="float-right">▼</span>
                             </div>
 
-                            {% if epicProgress %}
-                                <div class="my-3">
-                                    <div class="mb-2">
-                                        <small>{{ epicProgress.done }} of {{ epicProgress.total }} done</small>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar progress-bar-striped progress-bar-animated"
-                                             role="progressbar"
-                                             aria-valuenow="{{ epicProgress.percent }}"
-                                             aria-valuemin="0"
-                                             aria-valuemax="100"
-                                             style="width: {{ epicProgress.percent }}%;">
-                                            {{ epicProgress.percent }}%
-                                        </div>
+                            <div class="my-3 d-none" id="epicIssueProgress">
+                                <div class="mb-2">
+                                    <small><span id="epicIssueProgressCount">0 of 0 done</span></small>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                         id="epicIssueProgressBar"
+                                         role="progressbar"
+                                         aria-valuenow="0"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100"
+                                         style="width: 0%;">
+                                        0%
                                     </div>
                                 </div>
-                            {% endif %}
+                            </div>
 
                             <div id="epicTicketsPanel" class="collapse show mt-3">
-                                <div id="epicTicketsList">
-                                    {% for et in ticket.epicTickets.all %}
-                                        {% ticketHorizontalBarComponent et False %}
-                                    {% empty %}
-                                        <i>No issues found for ths epic!</i>
-                                    {% endfor %}
-                                </div>
+                                <div id="epicIssueMessage" class="alert d-none mt-2" role="status"></div>
+                                <form class="create-epic-issue-form">
+                                    <div class="form-row">
+                                        <div class="col-12 col-md mb-2">
+                                            <input type="text" class="form-control form-control-sm w-100"
+                                                   name="summary" placeholder="Create new issue" required>
+                                        </div>
+                                        <div class="col-auto mb-2">
+                                            <button type="submit" class="btn btn-primary btn-sm">Create</button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <form class="add-epic-issues-form">
+                                    <div class="form-row">
+                                        <div class="col-12 col-md mb-2">
+                                            <select class="form-control form-control-sm epic-issues-list"
+                                                    name="ticketIds" multiple="multiple" required>
+                                            </select>
+                                        </div>
+                                        <div class="col-auto mb-2">
+                                            <button type="submit" class="btn btn-primary btn-sm">Add issues</button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <ul class="list-group list-group-flush" id="epicTicketsList"></ul>
+                                <i id="epicIssueEmpty">No issues found for this epic.</i>
                             </div>
                         </div>
                     </div>
 
                 {% else %}
 
-                    {% if ticket.ticketSubTask %}
+                    <div id="parentSubtasksSection" class="d-none">
                         {% for pt in ticket.ticketSubTask.all %}
                             <div class="card mt-4">
                                 <div class="card-body">
                                     <div class="collapse-header font-weight-bold" data-toggle="collapse"
-                                         data-target="#parentTaskTicketsPanel">
+                                         data-target="#parentTaskTicketsPanel{{ pt.id }}">
                                         {% if forloop.first %}
                                             Other subtasks - All subtasks of the parent issue
-                                            <a href="{{ pt.getUrl }}">{{ pt.url }}</a>
                                         {% endif %}
-
+                                        <a href="{{ pt.getUrl }}">{{ pt.url }}</a>
                                         <span class="float-right">▼</span>
                                     </div>
 
-                                    <div id="parentTaskTicketsPanel" class="collapse show mt-3">
-                                        <div id="parentSubtaskList">
-                                            {% for st in pt.subTask.all %}
-                                                {% if st != ticket %}
-                                                    {% ticketHorizontalBarComponent st %}
-                                                {% endif %}
-                                            {% empty %}
-                                                <i>No subtasks available for this ticket!</i>
-                                            {% endfor %}
-                                        </div>
+                                    <div id="parentTaskTicketsPanel{{ pt.id }}" class="collapse show mt-3 parent-subtasks-panel"
+                                         data-subtasks-url="{% url 'ticket:ticket-subtasks' pt.id %}">
+                                        <div class="alert d-none mt-2 parent-subtask-message" role="status"></div>
+                                        <ul class="list-group list-group-flush parent-subtask-list"></ul>
+                                        <i class="parent-subtask-empty">No other subtasks available for this ticket.</i>
                                     </div>
                                 </div>
                             </div>
                         {% endfor %}
-                    {% endif %}
+                    </div>
 
 
                     <div class="card mt-4">
@@ -177,7 +191,7 @@
                                 <form class="add-subtasks-form">
                                     <div class="form-row">
                                         <div class="col-12 col-md mb-2">
-                                            <select class="form-control form-control-sm subtasks-list" name="ticket_ids"
+                                            <select class="form-control form-control-sm subtasks-list" name="ticketIds"
                                                     multiple="multiple" required>
                                             </select>
                                         </div>
@@ -202,39 +216,31 @@
                             </div>
 
                             <div id="linkedIssuesPanel" class="collapse show mt-3">
-                                <form method="post">
-                                    {% csrf_token %}
-                                    <input name="add-linked-issue" hidden>
-
+                                <div id="linkedIssueMessage" class="alert d-none mt-2" role="status"></div>
+                                <form class="add-linked-issues-form">
                                     <div class="form-row align-items-center">
-                                        <div class="col-auto mb-2">
-                                            <select name="link-type" class="form-control form-control-sm">
+                                        <div class="col-12 col-md-auto mb-2">
+                                            <select name="linkType" class="form-control form-control-sm" required>
                                                 {% for value, label in linkTypeChoices %}
                                                     <option value="{{ value }}">{{ label }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
 
-                                        <div class="col mb-2">
-                                            <select class="form-control form-control-sm all-tickets-list" name="task-ids"
+                                        <div class="col-12 col-md mb-2">
+                                            <select class="form-control form-control-sm all-tickets-list" name="ticketIds"
                                                     multiple="multiple" required>
                                             </select>
                                         </div>
 
-                                        <div class="col-auto mb-2">
-                                            <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+                                        <div class="col-12 col-md-auto mb-2">
+                                            <button type="submit" class="btn btn-primary btn-sm">Link issues</button>
                                         </div>
                                     </div>
                                 </form>
 
-                                <div id="linkedIssuesList">
-                                    {% for key, values in ticketLinks.items %}
-                                        <small class="text-muted">{{ key }}</small>
-                                        {% for ticket in values %}
-                                            {% ticketHorizontalBarComponent ticket %}
-                                        {% endfor %}
-                                    {% endfor %}
-                                </div>
+                                <div id="linkedIssuesList"></div>
+                                <i id="linkedIssuesEmpty" class="d-none">No linked issues.</i>
                             </div>
                         </div>
                     </div>
@@ -267,10 +273,6 @@
                             <div class="tab-content" id="activityTabContent">
                                 <div class="tab-pane fade show active" id="comments-panel" role="tabpanel"
                                      aria-labelledby="comments-tab">
-                                    <div id="ticketCommentList" data-comments-url="{% url 'core:ticket-comments' ticket.id %}">
-                                        <p class="text-muted">Loading comments...</p>
-                                    </div>
-
                                     <form method="post" class="mt-3" id="addCommentForm">
                                         {% csrf_token %}
                                         <textarea id="newCommentHtml" class="comment-html d-none"></textarea>
@@ -284,6 +286,11 @@
                                             Post Comment
                                         </button>
                                     </form>
+
+                                    <div id="ticketCommentList" class="mt-4"
+                                         data-comments-url="{% url 'ticket:ticket-comments' ticket.id %}">
+                                        <p class="text-muted">Loading comments...</p>
+                                    </div>
                                 </div>
                                 <div class="tab-pane fade" id="history-panel" role="tabpanel"
                                      aria-labelledby="history-tab">
@@ -412,18 +419,23 @@
                                     {% endfor %}
                                 </div>
                             </div>
-                            {% if ticket.epic %}
+                            {% if ticket.type != 'EPIC' %}
                                 <div class="col-md-6 mb-3">
                                     <strong>Epic</strong>
-                                    <div>
-                                        <div>
+                                    <div class="inline-editable" data-inline-field="epic" data-inline-kind="select"
+                                         tabindex="0" title="Click to edit">
+                                        {% if ticket.epic %}
                                             <img src="{{ ticket.epic.ticketTypeIcon }}" width="20">
                                             <a href="{{ ticket.epic.getUrl }}">
-                                                {{ ticket.epic.summary|truncatechars:10 }}</a>
-                                        </div>
+                                                {{ ticket.epic.url }} {{ ticket.epic.summary|truncatechars:40 }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">Add epic</span>
+                                        {% endif %}
                                     </div>
                                 </div>
-                            {% elif ticket.ticketSubTask %}
+                            {% endif %}
+                            {% if ticket.ticketSubTask %}
                                 {% for pt in ticket.ticketSubTask.all %}
                                     {% if forloop.first %}
                                         <div class="col-md-6 mb-3">
@@ -450,11 +462,14 @@
     </div>
 
     <script>
-        const ticketApiUrl = '{% url "core:ticketApiVersion1" %}?url={{ ticket.url|urlencode }}';
-        const userLiveSearchUrl = '{% url "core:userLiveSearchApiVersion1" %}';
-        const labelLiveSearchUrl = '{% url "core:labelLiveSearchApiVersion1" %}';
-        const ticketCommentListUrl = '{% url "core:ticket-comments" ticket.id %}';
-        const ticketSubTaskListUrl = '{% url "core:ticket-subtasks" ticket.id %}';
+        const ticketApiUrl = '{% url "ticket:ticketApiVersion1" %}?url={{ ticket.url|urlencode }}';
+        const userLiveSearchUrl = '{% url "ticket:userLiveSearchApiVersion1" %}';
+        const labelLiveSearchUrl = '{% url "ticket:labelLiveSearchApiVersion1" %}';
+        const ticketLiveSearchUrl = '{% url "ticket:ticketLiveSearchApiVersion1" %}';
+        const ticketCommentListUrl = '{% url "ticket:ticket-comments" ticket.id %}';
+        const ticketSubTaskListUrl = '{% url "ticket:ticket-subtasks" ticket.id %}';
+        const ticketEpicIssuesUrl = '{% url "ticket:ticket-epic-issues" ticket.id %}';
+        const ticketLinkedIssuesUrl = '{% url "ticket:ticket-linked-issues" ticket.id %}';
         let ticketData = null;
 
         function renderInlineField(field) {
@@ -494,6 +509,21 @@
                     field.append(icon, document.createTextNode(' ' + value.assignee.name));
                 } else {
                     field.textContent = 'Unassigned';
+                }
+            } else if (name === 'epic') {
+                field.replaceChildren();
+                field.classList.toggle('text-muted', !value.epic);
+                if (value.epic) {
+                    const icon = document.createElement('img');
+                    icon.src = value.epic.icon;
+                    icon.width = 20;
+                    icon.alt = '';
+                    const link = document.createElement('a');
+                    link.href = value.epic.href;
+                    link.textContent = ` ${value.epic.url} ${value.epic.summary}`;
+                    field.append(icon, link);
+                } else {
+                    field.textContent = 'Add epic';
                 }
             } else if (name === 'columnStatus') {
                 field.replaceChildren();
@@ -576,8 +606,15 @@
                     const selectedOption = new Option(assignee.name, assignee.id, true, true);
                     selectedOption.icon = assignee.icon;
                     editor.add(selectedOption);
+                } else if (name === 'epic' && ticketData.epic) {
+                    const epic = ticketData.epic;
+                    const selectedOption = new Option(`${epic.url} ${epic.summary}`, epic.id, true, true);
+                    selectedOption.icon = epic.icon;
+                    editor.add(selectedOption);
                 } else if (name === 'columnStatus') {
                     editor.value = ticketData.columnStatus ? String(ticketData.columnStatus.id) : '';
+                } else if (name === 'epic') {
+                    editor.value = ticketData.epic ? String(ticketData.epic.id) : '';
                 } else {
                     editor.value = ticketData[name]?.value || '';
                 }
@@ -618,6 +655,29 @@
                                 id: user.id,
                                 text: user.name || 'Unnamed user',
                                 icon: user.icon
+                            }))
+                        }),
+                        cache: true
+                    },
+                    templateResult: renderAssigneeOption,
+                    templateSelection: renderAssigneeOption
+                });
+            } else if (name === 'epic') {
+                $(editor).select2({
+                    width: '100%',
+                    placeholder: 'Search epics',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: ticketLiveSearchUrl,
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({query: params.term, epicOnly: true}),
+                        processResults: tickets => ({
+                            results: tickets.map(ticket => ({
+                                id: ticket.id,
+                                text: `${ticket.url} ${ticket.summary}`,
+                                icon: ticket.icon
                             }))
                         }),
                         cache: true
@@ -715,7 +775,9 @@
                     updatedValue = editor.value === '' ? null : Number(editor.value);
                 } else if (kind === 'select') {
                     updatedValue = editor.value === '' ? null :
-                        (name === 'assignee' || name === 'columnStatus' ? Number(editor.value) : editor.value);
+                        (name === 'assignee' || name === 'columnStatus' || name === 'epic'
+                            ? Number(editor.value)
+                            : editor.value);
                 } else {
                     updatedValue = editor.value;
                 }
@@ -1239,6 +1301,98 @@
                 renderSubtasks(data);
             }
 
+            async function loadParentSubtasks() {
+                const panels = document.querySelectorAll('.parent-subtasks-panel');
+                const section = document.getElementById('parentSubtasksSection');
+                let hasOtherSubtasks = false;
+                let hasLoadError = false;
+                await Promise.all(Array.from(panels, async panel => {
+                    const list = panel.querySelector('.parent-subtask-list');
+                    const emptyState = panel.querySelector('.parent-subtask-empty');
+                    const message = panel.querySelector('.parent-subtask-message');
+                    try {
+                        const response = await fetch(panel.dataset.subtasksUrl);
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(getApiError(data));
+                        const subtasks = data.filter(subtask => subtask.id !== {{ ticket.id }});
+                        hasOtherSubtasks = hasOtherSubtasks || subtasks.length > 0;
+                        const items = subtasks.map(createSubtaskElement);
+                        items.forEach((item, index) => {
+                            item.id = `${panel.id}-ticket-${subtasks[index].id}`;
+                        });
+                        list.replaceChildren(...items);
+                        emptyState.classList.toggle('d-none', subtasks.length > 0);
+                    } catch (error) {
+                        message.className = 'alert alert-danger mt-2 parent-subtask-message';
+                        message.textContent = error.message;
+                        hasLoadError = true;
+                    }
+                }));
+                section.classList.toggle('d-none', !hasOtherSubtasks && !hasLoadError);
+            }
+
+            let currentEpicIssues = [];
+
+            function renderEpicIssues(issues) {
+                currentEpicIssues = issues;
+                const list = document.getElementById('epicTicketsList');
+                const emptyState = document.getElementById('epicIssueEmpty');
+                list.replaceChildren(...issues.map(createSubtaskElement));
+                emptyState.classList.toggle('d-none', issues.length > 0);
+
+                const progress = document.getElementById('epicIssueProgress');
+                const progressCount = document.getElementById('epicIssueProgressCount');
+                const progressBar = document.getElementById('epicIssueProgressBar');
+                const doneCount = issues.filter(issue => issue.isDone).length;
+                const percent = issues.length ? Math.floor(doneCount * 100 / issues.length) : 0;
+                progress.classList.toggle('d-none', issues.length === 0);
+                progressCount.textContent = `${doneCount} of ${issues.length} done`;
+                progressBar.style.width = `${percent}%`;
+                progressBar.setAttribute('aria-valuenow', percent);
+                progressBar.textContent = `${percent}%`;
+            }
+
+            async function loadEpicIssues() {
+                const response = await fetch(ticketEpicIssuesUrl);
+                const data = await response.json();
+                if (!response.ok) throw new Error(getApiError(data));
+                renderEpicIssues(data);
+            }
+
+            function renderLinkedIssues(groups) {
+                const linkedIssuesList = document.getElementById('linkedIssuesList');
+                const linkedIssuesEmpty = document.getElementById('linkedIssuesEmpty');
+
+                linkedIssuesList.replaceChildren(...groups.map((group, index) => {
+                    const section = document.createElement('div');
+                    section.className = 'linked-issue-group mt-3';
+                    const heading = document.createElement('small');
+                    heading.className = 'text-muted';
+                    heading.textContent = group.linkType;
+                    section.append(heading);
+
+                    const list = document.createElement('ul');
+                    list.className = 'list-group list-group-flush linked-issue-group-list';
+                    list.id = `linked-issue-group-${index}`;
+                    group.tickets.forEach(ticket => {
+                        const item = createSubtaskElement(ticket);
+                        item.id = `linked-ticket-${ticket.id}-${index}`;
+                        list.append(item);
+                    });
+                    section.append(list);
+                    return section;
+                }));
+                linkedIssuesEmpty.classList.toggle('d-none', groups.length > 0);
+                linkedIssuesList.querySelectorAll('.linked-issue-group-list').forEach(makeSortableElement);
+            }
+
+            async function loadLinkedIssues() {
+                const response = await fetch(ticketLinkedIssuesUrl);
+                const data = await response.json();
+                if (!response.ok) throw new Error(getApiError(data));
+                renderLinkedIssues(data);
+            }
+
             const addCommentForm = document.getElementById('addCommentForm');
             const addCommentQuill = initializeCommentEditor(
                 addCommentForm.querySelector('.comment-quill-editor')
@@ -1278,6 +1432,78 @@
 
             const createSubtaskForm = document.querySelector('.create-subtask-form');
             const addSubtasksForm = document.querySelector('.add-subtasks-form');
+            const createEpicIssueForm = document.querySelector('.create-epic-issue-form');
+            const addEpicIssuesForm = document.querySelector('.add-epic-issues-form');
+            if (createEpicIssueForm && addEpicIssuesForm) {
+                createEpicIssueForm.addEventListener('submit', async event => {
+                    event.preventDefault();
+                    const form = event.currentTarget;
+                    const button = form.querySelector('button[type="submit"]');
+                    const message = document.getElementById('epicIssueMessage');
+                    button.disabled = true;
+                    try {
+                        const response = await fetch(ticketEpicIssuesUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({summary: form.elements.summary.value})
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(getApiError(data));
+                        renderEpicIssues([...currentEpicIssues, data]);
+                        form.reset();
+                        message.className = 'alert alert-success mt-2';
+                        message.textContent = 'Issue created and added to this epic.';
+                    } catch (error) {
+                        message.className = 'alert alert-danger mt-2';
+                        message.textContent = error.message;
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+
+                addEpicIssuesForm.addEventListener('submit', async event => {
+                    event.preventDefault();
+                    const form = event.currentTarget;
+                    const button = form.querySelector('button[type="submit"]');
+                    const ticketIds = Array.from(
+                        form.elements.ticketIds.selectedOptions,
+                        option => Number(option.value)
+                    );
+                    const message = document.getElementById('epicIssueMessage');
+                    button.disabled = true;
+                    try {
+                        const response = await fetch(ticketEpicIssuesUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({ticketIds})
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(getApiError(data));
+                        renderEpicIssues(data);
+                        $(form.elements.ticketIds).val(null).trigger('change');
+                        message.className = 'alert alert-success mt-2';
+                        message.textContent = 'Issues added to this epic.';
+                    } catch (error) {
+                        message.className = 'alert alert-danger mt-2';
+                        message.textContent = error.message;
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+
+                loadEpicIssues().catch(error => {
+                    const message = document.getElementById('epicIssueMessage');
+                    message.className = 'alert alert-danger mt-2';
+                    message.textContent = error.message;
+                });
+            }
+
             if (createSubtaskForm && addSubtasksForm) {
                 createSubtaskForm.addEventListener('submit', async event => {
                     event.preventDefault();
@@ -1313,7 +1539,7 @@
                     const form = event.currentTarget;
                     const button = form.querySelector('button[type="submit"]');
                     const selectedIds = Array.from(
-                        form.elements.ticket_ids.selectedOptions,
+                        form.elements.ticketIds.selectedOptions,
                         option => Number(option.value)
                     );
                     const message = document.getElementById('subtaskMessage');
@@ -1325,14 +1551,53 @@
                                 'Content-Type': 'application/json',
                                 'X-CSRFToken': getCookie('csrftoken')
                             },
-                            body: JSON.stringify({ticket_ids: selectedIds})
+                            body: JSON.stringify({ticketIds: selectedIds})
                         });
                         const data = await response.json();
                         if (!response.ok) throw new Error(getApiError(data));
                         renderSubtasks(data);
-                        $(form.elements.ticket_ids).val(null).trigger('change');
+                        $(form.elements.ticketIds).val(null).trigger('change');
                         message.className = 'alert alert-success mt-2';
                         message.textContent = 'Subtasks added.';
+                    } catch (error) {
+                        message.className = 'alert alert-danger mt-2';
+                        message.textContent = error.message;
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+            }
+
+            const addLinkedIssuesForm = document.querySelector('.add-linked-issues-form');
+            if (addLinkedIssuesForm) {
+                addLinkedIssuesForm.addEventListener('submit', async event => {
+                    event.preventDefault();
+                    const form = event.currentTarget;
+                    const button = form.querySelector('button[type="submit"]');
+                    const ticketIds = Array.from(
+                        form.elements.ticketIds.selectedOptions,
+                        option => Number(option.value)
+                    );
+                    const message = document.getElementById('linkedIssueMessage');
+                    button.disabled = true;
+                    try {
+                        const response = await fetch(ticketLinkedIssuesUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({
+                                linkType: form.elements.linkType.value,
+                                ticketIds
+                            })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(getApiError(data));
+                        renderLinkedIssues(data);
+                        $(form.elements.ticketIds).val(null).trigger('change');
+                        message.className = 'alert alert-success mt-2';
+                        message.textContent = 'Issues linked.';
                     } catch (error) {
                         message.className = 'alert alert-danger mt-2';
                         message.textContent = error.message;
@@ -1486,12 +1751,20 @@
 
             makeSortable('epicTicketsList');
             makeSortable('subtaskList');
-            makeSortable('linkedIssuesList');
-            handleSelect2Dropdown('.subtasks-list', '{% url "core:ticketLiveSearchApiVersion1" %}?subTaskOnly=true', 'Add subtasks');
-            handleSelect2Dropdown('.all-tickets-list', '{% url "core:ticketLiveSearchApiVersion1" %}', 'Search for tickets');
+            handleSelect2Dropdown('.subtasks-list', '{% url "ticket:ticketLiveSearchApiVersion1" %}?subTaskOnly=true&excludeTicketIds={{ ticket.id }}', 'Add subtasks');
+            handleSelect2Dropdown('.epic-issues-list', '{% url "ticket:ticketLiveSearchApiVersion1" %}?excludeEpic=true', 'Search for issues');
+            handleSelect2Dropdown('.all-tickets-list', '{% url "ticket:ticketLiveSearchApiVersion1" %}?excludeTicketIds={{ ticket.id }}', 'Search for tickets');
+            loadParentSubtasks();
             if (createSubtaskForm) {
                 loadSubtasks().catch(error => {
                     const message = document.getElementById('subtaskMessage');
+                    message.className = 'alert alert-danger mt-2';
+                    message.textContent = error.message;
+                });
+            }
+            if (addLinkedIssuesForm) {
+                loadLinkedIssues().catch(error => {
+                    const message = document.getElementById('linkedIssueMessage');
                     message.className = 'alert alert-danger mt-2';
                     message.textContent = error.message;
                 });
@@ -1502,6 +1775,10 @@
             const el = document.getElementById(listId);
             if (!el) return;  // Skip if the element doesn't exist
 
+            makeSortableElement(el);
+        }
+
+        function makeSortableElement(el) {
             new Sortable(el, {
                 animation: 150,
                 onEnd: function () {
@@ -1509,7 +1786,7 @@
                         el.querySelectorAll('li[identifier]')
                     ).map(li => li.getAttribute('identifier'));
 
-                    fetch('{% url "core:ticketOrderNoUpdateApiV1" %}', {
+                    fetch('{% url "ticket:ticketOrderNoUpdateApiV1" %}', {
                         method: 'PUT',
                         headers: {
                             'Content-type': 'application/json',
