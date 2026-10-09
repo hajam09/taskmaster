@@ -4,62 +4,157 @@ from django.db.models import Max
 from rest_framework import serializers
 
 from core import service
-from core.models import Column, ColumnStatus, Label, Project, Ticket, TicketComment, TicketLink
+from core.models import Column, ColumnStatus, Label, Project, Ticket, TicketComment, TicketLink, Board
 
-DESCRIPTION_TAGS = [
-    'a', 'blockquote', 'br', 'code', 'em', 'h1', 'h2', 'h3', 'i', 'li',
-    'ol', 'p', 'pre', 's', 'strong', 'u', 'ul',
-]
+MAN_AVATAR = 'https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png'
+
+
+class LabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Label
+        fields = ['id', 'name', 'colour']
+
+
+class ColumnSerializer(serializers.ModelSerializer):
+    colour = serializers.CharField(source='getColour', read_only=True)
+
+    class Meta:
+        model = Column
+        fields = ['id', 'name', 'status', 'colour']
+
+
+class ColumnStatusSerializer(serializers.ModelSerializer):
+    column = ColumnSerializer(read_only=True)
+
+    class Meta:
+        model = ColumnStatus
+        fields = ['id', 'name', 'column']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='get_full_name', read_only=True)
+    icon = serializers.SerializerMethodField()
+
+    def get_icon(self, user):
+        return MAN_AVATAR
+
+    class Meta:
+        model = User
+        fields = ['id', 'name','icon']
 
 
 class ProjectSerializer(serializers.ModelSerializer):
-    icon = serializers.SerializerMethodField()
-
-    def get_icon(self, project):
-        return project.icon
+    icon = serializers.CharField(read_only=True)
 
     class Meta:
         model = Project
         fields = ['id', 'name', 'code', 'url', 'icon']
 
 
+class BoardSerializer(serializers.ModelSerializer):
+    href = serializers.CharField(source='getUrl', read_only=True)
+
+    class Meta:
+        model = Board
+        fields = ['id', 'name', 'url', 'href', 'type', 'isPrivate', 'project']
+
+
 class TicketSerializerVersion1(serializers.ModelSerializer):
-    href = serializers.SerializerMethodField()
+    href = serializers.CharField(source='getUrl', read_only=True)
     description = serializers.SerializerMethodField()
     project = ProjectSerializer(read_only=True)
-
-    def get_href(self, ticket):
-        return ticket.getUrl
+    type = serializers.SerializerMethodField()
+    priority = serializers.SerializerMethodField()
+    resolution = serializers.SerializerMethodField()
+    reporter = UserSerializer(read_only=True)
+    assignee = UserSerializer(allow_null=True)
+    epic = serializers.SerializerMethodField()
+    parent = serializers.SerializerMethodField()
+    label = LabelSerializer(many=True)
+    board = BoardSerializer(read_only=True, source='columnStatus.column.board')
+    columnStatus = ColumnStatusSerializer(read_only=True)
 
     def get_description(self, ticket):
         return service.sanitiseTicketDescription(ticket.description)
+
+    def get_type(self, ticket):
+        return {
+            'key': ticket.type,
+            'value': ticket.get_type_display(),
+            'icon': ticket.ticketTypeIcon,
+        }
+
+    def get_priority(self, ticket):
+        return {
+            'key': ticket.priority,
+            'value': ticket.get_priority_display(),
+            'icon': ticket.ticketPriorityIcon,
+        }
+
+    def get_resolution(self, ticket):
+        return {
+            'key': ticket.resolution,
+            'value': ticket.get_resolution_display(),
+        }
+
+    def get_epic(self, ticket):
+        if ticket.epic:
+            return {
+                'id': ticket.epic.id,
+                'url': ticket.epic.url,
+                'href': ticket.epic.getUrl,
+                'summary': ticket.epic.summary,
+                'icon': ticket.epic.typeIcon,
+            }
+        return None
+
+    def get_parent(self, ticket):
+        if ticket.parent:
+            return {
+                'id': ticket.parent.id,
+                'url': ticket.parent.url,
+                'href': ticket.parent.getUrl,
+                'summary': ticket.parent.summary,
+                'icon': ticket.parent.typeIcon,
+            }
+        return None
 
     class Meta:
         model = Ticket
         fields = [
             'id', 'url', 'href', 'summary', 'description', 'storyPoints', 'createdDateTime', 'modifiedDateTime',
-            'project',
+            'project', 'type', 'priority', 'reporter', 'assignee', 'resolution', 'epic', 'parent', 'label', 'board',
+            'columnStatus',
         ]
 
 
 class TicketSubTaskSerializer(serializers.ModelSerializer):
     href = serializers.CharField(source='getUrl', read_only=True)
-    typeIcon = serializers.CharField(source='ticketTypeIcon', read_only=True, allow_null=True)
-    priorityIcon = serializers.CharField(source='ticketPriorityIcon', read_only=True, allow_null=True)
-    typeDisplay = serializers.CharField(source='get_type_display', read_only=True)
-    priorityDisplay = serializers.CharField(source='get_priority_display', read_only=True)
-    statusName = serializers.CharField(source='columnStatus.name', read_only=True)
+    type = serializers.SerializerMethodField()
+    priority = serializers.SerializerMethodField()
+    columnStatus = ColumnStatusSerializer(read_only=True)
     isDone = serializers.SerializerMethodField()
 
     class Meta:
         model = Ticket
-        fields = [
-            'id', 'url', 'href', 'summary', 'storyPoints', 'typeIcon', 'priorityIcon',
-            'typeDisplay', 'priorityDisplay', 'statusName', 'isDone',
-        ]
+        fields = ['id', 'url', 'href', 'summary', 'storyPoints', 'priority', 'type', 'isDone', 'columnStatus']
 
     def get_isDone(self, ticket):
         return ticket.columnStatus.column.status == Column.Status.DONE
+
+    def get_type(self, ticket):
+        return {
+            'key': ticket.type,
+            'value': ticket.get_type_display(),
+            'icon': ticket.ticketTypeIcon,
+        }
+
+    def get_priority(self, ticket):
+        return {
+            'key': ticket.priority,
+            'value': ticket.get_priority_display(),
+            'icon': ticket.ticketPriorityIcon,
+        }
 
 
 class TicketSubTaskCreateSerializer(serializers.Serializer):
@@ -114,6 +209,23 @@ class TicketLinkCreateSerializer(serializers.Serializer):
     ticketIds = serializers.ListField(child=serializers.IntegerField(min_value=1), allow_empty=False)
 
 
+class TicketUpdateSerializer(serializers.ModelSerializer):
+    label = serializers.ListField(child=serializers.IntegerField(min_value=1), required=False, allow_empty=True)
+
+    class Meta:
+        model = Ticket
+        fields = [
+            'summary', 'description', 'storyPoints', 'resolution', 'type', 'priority', 'assignee', 'columnStatus', 'label', 'parent', 'epic'
+        ]
+
+    def validate_columnStatus(self, columnStatus):
+        if columnStatus is not None and self.instance.columnStatus.column.board_id != columnStatus.column.board_id:
+            raise serializers.ValidationError('Column status must belong to the same board as the ticket.')
+        return columnStatus
+
+    def validate_label(self, labelIds):
+        return list(Label.objects.filter(pk__in=labelIds))
+
 class TicketInlineUpdateSerializer(serializers.ModelSerializer):
     assignee = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), allow_null=True, required=False)
     columnStatus = serializers.PrimaryKeyRelatedField(queryset=ColumnStatus.objects.none(), required=False)
@@ -127,16 +239,8 @@ class TicketInlineUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = [
-            'summary',
-            'description',
-            'storyPoints',
-            'type',
-            'priority',
-            'assignee',
-            'columnStatus',
-            'resolution',
-            'label',
-            'epic',
+            'summary', 'description', 'storyPoints', 'type', 'priority', 'assignee', 'columnStatus', 'resolution',
+            'label', 'epic'
         ]
 
     def validate_description(self, description):
@@ -155,13 +259,6 @@ class TicketInlineUpdateSerializer(serializers.ModelSerializer):
             )
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'email']
-        read_only_fields = ['id', 'username', 'first_name', 'last_name', 'email']
-
-
 class TicketCommentSerializer(serializers.ModelSerializer):
     creator = UserSerializer(read_only=True)
     ticket = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -175,16 +272,8 @@ class TicketCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = TicketComment
         fields = [
-            'id',
-            'ticket',
-            'creator',
-            'comment',
-            'edited',
-            'createdDateTime',
-            'inLikes',
-            'inDisLikes',
-            'likesCount',
-            'disLikesCount',
+            'id', 'ticket', 'creator', 'comment', 'edited', 'createdDateTime', 'inLikes', 'inDisLikes', 'likesCount',
+            'disLikesCount'
         ]
 
     def validate_comment(self, comment):

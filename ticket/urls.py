@@ -10,6 +10,7 @@ from ticket.api import (
     TicketOrderNoUpdateApiV1,
     TicketSubTaskListCreateView,
     UserLiveSearchApiVersion1,
+    ColumnStatusLiveSearchApiVersion1,
     TicketLinkedIssueListCreateView,
 )
 from ticket.views import ticketView
@@ -29,12 +30,17 @@ urlpatterns = [
         name='userLiveSearchApiVersion1',
     ),
     path(
+        'api/v1/columnStatusLiveSearchApiVersion1/',
+        ColumnStatusLiveSearchApiVersion1.as_view(),
+        name='columnStatusLiveSearchApiVersion1',
+    ),
+    path(
         'api/v1/labelLiveSearchApiVersion1/',
         LabelLiveSearchApiVersion1.as_view(),
         name='labelLiveSearchApiVersion1',
     ),
     path(
-        'api/v1/ticketApiVersion1/',
+        'api/v1/ticketApiVersion1/<slug:ticketIdOrUrl>/',
         TicketApiVersion1.as_view(),
         name='ticketApiVersion1',
     ),

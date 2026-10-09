@@ -1,0 +1,60 @@
+<div class="card mt-4 ticket-collection"
+     data-api-url="{{ collection_api_url }}"
+     data-search-url="{{ collection_search_url }}"
+     data-search-params="{{ collection_search_params }}"
+     data-exclude-ticket-id="{{ ticket.id }}"
+     data-select-placeholder="{{ collection_select_placeholder }}"
+     data-create-success="{{ collection_create_success }}"
+     data-add-success="{{ collection_add_success }}">
+    <div class="card-body">
+        <div class="collapse-header font-weight-bold" data-toggle="collapse"
+             data-target="#{{ collection_key }}Panel">
+            {{ collection_heading }}
+            <span class="float-right">▼</span>
+        </div>
+
+        <div class="my-3 d-none ticket-collection-progress">
+            <div class="mb-2">
+                <small><span class="ticket-collection-progress-count">0 of 0 done</span></small>
+            </div>
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated ticket-collection-progress-bar"
+                     role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                     style="width: 0%;">
+                    0%
+                </div>
+            </div>
+        </div>
+
+        <div id="{{ collection_key }}Panel" class="collapse show mt-3">
+            <div class="alert d-none mt-2 ticket-collection-message" role="status"></div>
+            <form class="ticket-collection-create-form">
+                <div class="form-row">
+                    <div class="col-12 col-md mb-2">
+                        <input type="text" class="form-control form-control-sm w-100"
+                               name="summary" placeholder="{{ collection_create_placeholder }}" required>
+                    </div>
+                    <div class="col-auto mb-2">
+                        <button type="submit" class="btn btn-primary btn-sm">Create</button>
+                    </div>
+                </div>
+            </form>
+
+            <form class="ticket-collection-add-form">
+                <div class="form-row">
+                    <div class="col-12 col-md mb-2">
+                        <select class="form-control form-control-sm ticket-collection-select"
+                                name="ticketIds" multiple="multiple" required>
+                        </select>
+                    </div>
+                    <div class="col-auto mb-2">
+                        <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                    </div>
+                </div>
+            </form>
+
+            <ul class="list-group list-group-flush ticket-collection-list"></ul>
+            <i class="ticket-collection-empty">{{ collection_empty_message }}</i>
+        </div>
+    </div>
+</div>

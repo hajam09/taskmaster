@@ -64,63 +64,9 @@
                 </div>
                 {% if ticket.type == 'EPIC' %}
 
-                    <div class="card mt-4">
-                        <div class="card-body">
-                            <div class="collapse-header font-weight-bold" data-toggle="collapse"
-                                 data-target="#epicTicketsPanel">
-                                Issues in this epic
-                                <span class="float-right">▼</span>
-                            </div>
-
-                            <div class="my-3 d-none" id="epicIssueProgress">
-                                <div class="mb-2">
-                                    <small><span id="epicIssueProgressCount">0 of 0 done</span></small>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
-                                         id="epicIssueProgressBar"
-                                         role="progressbar"
-                                         aria-valuenow="0"
-                                         aria-valuemin="0"
-                                         aria-valuemax="100"
-                                         style="width: 0%;">
-                                        0%
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="epicTicketsPanel" class="collapse show mt-3">
-                                <div id="epicIssueMessage" class="alert d-none mt-2" role="status"></div>
-                                <form class="create-epic-issue-form">
-                                    <div class="form-row">
-                                        <div class="col-12 col-md mb-2">
-                                            <input type="text" class="form-control form-control-sm w-100"
-                                                   name="summary" placeholder="Create new issue" required>
-                                        </div>
-                                        <div class="col-auto mb-2">
-                                            <button type="submit" class="btn btn-primary btn-sm">Create</button>
-                                        </div>
-                                    </div>
-                                </form>
-
-                                <form class="add-epic-issues-form">
-                                    <div class="form-row">
-                                        <div class="col-12 col-md mb-2">
-                                            <select class="form-control form-control-sm epic-issues-list"
-                                                    name="ticketIds" multiple="multiple" required>
-                                            </select>
-                                        </div>
-                                        <div class="col-auto mb-2">
-                                            <button type="submit" class="btn btn-primary btn-sm">Add issues</button>
-                                        </div>
-                                    </div>
-                                </form>
-
-                                <ul class="list-group list-group-flush" id="epicTicketsList"></ul>
-                                <i id="epicIssueEmpty">No issues found for this epic.</i>
-                            </div>
-                        </div>
-                    </div>
+                    {% url "ticket:ticket-epic-issues" ticket.id as ticket_collection_api_url %}
+                    {% url "ticket:ticketLiveSearchApiVersion1" as ticket_collection_search_url %}
+                    {% include "ticket/_ticket_collection.html" with collection_key="epicIssues" collection_heading="Issues in this epic" collection_api_url=ticket_collection_api_url collection_search_url=ticket_collection_search_url collection_search_params="excludeEpic=true" collection_create_placeholder="Create new issue" collection_empty_message="No issues available for this epic!" collection_create_success="Issue created and added to this epic." collection_add_success="Issues added to this epic." collection_select_placeholder="Search for issues" %}
 
                 {% else %}
 
@@ -149,63 +95,9 @@
                     </div>
 
 
-                    <div class="card mt-4">
-                        <div class="card-body">
-                            <div class="collapse-header font-weight-bold" data-toggle="collapse"
-                                 data-target="#subTasksPanel">
-                                Subtasks
-                                <span class="float-right">▼</span>
-                            </div>
-
-                            <div class="my-3 d-none" id="subTaskProgress">
-                                <div class="mb-2">
-                                    <small><span id="subTaskProgressCount">0 of 0 done</span></small>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
-                                         id="subTaskProgressBar"
-                                         role="progressbar"
-                                         aria-valuenow="0"
-                                         aria-valuemin="0"
-                                         aria-valuemax="100"
-                                         style="width: 0%;">
-                                        0%
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="subTasksPanel" class="collapse show mt-3">
-                                <div id="subtaskMessage" class="alert d-none mt-2" role="status"></div>
-                                <form class="create-subtask-form">
-                                    <div class="form-row">
-                                        <div class="col-12 col-md mb-2">
-                                            <input type="text" class="form-control form-control-sm w-100"
-                                                   name="summary" placeholder="Create new subtask" required>
-                                        </div>
-                                        <div class="col-auto mb-2">
-                                            <button type="submit" class="btn btn-primary btn-sm">Create</button>
-                                        </div>
-                                    </div>
-                                </form>
-
-                                <form class="add-subtasks-form">
-                                    <div class="form-row">
-                                        <div class="col-12 col-md mb-2">
-                                            <select class="form-control form-control-sm subtasks-list" name="ticketIds"
-                                                    multiple="multiple" required>
-                                            </select>
-                                        </div>
-                                        <div class="col-auto mb-2">
-                                            <button type="submit" class="btn btn-primary btn-sm">Add</button>
-                                        </div>
-                                    </div>
-                                </form>
-
-                                <ul class="list-group list-group-flush" id="subtaskList"></ul>
-                                <i id="subtaskEmpty">No subtasks available for this ticket!</i>
-                            </div>
-                        </div>
-                    </div>
+                    {% url "ticket:ticket-subtasks" ticket.id as ticket_collection_api_url %}
+                    {% url "ticket:ticketLiveSearchApiVersion1" as ticket_collection_search_url %}
+                    {% include "ticket/_ticket_collection.html" with collection_key="subtasks" collection_heading="Subtasks" collection_api_url=ticket_collection_api_url collection_search_url=ticket_collection_search_url collection_search_params="subTaskOnly=true" collection_create_placeholder="Create new subtask" collection_empty_message="No subtasks available for this ticket!" collection_create_success="Subtask created." collection_add_success="Subtasks added." collection_select_placeholder="Search for issues" %}
 
                     <div class="card mt-4">
                         <div class="card-body">
@@ -248,59 +140,7 @@
                 {% endif %}
 
 
-                <div class="card mt-4">
-                    <div class="card-body">
-                        <div class="collapse-header font-weight-bold" data-toggle="collapse"
-                             data-target="#activityPanel">
-                            Activity
-                            <span class="float-right">▼</span>
-                        </div>
-
-                        <div id="activityPanel" class="collapse show mt-3">
-                            <ul class="nav nav-pills mb-3" id="activityTabs" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link active" id="comments-tab" data-toggle="pill"
-                                       href="#comments-panel" role="tab" aria-controls="comments-panel"
-                                       aria-selected="true">Comments</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="history-tab" data-toggle="pill"
-                                       href="#history-panel" role="tab" aria-controls="history-panel"
-                                       aria-selected="false">History</a>
-                                </li>
-                            </ul>
-
-                            <div class="tab-content" id="activityTabContent">
-                                <div class="tab-pane fade show active" id="comments-panel" role="tabpanel"
-                                     aria-labelledby="comments-tab">
-                                    <form method="post" class="mt-3" id="addCommentForm">
-                                        {% csrf_token %}
-                                        <textarea id="newCommentHtml" class="comment-html d-none"></textarea>
-                                        <div class="comment-composer">
-                                            <div id="newCommentEditor" class="comment-quill-editor"></div>
-                                        </div>
-                                        <div class="comment-validation alert alert-danger d-none mt-2">
-                                            A comment cannot be empty.
-                                        </div>
-                                        <button type="submit" class="btn btn-primary btn-sm mt-2">
-                                            Post Comment
-                                        </button>
-                                    </form>
-
-                                    <div id="ticketCommentList" class="mt-4"
-                                         data-comments-url="{% url 'ticket:ticket-comments' ticket.id %}">
-                                        <p class="text-muted">Loading comments...</p>
-                                    </div>
-                                </div>
-                                <div class="tab-pane fade" id="history-panel" role="tabpanel"
-                                     aria-labelledby="history-tab">
-                                    <p class="text-muted">Ticket history will appear here.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
+                {% include "ticket/_activity.html" %}
 
             </div>
 
@@ -462,15 +302,57 @@
     </div>
 
     <script>
-        const ticketApiUrl = '{% url "ticket:ticketApiVersion1" %}?url={{ ticket.url|urlencode }}';
+        const ticketApiUrl = '{% url "ticket:ticketApiVersion1" ticket.url %}';
         const userLiveSearchUrl = '{% url "ticket:userLiveSearchApiVersion1" %}';
         const labelLiveSearchUrl = '{% url "ticket:labelLiveSearchApiVersion1" %}';
         const ticketLiveSearchUrl = '{% url "ticket:ticketLiveSearchApiVersion1" %}';
-        const ticketCommentListUrl = '{% url "ticket:ticket-comments" ticket.id %}';
-        const ticketSubTaskListUrl = '{% url "ticket:ticket-subtasks" ticket.id %}';
-        const ticketEpicIssuesUrl = '{% url "ticket:ticket-epic-issues" ticket.id %}';
+        const columnStatusLiveSearchUrl = '{% url "ticket:columnStatusLiveSearchApiVersion1" %}';
         const ticketLinkedIssuesUrl = '{% url "ticket:ticket-linked-issues" ticket.id %}';
+        const ticketTypeChoices = [
+            {key: 'BUG', value: 'Bug'},
+            {key: 'EPIC', value: 'Epic'},
+            {key: 'STORY', value: 'Story'},
+            {key: 'SUB_TASK', value: 'Sub Task'},
+            {key: 'TASK', value: 'Task'},
+            {key: 'TEST', value: 'Test'},
+            {key: 'SPIKE', value: 'Spike'}
+        ];
+        const ticketPriorityChoices = [
+            {key: 'BLOCKER', value: 'Blocker'},
+            {key: 'CRITICAL', value: 'Critical'},
+            {key: 'HIGH', value: 'High'},
+            {key: 'HIGHEST', value: 'Highest'},
+            {key: 'LOW', value: 'Low'},
+            {key: 'LOWEST', value: 'Lowest'},
+            {key: 'MAJOR', value: 'Major'},
+            {key: 'MEDIUM', value: 'Medium'},
+            {key: 'MINOR', value: 'Minor'},
+            {key: 'TRIVIAL', value: 'Trivial'}
+        ];
+        const ticketResolutionChoices = [
+            {key: 'UNRESOLVED', value: 'Unresolved'},
+            {key: 'FIXED', value: 'Fixed'},
+            {key: 'WONT_FIX', value: 'Won\'t Fix'},
+            {key: 'DUPLICATE', value: 'Duplicate'},
+            {key: 'INCOMPLETE', value: 'Incomplete'},
+            {key: 'CANNOT_REPRODUCE', value: 'Cannot Reproduce'},
+            {key: 'NOT_A_BUG', value: 'Not a Bug'},
+            {key: 'POSTPONED', value: 'Postponed'},
+            {key: 'RESOLVED', value: 'Resolved'},
+            {key: 'CLOSED', value: 'Closed'},
+            {key: 'REOPENED', value: 'Reopened'}
+        ];
         let ticketData = null;
+
+        function getEditOptions(fieldName) {
+            if (ticketData?.editOptions && ticketData.editOptions[fieldName]) {
+                return ticketData.editOptions[fieldName];
+            }
+            if (fieldName === 'type') return ticketTypeChoices;
+            if (fieldName === 'priority') return ticketPriorityChoices;
+            if (fieldName === 'resolution') return ticketResolutionChoices;
+            return [];
+        }
 
         function renderInlineField(field) {
             const name = field.dataset.inlineField;
@@ -493,13 +375,14 @@
             } else if (name === 'type' || name === 'priority') {
                 const item = value[name];
                 field.replaceChildren();
+                const label = item ? (item.value || item.name || item.key || 'None') : 'None';
                 if (item && item.icon) {
                     const icon = document.createElement('img');
                     icon.src = item.icon;
                     icon.width = 20;
                     field.append(icon, document.createTextNode(' '));
                 }
-                field.append(document.createTextNode(item ? item.name : 'None'));
+                field.append(document.createTextNode(label));
             } else if (name === 'assignee') {
                 field.replaceChildren();
                 if (value.assignee) {
@@ -537,7 +420,8 @@
                     field.textContent = 'No status';
                 }
             } else if (name === 'resolution') {
-                field.textContent = value.resolution?.name || 'Unresolved';
+                const resolution = value.resolution || {};
+                field.textContent = resolution.value || resolution.name || 'Unresolved';
             } else if (name === 'label') {
                 field.replaceChildren();
                 value.label.forEach(label => {
@@ -583,7 +467,7 @@
                     editor.classList.add('ticket-priority-list');
                 }
                 editor.multiple = kind === 'multiple';
-                const options = name === 'assignee' ? [] : (ticketData.editOptions[name] || []);
+                const options = name === 'assignee' ? [] : getEditOptions(name);
                 if (kind === 'select' && name !== 'columnStatus') {
                     const placeholder = document.createElement('option');
                     placeholder.value = '';
@@ -593,7 +477,7 @@
                 options.forEach(option => {
                     const item = document.createElement('option');
                     item.value = option.key;
-                    item.textContent = option.value;
+                    item.textContent = option.value || option.name || option.label || option.text;
                     editor.append(item);
                 });
                 if (kind === 'multiple') {
@@ -615,6 +499,8 @@
                     editor.value = ticketData.columnStatus ? String(ticketData.columnStatus.id) : '';
                 } else if (name === 'epic') {
                     editor.value = ticketData.epic ? String(ticketData.epic.id) : '';
+                } else if (name === 'type' || name === 'priority' || name === 'resolution') {
+                    editor.value = ticketData[name]?.key || '';
                 } else {
                     editor.value = ticketData[name]?.value || '';
                 }
@@ -688,6 +574,23 @@
             } else if (name === 'columnStatus') {
                 $(editor).select2({
                     width: '100%',
+                    placeholder: 'Search statuses',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: columnStatusLiveSearchUrl,
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({query: params.term, boardId: ticketData.board?.id}),
+                        processResults: statuses => ({
+                            results: statuses.map(status => ({
+                                id: status.id,
+                                text: status.name,
+                                colour: status.colour
+                            }))
+                        }),
+                        cache: true
+                    },
                     templateResult: renderColumnStatusOption,
                     templateSelection: renderColumnStatusOption
                 });
@@ -826,7 +729,7 @@
         function renderTicketTypePriorityOption(option, fieldName) {
             if (!option.id) return option.text;
 
-            const item = (ticketData.editOptions[fieldName] || [])
+            const item = getEditOptions(fieldName)
                 .find(candidate => String(candidate.key) === String(option.id));
             if (!item || !item.icon) return option.text;
 
@@ -868,12 +771,15 @@
         function renderColumnStatusOption(option) {
             if (!option.id) return option.text;
 
-            const status = (ticketData.editOptions.columnStatus || [])
-                .find(item => String(item.key) === String(option.id));
+            const statusLookup = ticketData?.editOptions?.columnStatus || [];
+            const status = statusLookup.find(item => String(item.key) === String(option.id)) || {
+                colour: option.colour || option.color || null,
+                value: option.text
+            };
             const $badge = $('<span></span>')
                 .addClass('badge badge-secondary')
-                .text(option.text || status?.value || '');
-            if (status?.colour) {
+                .text(option.text || status.value || '');
+            if (status.colour) {
                 $badge.css({
                     'background-color': status.colour,
                     color: '#fff'
@@ -1092,122 +998,6 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-            const commentToolbar = [
-                ['bold', 'italic', 'underline', 'strike'],
-                [{list: 'ordered'}, {list: 'bullet'}],
-                ['blockquote', 'code-block'],
-                ['link'],
-                ['clean']
-            ];
-
-            const commentList = document.getElementById('ticketCommentList');
-            const commentEditors = new Map();
-            let currentSubtasks = [];
-
-            function initializeCommentEditor(host, initialHtml = '') {
-                const quillHost = document.createElement('div');
-                host.replaceChildren(quillHost);
-                const quill = new Quill(quillHost, {
-                    theme: 'snow',
-                    modules: {toolbar: commentToolbar}
-                });
-                quill.root.innerHTML = initialHtml;
-                return quill;
-            }
-
-            function escapeHtml(value) {
-                return String(value ?? '').replace(/[&<>"']/g, character => ({
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#39;'
-                })[character]);
-            }
-
-            function formatCommentDate(value) {
-                const date = new Date(value);
-                return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
-            }
-
-            function showCommentEmptyState() {
-                commentList.innerHTML = '<div class="comment-empty-state"><i class="far fa-comments" aria-hidden="true"></i><p class="mb-0">No comments yet. Start the conversation.</p></div>';
-            }
-
-            function createCommentElement(data) {
-                const creator = data.creator || {};
-                const name = [creator.first_name, creator.last_name].filter(Boolean).join(' ') || creator.username || 'User';
-                const initials = (creator.first_name || creator.username || name).slice(0, 1).toUpperCase();
-                const canEdit = creator.id === {{ request.user.id }};
-                const article = document.createElement('article');
-                article.className = 'comment-item mb-3';
-                article.dataset.commentId = data.id;
-
-                article.innerHTML = `
-                    <header class="comment-header">
-                        <span class="comment-avatar" aria-hidden="true">${escapeHtml(initials)}</span>
-                        <div class="comment-author">
-                            <strong>${escapeHtml(name)}</strong>
-                            <small class="text-muted">
-                                ${escapeHtml(formatCommentDate(data.createdDateTime))}
-                                ${data.edited ? '<span class="comment-edited">(edited)</span>' : ''}
-                            </small>
-                        </div>
-                        ${canEdit ? '<button type="button" class="btn btn-sm btn-link edit-comment-button ml-auto">Edit</button>' : ''}
-                    </header>
-                    <div class="comment-content"></div>
-                    <footer class="comment-footer">
-                        <div class="comment-reactions">
-                            <form method="post" class="comment-reaction-form">
-                                <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(getCookie('csrftoken'))}">
-                                <input type="hidden" name="comment-id" value="${data.id}">
-                                <button type="submit" name="like-ticket-comment" value="1"
-                                        class="btn btn-sm comment-reaction-button comment-like-button ${data.inLikes ? 'is-active' : ''}"
-                                        aria-label="Like comment" aria-pressed="${Boolean(data.inLikes)}">
-                                    <i class="fa fa-thumbs-up"></i>
-                                    <span class="comment-like-count">${Number(data.likesCount) || 0}</span>
-                                </button>
-                            </form>
-                            <form method="post" class="comment-reaction-form">
-                                <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(getCookie('csrftoken'))}">
-                                <input type="hidden" name="comment-id" value="${data.id}">
-                                <button type="submit" name="dislike-ticket-comment" value="1"
-                                        class="btn btn-sm comment-reaction-button comment-dislike-button ${data.inDisLikes ? 'is-active' : ''}"
-                                        aria-label="Dislike comment" aria-pressed="${Boolean(data.inDisLikes)}">
-                                    <i class="fa fa-thumbs-down"></i>
-                                    <span class="comment-dislike-count">${Number(data.disLikesCount) || 0}</span>
-                                </button>
-                            </form>
-                        </div>
-                    </footer>
-                    ${canEdit ? `
-                    <form class="comment-edit-form d-none mt-3">
-                        <div class="comment-quill-editor"></div>
-                        <div class="comment-validation alert alert-danger d-none mt-2">A comment cannot be empty.</div>
-                        <button type="submit" class="btn btn-primary btn-sm mt-2">Save</button>
-                        <button type="button" class="btn btn-light btn-sm mt-2 cancel-comment-edit">Cancel</button>
-                    </form>` : ''}
-                `;
-                article.querySelector('.comment-content').innerHTML = data.comment || '';
-                return article;
-            }
-
-            async function loadTicketComments() {
-                try {
-                    const response = await fetch(ticketCommentListUrl);
-                    const comments = await response.json();
-                    if (!response.ok) throw new Error('Unable to load comments.');
-                    commentList.replaceChildren();
-                    if (!comments.length) {
-                        showCommentEmptyState();
-                        return;
-                    }
-                    comments.forEach(comment => commentList.append(createCommentElement(comment)));
-                } catch (error) {
-                    commentList.textContent = error.message;
-                }
-            }
-
             function displayApiError(error) {
                 const message = document.getElementById('inlineEditMessage');
                 message.className = 'alert alert-danger mt-2';
@@ -1219,26 +1009,28 @@
                 return Object.values(data || {}).flat().join(' ') || 'Unable to complete the request.';
             }
 
-            function createSubtaskElement(subtask) {
+            function createTicketElement(subtask) {
                 const item = document.createElement('li');
                 item.className = 'list-group-item ticket-object-component mt-1';
                 item.id = `ticket-${subtask.id}`;
                 item.setAttribute('identifier', subtask.id);
 
+                const type = subtask.type || {};
                 const typeIcon = document.createElement('img');
-                if (subtask.typeIcon) typeIcon.src = subtask.typeIcon;
+                if (type.icon) typeIcon.src = type.icon;
                 typeIcon.width = 20;
                 typeIcon.alt = '';
-                typeIcon.title = subtask.typeDisplay || '';
+                typeIcon.title = type.value || type.name || '';
                 typeIcon.className = 'img-rounded';
                 typeIcon.loading = 'lazy';
                 item.append(typeIcon, document.createTextNode(' '));
 
+                const priority = subtask.priority || {};
                 const priorityIcon = document.createElement('img');
-                if (subtask.priorityIcon) priorityIcon.src = subtask.priorityIcon;
+                if (priority.icon) priorityIcon.src = priority.icon;
                 priorityIcon.width = 20;
                 priorityIcon.alt = '';
-                priorityIcon.title = subtask.priorityDisplay || '';
+                priorityIcon.title = priority.value || priority.name || '';
                 priorityIcon.className = 'img-rounded';
                 priorityIcon.loading = 'lazy';
                 priorityIcon.style.marginLeft = '10px';
@@ -1246,15 +1038,16 @@
 
                 const link = document.createElement('a');
                 link.className = `ml-2${subtask.isDone ? ' strikethrough' : ''}`;
-                link.href = subtask.href;
+                link.href = subtask.href || '#';
                 link.textContent = subtask.url;
                 item.append(link, document.createTextNode(' '));
 
                 const summary = document.createElement('span');
-                summary.title = subtask.summary;
-                summary.textContent = subtask.summary.length > 70
-                    ? `${subtask.summary.slice(0, 70).trimEnd()}...`
-                    : subtask.summary;
+                summary.title = subtask.summary || '';
+                const summaryText = subtask.summary || '';
+                summary.textContent = summaryText.length > 70
+                    ? `${summaryText.slice(0, 70).trimEnd()}...`
+                    : summaryText;
                 item.append(summary);
 
                 const points = document.createElement('span');
@@ -1265,45 +1058,138 @@
 
                 const status = document.createElement('span');
                 status.className = 'badge badge-primary float-right ml-3';
+                status.style.backgroundColor = subtask.columnStatus.column?.colour || '#42526E';
                 status.style.marginTop = '4.5px';
-                status.textContent = subtask.statusName;
+                status.textContent = subtask.columnStatus?.name || 'No status';
                 item.append(status);
                 return item;
             }
 
-            function renderSubtasks(subtasks) {
-                currentSubtasks = subtasks;
-                const list = document.getElementById('subtaskList');
-                const emptyState = document.getElementById('subtaskEmpty');
-                list.replaceChildren(...subtasks.map(createSubtaskElement));
-                emptyState.classList.toggle('d-none', subtasks.length > 0);
+            function renderTicketCollection(collection, tickets) {
+                const list = collection.querySelector('.ticket-collection-list');
+                const emptyState = collection.querySelector('.ticket-collection-empty');
+                list.replaceChildren(...tickets.map(createTicketElement));
+                emptyState.classList.toggle('d-none', tickets.length > 0);
 
-                if (subtasks.length) {
-                    const doneCount = subtasks.filter(subtask => subtask.isDone).length;
-                    const percent = Math.floor(doneCount * 100 / subtasks.length);
-                    const progress = document.getElementById('subTaskProgress');
-                    const progressBar = document.getElementById('subTaskProgressBar');
-                    progress.classList.remove('d-none');
-                    progressBar.style.width = `${percent}%`;
-                    progressBar.setAttribute('aria-valuenow', percent);
-                    progressBar.textContent = `${percent}%`;
-                    document.getElementById('subTaskProgressCount').textContent =
-                        `${doneCount} of ${subtasks.length} done`;
-                } else {
-                    document.getElementById('subTaskProgress').classList.add('d-none');
-                }
+                const progress = collection.querySelector('.ticket-collection-progress');
+                const progressBar = collection.querySelector('.ticket-collection-progress-bar');
+                const doneCount = tickets.filter(ticket => ticket.isDone).length;
+                const percent = tickets.length ? Math.floor(doneCount * 100 / tickets.length) : 0;
+                progress.classList.toggle('d-none', tickets.length === 0);
+                collection.querySelector('.ticket-collection-progress-count').textContent =
+                    `${doneCount} of ${tickets.length} done`;
+                progressBar.style.width = `${percent}%`;
+                progressBar.setAttribute('aria-valuenow', percent);
+                progressBar.textContent = `${percent}%`;
             }
 
-            async function loadSubtasks() {
-                const response = await fetch(ticketSubTaskListUrl);
-                const data = await response.json();
-                if (!response.ok) throw new Error(getApiError(data));
-                renderSubtasks(data);
+            async function initializeTicketCollections() {
+                await Promise.all(Array.from(document.querySelectorAll('.ticket-collection'), async collection => {
+                    const apiUrl = collection.dataset.apiUrl;
+                    const searchParams = new URLSearchParams(collection.dataset.searchParams);
+                    if (collection.dataset.searchParams.includes('subTaskOnly')) {
+                        searchParams.set('excludeTicketIds', collection.dataset.excludeTicketId);
+                    }
+                    const searchUrl = `${collection.dataset.searchUrl}?${searchParams}`;
+                    const select = collection.querySelector('.ticket-collection-select');
+                    const list = collection.querySelector('.ticket-collection-list');
+                    const message = collection.querySelector('.ticket-collection-message');
+                    const createForm = collection.querySelector('.ticket-collection-create-form');
+                    const addForm = collection.querySelector('.ticket-collection-add-form');
+                    const createButton = createForm.querySelector('button[type="submit"]');
+                    const addButton = addForm.querySelector('button[type="submit"]');
+                    let tickets = [];
+
+                    createButton.disabled = true;
+                    addButton.disabled = true;
+                    handleSelect2Dropdown(select, searchUrl, collection.dataset.selectPlaceholder);
+                    window.addEventListener('resize', () => {
+                        handleSelect2Dropdown(select, searchUrl, collection.dataset.selectPlaceholder);
+                    });
+                    makeSortableElement(list);
+
+                    function showMessage(text, isError = false) {
+                        message.className = `alert mt-2 ticket-collection-message ${isError ? 'alert-danger' : 'alert-success'}`;
+                        message.textContent = text;
+                    }
+
+                    createForm.addEventListener('submit', async event => {
+                        event.preventDefault();
+                        const form = event.currentTarget;
+                        const button = form.querySelector('button[type="submit"]');
+                        button.disabled = true;
+                        try {
+                            const response = await fetch(apiUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify({summary: form.elements.summary.value})
+                            });
+                            const data = await response.json();
+                            if (!response.ok) throw new Error(getApiError(data));
+                            tickets = [...tickets, data];
+                            renderTicketCollection(collection, tickets);
+                            form.reset();
+                            showMessage(collection.dataset.createSuccess);
+                        } catch (error) {
+                            showMessage(error.message, true);
+                        } finally {
+                            button.disabled = false;
+                        }
+                    });
+
+                    addForm.addEventListener('submit', async event => {
+                        event.preventDefault();
+                        const form = event.currentTarget;
+                        const button = form.querySelector('button[type="submit"]');
+                        const ticketIds = Array.from(
+                            form.elements.ticketIds.selectedOptions,
+                            option => Number(option.value)
+                        );
+                        button.disabled = true;
+                        try {
+                            const response = await fetch(apiUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify({ticketIds})
+                            });
+                            const data = await response.json();
+                            if (!response.ok) throw new Error(getApiError(data));
+                            tickets = data;
+                            renderTicketCollection(collection, tickets);
+                            $(form.elements.ticketIds).val(null).trigger('change');
+                            showMessage(collection.dataset.addSuccess);
+                        } catch (error) {
+                            showMessage(error.message, true);
+                        } finally {
+                            button.disabled = false;
+                        }
+                    });
+
+                    try {
+                        const response = await fetch(apiUrl);
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(getApiError(data));
+                        tickets = data;
+                        renderTicketCollection(collection, tickets);
+                    } catch (error) {
+                        showMessage(error.message, true);
+                    } finally {
+                        createButton.disabled = false;
+                        addButton.disabled = false;
+                    }
+                }));
             }
 
             async function loadParentSubtasks() {
                 const panels = document.querySelectorAll('.parent-subtasks-panel');
                 const section = document.getElementById('parentSubtasksSection');
+                if (!panels.length) return;
                 let hasOtherSubtasks = false;
                 let hasLoadError = false;
                 await Promise.all(Array.from(panels, async panel => {
@@ -1316,7 +1202,7 @@
                         if (!response.ok) throw new Error(getApiError(data));
                         const subtasks = data.filter(subtask => subtask.id !== {{ ticket.id }});
                         hasOtherSubtasks = hasOtherSubtasks || subtasks.length > 0;
-                        const items = subtasks.map(createSubtaskElement);
+                        const items = subtasks.map(createTicketElement);
                         items.forEach((item, index) => {
                             item.id = `${panel.id}-ticket-${subtasks[index].id}`;
                         });
@@ -1329,34 +1215,6 @@
                     }
                 }));
                 section.classList.toggle('d-none', !hasOtherSubtasks && !hasLoadError);
-            }
-
-            let currentEpicIssues = [];
-
-            function renderEpicIssues(issues) {
-                currentEpicIssues = issues;
-                const list = document.getElementById('epicTicketsList');
-                const emptyState = document.getElementById('epicIssueEmpty');
-                list.replaceChildren(...issues.map(createSubtaskElement));
-                emptyState.classList.toggle('d-none', issues.length > 0);
-
-                const progress = document.getElementById('epicIssueProgress');
-                const progressCount = document.getElementById('epicIssueProgressCount');
-                const progressBar = document.getElementById('epicIssueProgressBar');
-                const doneCount = issues.filter(issue => issue.isDone).length;
-                const percent = issues.length ? Math.floor(doneCount * 100 / issues.length) : 0;
-                progress.classList.toggle('d-none', issues.length === 0);
-                progressCount.textContent = `${doneCount} of ${issues.length} done`;
-                progressBar.style.width = `${percent}%`;
-                progressBar.setAttribute('aria-valuenow', percent);
-                progressBar.textContent = `${percent}%`;
-            }
-
-            async function loadEpicIssues() {
-                const response = await fetch(ticketEpicIssuesUrl);
-                const data = await response.json();
-                if (!response.ok) throw new Error(getApiError(data));
-                renderEpicIssues(data);
             }
 
             function renderLinkedIssues(groups) {
@@ -1375,7 +1233,7 @@
                     list.className = 'list-group list-group-flush linked-issue-group-list';
                     list.id = `linked-issue-group-${index}`;
                     group.tickets.forEach(ticket => {
-                        const item = createSubtaskElement(ticket);
+                        const item = createTicketElement(ticket);
                         item.id = `linked-ticket-${ticket.id}-${index}`;
                         list.append(item);
                     });
@@ -1393,180 +1251,7 @@
                 renderLinkedIssues(data);
             }
 
-            const addCommentForm = document.getElementById('addCommentForm');
-            const addCommentQuill = initializeCommentEditor(
-                addCommentForm.querySelector('.comment-quill-editor')
-            );
-
-            addCommentForm.addEventListener('submit', async event => {
-                event.preventDefault();
-                const validation = addCommentForm.querySelector('.comment-validation');
-                if (!addCommentQuill.getText().trim()) {
-                    validation.classList.remove('d-none');
-                    return;
-                }
-                validation.classList.add('d-none');
-                const button = addCommentForm.querySelector('button[type="submit"]');
-                button.disabled = true;
-                try {
-                    const response = await fetch(ticketCommentListUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': getCookie('csrftoken')
-                        },
-                        body: JSON.stringify({comment: addCommentQuill.root.innerHTML})
-                    });
-
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(getApiError(data));
-                    commentList.querySelector('.comment-empty-state')?.remove();
-                    commentList.prepend(createCommentElement(data));
-                    addCommentQuill.setText('');
-                } catch (error) {
-                    displayApiError(error);
-                } finally {
-                    button.disabled = false;
-                }
-            });
-
-            const createSubtaskForm = document.querySelector('.create-subtask-form');
-            const addSubtasksForm = document.querySelector('.add-subtasks-form');
-            const createEpicIssueForm = document.querySelector('.create-epic-issue-form');
-            const addEpicIssuesForm = document.querySelector('.add-epic-issues-form');
-            if (createEpicIssueForm && addEpicIssuesForm) {
-                createEpicIssueForm.addEventListener('submit', async event => {
-                    event.preventDefault();
-                    const form = event.currentTarget;
-                    const button = form.querySelector('button[type="submit"]');
-                    const message = document.getElementById('epicIssueMessage');
-                    button.disabled = true;
-                    try {
-                        const response = await fetch(ticketEpicIssuesUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: JSON.stringify({summary: form.elements.summary.value})
-                        });
-                        const data = await response.json();
-                        if (!response.ok) throw new Error(getApiError(data));
-                        renderEpicIssues([...currentEpicIssues, data]);
-                        form.reset();
-                        message.className = 'alert alert-success mt-2';
-                        message.textContent = 'Issue created and added to this epic.';
-                    } catch (error) {
-                        message.className = 'alert alert-danger mt-2';
-                        message.textContent = error.message;
-                    } finally {
-                        button.disabled = false;
-                    }
-                });
-
-                addEpicIssuesForm.addEventListener('submit', async event => {
-                    event.preventDefault();
-                    const form = event.currentTarget;
-                    const button = form.querySelector('button[type="submit"]');
-                    const ticketIds = Array.from(
-                        form.elements.ticketIds.selectedOptions,
-                        option => Number(option.value)
-                    );
-                    const message = document.getElementById('epicIssueMessage');
-                    button.disabled = true;
-                    try {
-                        const response = await fetch(ticketEpicIssuesUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: JSON.stringify({ticketIds})
-                        });
-                        const data = await response.json();
-                        if (!response.ok) throw new Error(getApiError(data));
-                        renderEpicIssues(data);
-                        $(form.elements.ticketIds).val(null).trigger('change');
-                        message.className = 'alert alert-success mt-2';
-                        message.textContent = 'Issues added to this epic.';
-                    } catch (error) {
-                        message.className = 'alert alert-danger mt-2';
-                        message.textContent = error.message;
-                    } finally {
-                        button.disabled = false;
-                    }
-                });
-
-                loadEpicIssues().catch(error => {
-                    const message = document.getElementById('epicIssueMessage');
-                    message.className = 'alert alert-danger mt-2';
-                    message.textContent = error.message;
-                });
-            }
-
-            if (createSubtaskForm && addSubtasksForm) {
-                createSubtaskForm.addEventListener('submit', async event => {
-                    event.preventDefault();
-                    const form = event.currentTarget;
-                    const button = form.querySelector('button[type="submit"]');
-                    const message = document.getElementById('subtaskMessage');
-                    button.disabled = true;
-                    try {
-                        const response = await fetch(ticketSubTaskListUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: JSON.stringify({summary: form.elements.summary.value})
-                        });
-                        const data = await response.json();
-                        if (!response.ok) throw new Error(getApiError(data));
-                        renderSubtasks([...currentSubtasks, data]);
-                        form.reset();
-                        message.className = 'alert alert-success mt-2';
-                        message.textContent = 'Subtask created.';
-                    } catch (error) {
-                        message.className = 'alert alert-danger mt-2';
-                        message.textContent = error.message;
-                    } finally {
-                        button.disabled = false;
-                    }
-                });
-
-                addSubtasksForm.addEventListener('submit', async event => {
-                    event.preventDefault();
-                    const form = event.currentTarget;
-                    const button = form.querySelector('button[type="submit"]');
-                    const selectedIds = Array.from(
-                        form.elements.ticketIds.selectedOptions,
-                        option => Number(option.value)
-                    );
-                    const message = document.getElementById('subtaskMessage');
-                    button.disabled = true;
-                    try {
-                        const response = await fetch(ticketSubTaskListUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: JSON.stringify({ticketIds: selectedIds})
-                        });
-                        const data = await response.json();
-                        if (!response.ok) throw new Error(getApiError(data));
-                        renderSubtasks(data);
-                        $(form.elements.ticketIds).val(null).trigger('change');
-                        message.className = 'alert alert-success mt-2';
-                        message.textContent = 'Subtasks added.';
-                    } catch (error) {
-                        message.className = 'alert alert-danger mt-2';
-                        message.textContent = error.message;
-                    } finally {
-                        button.disabled = false;
-                    }
-                });
-            }
+            initializeTicketCollections();
 
             const addLinkedIssuesForm = document.querySelector('.add-linked-issues-form');
             if (addLinkedIssuesForm) {
@@ -1607,120 +1292,6 @@
                 });
             }
 
-            commentList.addEventListener('click', event => {
-                const editButton = event.target.closest('.edit-comment-button');
-                if (editButton) {
-                    const comment = editButton.closest('.comment-item');
-                    const form = comment.querySelector('.comment-edit-form');
-                    form.classList.remove('d-none');
-                    comment.querySelector('.comment-content').classList.add('d-none');
-                    comment.querySelector('.comment-footer').classList.add('d-none');
-                    editButton.classList.add('d-none');
-                    const quill = initializeCommentEditor(
-                        form.querySelector('.comment-quill-editor'),
-                        comment.querySelector('.comment-content').innerHTML
-                    );
-                    commentEditors.set(form, quill);
-                    quill.focus();
-                }
-
-                const cancelButton = event.target.closest('.cancel-comment-edit');
-                if (cancelButton) {
-                    const comment = cancelButton.closest('.comment-item');
-                    const form = cancelButton.closest('.comment-edit-form');
-                    form.classList.add('d-none');
-                    comment.querySelector('.comment-content').classList.remove('d-none');
-                    comment.querySelector('.comment-footer').classList.remove('d-none');
-                    comment.querySelector('.edit-comment-button').classList.remove('d-none');
-                }
-            });
-
-            commentList.addEventListener('submit', async event => {
-                const form = event.target;
-                if (form.matches('.comment-edit-form')) {
-                    event.preventDefault();
-                    const quill = commentEditors.get(form);
-                    const validation = form.querySelector('.comment-validation');
-                    if (!quill.getText().trim()) {
-                        validation.classList.remove('d-none');
-                        return;
-                    }
-                    validation.classList.add('d-none');
-                    const comment = form.closest('.comment-item');
-                    const button = form.querySelector('button[type="submit"]');
-                    button.disabled = true;
-                    try {
-                        const response = await fetch(`${ticketCommentListUrl}${comment.dataset.commentId}/`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: JSON.stringify({comment: quill.root.innerHTML})
-                        });
-                        const data = await response.json();
-                        if (!response.ok) throw new Error(getApiError(data));
-                        comment.querySelector('.comment-content').innerHTML = data.comment;
-                        comment.querySelector('.comment-author small').innerHTML =
-                            `${escapeHtml(formatCommentDate(data.createdDateTime))} <span class="comment-edited">(edited)</span>`;
-                        form.classList.add('d-none');
-                        comment.querySelector('.comment-content').classList.remove('d-none');
-                        comment.querySelector('.comment-footer').classList.remove('d-none');
-                        comment.querySelector('.edit-comment-button').classList.remove('d-none');
-                    } catch (error) {
-                        displayApiError(error);
-                    } finally {
-                        button.disabled = false;
-                    }
-                }
-            });
-
-            commentList.addEventListener('submit', async event => {
-                const form = event.target;
-                if (!form.matches('.comment-reaction-form')) return;
-                event.preventDefault();
-                    event.preventDefault();
-                        const button = event.submitter;
-                        const comment = form.closest('.comment-item');
-                        button.disabled = true;
-
-                    try {
-                        const response = await fetch(
-                            `${ticketCommentListUrl}${comment.dataset.commentId}/`,
-                            {
-                            method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRFToken': getCookie('csrftoken')
-                                },
-                                body: JSON.stringify({
-                                    reaction: button.name === 'like-ticket-comment' ? 'like' : 'dislike'
-                                })
-                            }
-                        );
-                        const data = await response.json();
-                        if (!response.ok) {
-                            throw new Error(getApiError(data));
-                        }
-
-                        comment.querySelector('.comment-like-count').textContent = data.likesCount;
-                        comment.querySelector('.comment-dislike-count').textContent = data.disLikesCount;
-                        const likeButton = comment.querySelector('.comment-like-button');
-                        const dislikeButton = comment.querySelector('.comment-dislike-button');
-                        likeButton.classList.toggle('is-active', data.inLikes);
-                        likeButton.setAttribute('aria-pressed', data.inLikes);
-                        dislikeButton.classList.toggle('is-active', data.inDisLikes);
-                        dislikeButton.setAttribute('aria-pressed', data.inDisLikes);
-                    } catch (error) {
-                        const message = document.getElementById('inlineEditMessage');
-                        message.className = 'alert alert-danger mt-2';
-                        message.textContent = error.message;
-                    } finally {
-                        button.disabled = false;
-                    }
-            });
-            loadTicketComments();
-
             document.addEventListener('click', event => {
                 if (event.target.closest('a, input, textarea, select, button')) return;
                 const field = event.target.closest('[data-inline-field]');
@@ -1749,19 +1320,12 @@
                     message.textContent = error.message;
                 });
 
-            makeSortable('epicTicketsList');
-            makeSortable('subtaskList');
-            handleSelect2Dropdown('.subtasks-list', '{% url "ticket:ticketLiveSearchApiVersion1" %}?subTaskOnly=true&excludeTicketIds={{ ticket.id }}', 'Add subtasks');
-            handleSelect2Dropdown('.epic-issues-list', '{% url "ticket:ticketLiveSearchApiVersion1" %}?excludeEpic=true', 'Search for issues');
-            handleSelect2Dropdown('.all-tickets-list', '{% url "ticket:ticketLiveSearchApiVersion1" %}?excludeTicketIds={{ ticket.id }}', 'Search for tickets');
+            handleSelect2Dropdown(
+                '.all-tickets-list',
+                '{% url "ticket:ticketLiveSearchApiVersion1" %}?excludeTicketIds={{ ticket.id }}',
+                'Search for issues'
+            );
             loadParentSubtasks();
-            if (createSubtaskForm) {
-                loadSubtasks().catch(error => {
-                    const message = document.getElementById('subtaskMessage');
-                    message.className = 'alert alert-danger mt-2';
-                    message.textContent = error.message;
-                });
-            }
             if (addLinkedIssuesForm) {
                 loadLinkedIssues().catch(error => {
                     const message = document.getElementById('linkedIssueMessage');
@@ -1769,6 +1333,14 @@
                     message.textContent = error.message;
                 });
             }
+        });
+
+        window.addEventListener('resize', () => {
+            handleSelect2Dropdown(
+                '.all-tickets-list',
+                '{% url "ticket:ticketLiveSearchApiVersion1" %}?excludeTicketIds={{ ticket.id }}',
+                'Search for issues'
+            );
         });
 
         function makeSortable(listId) {

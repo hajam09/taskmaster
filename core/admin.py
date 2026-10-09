@@ -49,6 +49,7 @@ class ColumnAdmin(admin.ModelAdmin):
 @admin.register(ColumnStatus)
 class ColumnStatusAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'orderNo')
+    list_filter = ['column__board']
 
 
 @admin.register(Ticket)
@@ -66,6 +67,7 @@ class TicketAdmin(admin.ModelAdmin):
         'type',
         'priority',
     )
+    list_filter = ['type']
 
     def get_form(self, request, obj=None, **kwargs):
         request._obj_ = obj

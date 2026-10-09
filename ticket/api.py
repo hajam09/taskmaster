@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-from django.db import transaction
 from django.db.models import Count, Exists, OuterRef, Q
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
@@ -11,14 +10,12 @@ from rest_framework.views import APIView
 from core import service
 from core.models import ColumnStatus, Label, Ticket, TicketComment, TicketLink
 from core.serializers import (
-    EpicIssueAttachSerializer,
-    EpicIssueCreateSerializer,
+    EpicIssueAttachSerializer, EpicIssueCreateSerializer,
     TicketCommentSerializer,
-    TicketInlineUpdateSerializer,
     TicketLinkCreateSerializer,
-    TicketSubTaskAttachSerializer,
-    TicketSubTaskCreateSerializer,
-    TicketSubTaskSerializer,
+    TicketSubTaskAttachSerializer, TicketSubTaskCreateSerializer,
+    TicketSubTaskSerializer, TicketSerializerVersion1,
+    UserSerializer, TicketUpdateSerializer
 )
 
 MAN_AVATAR = 'https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png'
@@ -32,8 +29,36 @@ class TicketOrderNoUpdateApiV1(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class UserLiveSearchApiVersion1(APIView):
+class ColumnStatusLiveSearchApiVersion1(APIView):
+    limit = 20
+
+    def get_queryset(self):
+        query = self.request.query_params.get('query', '').strip()
+        boardId = self.request.query_params.get('boardId', '').strip()
+        columnStatuses = ColumnStatus.objects.only('id', 'name', 'column').select_related('column').order_by('orderNo')
+
+        if boardId:
+            columnStatuses = columnStatuses.filter(column__board_id=boardId)
+
+        if not query:
+            return columnStatuses[:self.limit]
+        return columnStatuses.filter(name__icontains=query)[:self.limit]
+
+    def get(self, request, *args, **kwargs):
+        data = [
+            {
+                'id': columnStatus.id,
+                'name': columnStatus.name,
+                'colour': columnStatus.column.getColour() if columnStatus.column else None,
+            }
+            for columnStatus in self.get_queryset()
+        ]
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class UserLiveSearchApiVersion1(generics.ListAPIView):
     limit = 10
+    serializer_class = UserSerializer
 
     def get_queryset(self):
         query = self.request.query_params.get('query', '').strip()
@@ -42,17 +67,6 @@ class UserLiveSearchApiVersion1(APIView):
             return users[:self.limit]
         filters = Q(first_name__icontains=query) | Q(last_name__icontains=query)
         return users.filter(filters)[:self.limit]
-
-    def get(self, request, *args, **kwargs):
-        data = [
-            {
-                'id': user.id,
-                'name': f'{user.first_name} {user.last_name}'.strip(),
-                'icon': MAN_AVATAR,
-            }
-            for user in self.get_queryset()
-        ]
-        return Response(data, status=status.HTTP_200_OK)
 
 
 class LabelLiveSearchApiVersion1(APIView):
@@ -115,121 +129,30 @@ class TicketLiveSearchApiVersion1(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class TicketApiVersion1(APIView):
+class TicketApiVersion1(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = TicketSerializerVersion1
+
+    def get_object(self):
+        if not hasattr(self, 'ticket'):
+            idOrUrl = self.kwargs['ticketIdOrUrl']
+            self.ticket = get_object_or_404(
+                Ticket.objects.select_related('project', 'assignee', 'reporter', 'epic', 'parent',
+                                              'columnStatus__column__board').prefetch_related('label'),
+                Q(id=int(idOrUrl)) | Q(url=idOrUrl) if idOrUrl.isdigit() else Q(url=idOrUrl)
+            )
+        return self.ticket
 
     def get(self, request, *args, **kwargs):
-        ticket = get_object_or_404(
-            Ticket.objects.select_related(
-                'project', 'assignee', 'reporter', 'columnStatus__column', 'epic',
-            ).prefetch_related('label'),
-            url=request.query_params.get('url'),
-        )
-        assignee = ticket.assignee
-        columnStatus = ticket.columnStatus
-        epic = ticket.epic
-
-        data = {
-            'id': ticket.id,
-            'url': ticket.url,
-            'href': ticket.getUrl,
-            'summary': ticket.summary,
-            'description': service.sanitiseTicketDescription(ticket.description),
-            'storyPoints': ticket.storyPoints,
-            'createdDateTime': ticket.createdDateTime,
-            'modifiedDateTime': ticket.modifiedDateTime,
-            'project': {
-                'id': ticket.project.id,
-                'name': ticket.project.name,
-                'icon': ticket.project.icon,
-            },
-            'type': {
-                'name': ticket.get_type_display(),
-                'value': ticket.type,
-                'icon': ticket.typeIcon,
-            },
-            'priority': {
-                'name': ticket.get_priority_display(),
-                'value': ticket.priority,
-                'icon': ticket.priorityIcon,
-            },
-            'reporter': {
-                'id': ticket.reporter.id,
-                'name': ticket.reporter.get_full_name(),
-                'icon': MAN_AVATAR,
-            },
-            'assignee': None,
-            'resolution': {
-                'name': ticket.get_resolution_display(),
-                'value': ticket.resolution,
-            },
-            'epic': None,
-            'label': [
-                {'id': label.id, 'name': label.name, 'colour': label.colour}
-                for label in ticket.label.all()
-            ],
-            'editOptions': {
-                'type': [
-                    {'key': value, 'value': label, 'icon': Ticket.icons.get(value)}
-                    for value, label in Ticket.Type.choices
-                ],
-                'priority': [
-                    {'key': value, 'value': label, 'icon': Ticket.icons.get(value)}
-                    for value, label in Ticket.Priority.choices
-                ],
-                'resolution': [
-                    {'key': value, 'value': label}
-                    for value, label in Ticket.Resolution.choices
-                ],
-                'columnStatus': [
-                    {
-                        'key': item.id,
-                        'value': item.name,
-                        'colour': item.column.getColour(),
-                    }
-                    for item in ColumnStatus.objects.filter(
-                        column__board_id=ticket.columnStatus.column.board_id
-                    ).order_by('orderNo')
-                ],
-            },
-            'team': None,
-            'sprint': None,
-            'votes': 2,
-            'watchers': 4,
-        }
-
-        if assignee:
-            data['assignee'] = {
-                'id': assignee.id,
-                'name': assignee.get_full_name(),
-                'icon': MAN_AVATAR,
-            }
-        if columnStatus:
-            column = columnStatus.column
-            data['columnStatus'] = {
-                'id': columnStatus.id,
-                'name': columnStatus.name,
-                'column': {
-                    'id': column.id,
-                    'name': column.name,
-                    'colour': column.getColour(),
-                } if column else None,
-            }
-        else:
-            data['columnStatus'] = None
-        if epic:
-            data['epic'] = {
-                'id': epic.id,
-                'url': epic.url,
-                'href': epic.getUrl,
-                'summary': epic.summary,
-                'icon': epic.typeIcon,
-            }
-        return Response(data=data, status=status.HTTP_200_OK)
+        ticket = self.get_object()
+        serializer = self.get_serializer(ticket)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, *args, **kwargs):
-        ticket = get_object_or_404(Ticket, url=request.query_params.get('url'))
-        serializer = TicketInlineUpdateSerializer(ticket, data=request.data, partial=True)
+        ticket = self.get_object()
+        serializer = TicketUpdateSerializer(
+            ticket, data=request.data, partial=True, context=self.get_serializer_context()
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return self.get(request, *args, **kwargs)
@@ -319,7 +242,6 @@ class TicketSubTaskListCreateView(generics.ListCreateAPIView):
 
 class TicketLinkedIssueListCreateView(APIView):
     permission_classes = [IsAuthenticated]
-    ticket = None
 
     def getTicket(self):
         if not hasattr(self, 'ticket'):
@@ -343,7 +265,6 @@ class TicketLinkedIssueListCreateView(APIView):
         # 2 queries
         return Response(self.getResponseData(), status=status.HTTP_200_OK)
 
-    @transaction.atomic
     def post(self, request, *args, **kwargs):
         # 4 queries
         serializer = TicketLinkCreateSerializer(data=request.data, context={'ticket': self.getTicket()})
