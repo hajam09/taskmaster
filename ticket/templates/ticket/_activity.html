@@ -1,10 +1,11 @@
 <div class="card mt-4">
     <div class="card-body">
-        <div class="collapse-header font-weight-bold" data-toggle="collapse"
-             data-target="#activityPanel">
+        <button class="btn btn-link collapse-header font-weight-bold p-0" type="button"
+                data-toggle="collapse" data-target="#activityPanel" aria-expanded="true"
+                aria-controls="activityPanel">
             Activity
-            <span class="float-right">▼</span>
-        </div>
+            <span class="collapse-indicator" aria-hidden="true"></span>
+        </button>
 
         <div id="activityPanel" class="collapse show mt-3">
             <ul class="nav nav-pills mb-3" id="activityTabs" role="tablist">
@@ -26,9 +27,10 @@
                     <form method="post" class="mt-3" id="addCommentForm">
                         {% csrf_token %}
                         <div class="comment-composer">
-                            <div class="comment-quill-editor"></div>
+                            <div class="comment-quill-editor" aria-label="Comment editor"></div>
                         </div>
-                        <div class="comment-validation alert alert-danger d-none mt-2">
+                        <div id="addCommentValidation" class="comment-validation alert alert-danger d-none mt-2"
+                             role="alert">
                             A comment cannot be empty.
                         </div>
                         <button type="submit" class="btn btn-primary btn-sm mt-2">
@@ -44,7 +46,9 @@
                 </div>
                 <div class="tab-pane fade" id="history-panel" role="tabpanel"
                      aria-labelledby="history-tab">
-                    <p class="text-muted">Ticket history will appear here.</p>
+                    <div class="alert alert-light border mb-0" role="status">
+                        Field-change history is not available yet; this page has no history API endpoint.
+                    </div>
                 </div>
             </div>
         </div>
@@ -71,7 +75,8 @@
                 theme: 'snow',
                 modules: {toolbar: commentToolbar}
             });
-            quill.root.innerHTML = initialHtml;
+            quill.root.setAttribute('aria-label', 'Comment text');
+            quill.root.innerHTML = sanitizeTicketRichText(initialHtml);
             return quill;
         }
 
@@ -107,59 +112,82 @@
 
         function createCommentElement(data) {
             const creator = data.creator || {};
-            const name = [creator.first_name, creator.last_name].filter(Boolean).join(' ') || creator.username || 'User';
-            const initials = (creator.first_name || creator.username || name).slice(0, 1).toUpperCase();
+            const name = creator.name || [creator.first_name, creator.last_name].filter(Boolean).join(' ') ||
+                creator.username || 'User';
+            const initials = name.slice(0, 1).toUpperCase();
             const canEdit = String(creator.id) === commentList.dataset.currentUserId;
             const article = document.createElement('article');
-            article.className = 'comment-item mb-3';
+            article.className = 'comment-item';
             article.dataset.commentId = data.id;
 
             article.innerHTML = `
-                <header class="comment-header">
-                    <span class="comment-avatar" aria-hidden="true">${escapeHtml(initials)}</span>
-                    <div class="comment-author">
-                        <strong>${escapeHtml(name)}</strong>
-                        <small class="text-muted">
-                            ${escapeHtml(formatCommentDate(data.createdDateTime))}
-                            ${data.edited ? '<span class="comment-edited">(edited)</span>' : ''}
-                        </small>
-                    </div>
-                    ${canEdit ? '<button type="button" class="btn btn-sm btn-link edit-comment-button ml-auto">Edit</button>' : ''}
-                </header>
-                <div class="comment-content"></div>
-                <footer class="comment-footer">
-                    <div class="comment-reactions">
-                        <form method="post" class="comment-reaction-form">
-                            <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(getCookie('csrftoken'))}">
-                            <input type="hidden" name="comment-id" value="${data.id}">
-                            <button type="submit" name="like-ticket-comment" value="1"
-                                    class="btn btn-sm comment-reaction-button comment-like-button ${data.inLikes ? 'is-active' : ''}"
-                                    aria-label="Like comment" aria-pressed="${Boolean(data.inLikes)}">
-                                <i class="fa fa-thumbs-up"></i>
-                                <span class="comment-like-count">${Number(data.likesCount) || 0}</span>
-                            </button>
-                        </form>
-                        <form method="post" class="comment-reaction-form">
-                            <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(getCookie('csrftoken'))}">
-                            <input type="hidden" name="comment-id" value="${data.id}">
-                            <button type="submit" name="dislike-ticket-comment" value="1"
-                                    class="btn btn-sm comment-reaction-button comment-dislike-button ${data.inDisLikes ? 'is-active' : ''}"
-                                    aria-label="Dislike comment" aria-pressed="${Boolean(data.inDisLikes)}">
-                                <i class="fa fa-thumbs-down"></i>
-                                <span class="comment-dislike-count">${Number(data.disLikesCount) || 0}</span>
-                            </button>
-                        </form>
-                    </div>
-                </footer>
-                ${canEdit ? `
-                <form class="comment-edit-form d-none mt-3">
-                    <div class="comment-quill-editor"></div>
-                    <div class="comment-validation alert alert-danger d-none mt-2">A comment cannot be empty.</div>
-                    <button type="submit" class="btn btn-primary btn-sm mt-2">Save</button>
-                    <button type="button" class="btn btn-light btn-sm mt-2 cancel-comment-edit">Cancel</button>
-                </form>` : ''}
+                <span class="comment-avatar comment-avatar-fallback" aria-hidden="true">${escapeHtml(initials)}</span>
+                <div class="comment-main">
+                    <header class="comment-header">
+                        <div class="comment-author">
+                            <strong>${escapeHtml(name)}</strong>
+                            <small class="text-muted">
+                                <time datetime="${escapeHtml(data.createdDateTime)}">
+                                    ${escapeHtml(formatCommentDate(data.createdDateTime))}
+                                </time>
+                                ${data.edited ? '<span class="comment-edited">(edited)</span>' : ''}
+                            </small>
+                        </div>
+                        ${canEdit ? '<button type="button" class="btn btn-sm btn-link edit-comment-button">Edit</button>' : ''}
+                    </header>
+                    <div class="comment-content"></div>
+                    <footer class="comment-footer">
+                        <div class="comment-reactions">
+                            <form method="post" class="comment-reaction-form">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(getCookie('csrftoken'))}">
+                                <input type="hidden" name="comment-id" value="${data.id}">
+                                <button type="submit" name="like-ticket-comment" value="1"
+                                        class="btn btn-sm comment-reaction-button comment-like-button ${data.inLikes ? 'is-active' : ''}"
+                                        aria-label="Like comment" aria-pressed="${Boolean(data.inLikes)}">
+                                    <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+                                    <span class="comment-like-count">${Number(data.likesCount) || 0}</span>
+                                </button>
+                            </form>
+                            <form method="post" class="comment-reaction-form">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(getCookie('csrftoken'))}">
+                                <input type="hidden" name="comment-id" value="${data.id}">
+                                <button type="submit" name="dislike-ticket-comment" value="1"
+                                        class="btn btn-sm comment-reaction-button comment-dislike-button ${data.inDisLikes ? 'is-active' : ''}"
+                                        aria-label="Dislike comment" aria-pressed="${Boolean(data.inDisLikes)}">
+                                    <i class="fa fa-thumbs-down" aria-hidden="true"></i>
+                                    <span class="comment-dislike-count">${Number(data.disLikesCount) || 0}</span>
+                                </button>
+                            </form>
+                        </div>
+                    </footer>
+                    ${canEdit ? `
+                    <form class="comment-edit-form d-none mt-3">
+                        <div class="comment-quill-editor"></div>
+                        <div class="comment-validation alert alert-danger d-none mt-2" role="alert">A comment cannot be empty.</div>
+                        <button type="submit" class="btn btn-primary btn-sm mt-2">Save</button>
+                        <button type="button" class="btn btn-light btn-sm mt-2 cancel-comment-edit">Cancel</button>
+                    </form>` : ''}
+                </div>
             `;
-            article.querySelector('.comment-content').innerHTML = data.comment || '';
+            article.querySelector('.comment-content').innerHTML = sanitizeTicketRichText(data.comment);
+            if (creator.icon) {
+                try {
+                    const avatarUrl = new URL(creator.icon, document.baseURI);
+                    if (avatarUrl.protocol === 'http:' || avatarUrl.protocol === 'https:') {
+                        const avatar = document.createElement('img');
+                        const fallback = article.querySelector('.comment-avatar-fallback');
+                        avatar.className = 'comment-avatar';
+                        avatar.alt = '';
+                        avatar.setAttribute('aria-hidden', 'true');
+                        avatar.addEventListener('load', () => { fallback.hidden = true; }, {once: true});
+                        avatar.addEventListener('error', () => avatar.remove(), {once: true});
+                        avatar.src = avatarUrl.href;
+                        article.insertBefore(avatar, article.firstChild);
+                    }
+                } catch (error) {
+                    // Keep the initials avatar when the API returns an invalid URL.
+                }
+            }
             return article;
         }
 
@@ -268,7 +296,7 @@
                     });
                     const data = await response.json();
                     if (!response.ok) throw new Error(getApiError(data));
-                    comment.querySelector('.comment-content').innerHTML = data.comment;
+                    comment.querySelector('.comment-content').innerHTML = sanitizeTicketRichText(data.comment);
                     comment.querySelector('.comment-author small').innerHTML =
                         `${escapeHtml(formatCommentDate(data.createdDateTime))} <span class="comment-edited">(edited)</span>`;
                     form.classList.add('d-none');

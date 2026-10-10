@@ -7,11 +7,12 @@
      data-create-success="{{ collection_create_success }}"
      data-add-success="{{ collection_add_success }}">
     <div class="card-body">
-        <div class="collapse-header font-weight-bold" data-toggle="collapse"
-             data-target="#{{ collection_key }}Panel">
+        <button class="btn btn-link collapse-header font-weight-bold p-0" type="button"
+                data-toggle="collapse" data-target="#{{ collection_key }}Panel" aria-expanded="true"
+                aria-controls="{{ collection_key }}Panel">
             {{ collection_heading }}
-            <span class="float-right">▼</span>
-        </div>
+            <span class="collapse-indicator" aria-hidden="true"></span>
+        </button>
 
         <div class="my-3 d-none ticket-collection-progress">
             <div class="mb-2">
@@ -31,7 +32,9 @@
             <form class="ticket-collection-create-form">
                 <div class="form-row">
                     <div class="col-12 col-md mb-2">
+                        <label class="sr-only" for="{{ collection_key }}Summary">{{ collection_create_placeholder }}</label>
                         <input type="text" class="form-control form-control-sm w-100"
+                               id="{{ collection_key }}Summary"
                                name="summary" placeholder="{{ collection_create_placeholder }}" required>
                     </div>
                     <div class="col-auto mb-2">
@@ -44,6 +47,7 @@
                 <div class="form-row">
                     <div class="col-12 col-md mb-2">
                         <select class="form-control form-control-sm ticket-collection-select"
+                                aria-label="{{ collection_select_placeholder }}"
                                 name="ticketIds" multiple="multiple" required>
                         </select>
                     </div>
@@ -53,8 +57,9 @@
                 </div>
             </form>
 
-            <ul class="list-group list-group-flush ticket-collection-list"></ul>
-            <i class="ticket-collection-empty">{{ collection_empty_message }}</i>
+            <p class="ticket-collection-loading text-muted" role="status">Loading issues...</p>
+            <ul class="list-group list-group-flush ticket-collection-list" aria-live="polite"></ul>
+            <p class="ticket-collection-empty d-none mb-0">{{ collection_empty_message }}</p>
         </div>
     </div>
 </div>

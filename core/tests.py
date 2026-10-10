@@ -76,6 +76,22 @@ class TicketInlineUpdateApiTests(TestCase):
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.summary, 'Updated summary')
 
+    def test_ticket_type_and_priority_list_apis_include_keys_values_and_icons(self):
+        type_response = self.client.get(reverse('core:ticketTypeListApiVersion1'))
+        priority_response = self.client.get(reverse('core:ticketPriorityListApiVersion1'))
+        issue_response = self.client.get(self.api_url)
+
+        self.assertEqual(type_response.status_code, 200)
+        self.assertEqual(priority_response.status_code, 200)
+        self.assertEqual(issue_response.status_code, 200)
+        bug = next(option for option in type_response.data if option['key'] == Ticket.Type.BUG)
+        high = next(option for option in priority_response.data if option['key'] == Ticket.Priority.HIGH)
+        self.assertEqual(bug['value'], Ticket.Type.BUG.label)
+        self.assertEqual(bug['icon'], Ticket.icons[Ticket.Type.BUG])
+        self.assertEqual(high['value'], Ticket.Priority.HIGH.label)
+        self.assertEqual(high['icon'], Ticket.icons[Ticket.Priority.HIGH])
+        self.assertNotIn('editOptions', issue_response.data)
+
     def test_patch_rejects_status_from_another_project(self):
         other_project = self.create_project('Project Two', 'TWO')
         other_status = self.create_status(other_project, 'In Progress')
@@ -769,6 +785,27 @@ class TicketInlineUpdateApiTests(TestCase):
 
         self.assertEqual(self_link_response.status_code, 400)
         self.assertEqual(invalid_type_response.status_code, 400)
+        self.assertFalse(TicketLink.objects.exists())
+
+    def test_ticket_linked_issues_api_rejects_duplicate_targets(self):
+        target = Ticket.objects.create(
+            url='ONE-2',
+            summary='Linked target',
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+
+        response = self.client.post(
+            self.linked_issues_url,
+            {
+                'linkType': TicketLink.LinkType.BLOCKS,
+                'ticketIds': [target.id, target.id],
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 400)
         self.assertFalse(TicketLink.objects.exists())
 
     def test_ticket_page_renders_subtasks_from_the_api(self):
