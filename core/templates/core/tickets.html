@@ -45,7 +45,7 @@
                 {% for ticket in tickets %}
                     <tr>
                         <td>
-                            <img src="{{ ticket.ticketTypeIcon }}" width="20px"
+                            <img src="{{ ticket.typeIcon }}" width="20px"
                                  title={{ ticket.get_type_display }} class="img-rounded" loading="lazy"
                                  style="margin-left: 10px"/>
                             <span style="display: none;">{{ ticket.get_type_display }}</span>
@@ -61,7 +61,7 @@
                             {% renderSingleOrGroupUserAvatars ticket.reporter %}
                         </td>
                         <td>
-                            <img src="{{ ticket.ticketPriorityIcon }}" width="20px"
+                            <img src="{{ ticket.priorityIcon }}" width="20px"
                                  title={{ ticket.get_priority_display }} class="img-rounded" loading="lazy"
                                  style="margin-left: 10px"/>
                             <span style="display: none;">{{ ticket.get_priority_display }}</span>

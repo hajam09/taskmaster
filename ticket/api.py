@@ -10,11 +10,11 @@ from rest_framework.views import APIView
 from core import service
 from core.models import ColumnStatus, Label, Ticket, TicketComment, TicketLink
 from core.serializers import (
-    EpicIssueAttachSerializer, EpicIssueCreateSerializer,
+    EpicTicketAttachSerializer, EpicTicketCreateSerializer,
     TicketCommentSerializer,
     TicketLinkCreateSerializer,
-    TicketSubTaskAttachSerializer, TicketSubTaskCreateSerializer,
-    TicketSubTaskSerializer, TicketSerializerVersion1,
+    SubTaskTicketAttachSerializer, SubTaskTicketCreateSerializer,
+    TicketSerializerVersion2, TicketSerializerVersion1,
     UserSerializer, TicketUpdateSerializer
 )
 
@@ -121,7 +121,7 @@ class TicketLiveSearchApiVersion1(APIView):
             {
                 'id': ticket.id,
                 'url': ticket.url,
-                'icon': ticket.ticketTypeIcon,
+                'icon': ticket.typeIcon,
                 'summary': ticket.summary,
             }
             for ticket in self.get_queryset()
@@ -160,7 +160,6 @@ class TicketApiVersion1(generics.RetrieveUpdateDestroyAPIView):
 
 class EpicIssueListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = TicketSubTaskSerializer
 
     def getEpicTicket(self):
         if not hasattr(self, 'epic'):
@@ -178,9 +177,9 @@ class EpicIssueListCreateView(generics.ListCreateAPIView):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             if 'ticketIds' in self.request.data:
-                return EpicIssueAttachSerializer
-            return EpicIssueCreateSerializer
-        return TicketSubTaskSerializer
+                return EpicTicketAttachSerializer
+            return EpicTicketCreateSerializer
+        return TicketSerializerVersion2
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -194,14 +193,13 @@ class EpicIssueListCreateView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         if attaching:
             Ticket.objects.filter(id__in=serializer.validated_data['ticketIds']).update(epic=self.getEpicTicket())
-            return Response(TicketSubTaskSerializer(self.get_queryset(), many=True).data, status=status.HTTP_200_OK)
+            return Response(TicketSerializerVersion2(self.get_queryset(), many=True).data, status=status.HTTP_200_OK)
         issue = serializer.save()
-        return Response(TicketSubTaskSerializer(issue).data, status=status.HTTP_201_CREATED)
+        return Response(TicketSerializerVersion2(issue).data, status=status.HTTP_201_CREATED)
 
 
 class TicketSubTaskListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = TicketSubTaskSerializer
 
     def getTicket(self):
         if not hasattr(self, 'ticket'):
@@ -219,9 +217,9 @@ class TicketSubTaskListCreateView(generics.ListCreateAPIView):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             if 'ticketIds' in self.request.data:
-                return TicketSubTaskAttachSerializer
-            return TicketSubTaskCreateSerializer
-        return TicketSubTaskSerializer
+                return SubTaskTicketAttachSerializer
+            return SubTaskTicketCreateSerializer
+        return TicketSerializerVersion2
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -235,9 +233,9 @@ class TicketSubTaskListCreateView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         if attaching:
             Ticket.objects.filter(id__in=serializer.validated_data['ticketIds']).update(parent=self.getTicket())
-            return Response(TicketSubTaskSerializer(self.get_queryset(), many=True).data, status=status.HTTP_200_OK)
+            return Response(TicketSerializerVersion2(self.get_queryset(), many=True).data, status=status.HTTP_200_OK)
         subtask = serializer.save()
-        return Response(TicketSubTaskSerializer(subtask).data, status=status.HTTP_201_CREATED)
+        return Response(TicketSerializerVersion2(subtask).data, status=status.HTTP_201_CREATED)
 
 
 class TicketLinkedIssueListCreateView(APIView):
@@ -256,7 +254,7 @@ class TicketLinkedIssueListCreateView(APIView):
         return [
             {
                 'linkType': linkType,
-                'tickets': TicketSubTaskSerializer(tickets, many=True).data,
+                'tickets': TicketSerializerVersion2(tickets, many=True).data,
             }
             for linkType, tickets in service.groupLinkedIssues(self.getTicket()).items()
         ]

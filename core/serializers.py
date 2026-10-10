@@ -40,7 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'name','icon']
+        fields = ['id', 'name', 'icon']
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -56,7 +56,7 @@ class BoardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Board
-        fields = ['id', 'name', 'url', 'href', 'type', 'isPrivate', 'project']
+        fields = ['id', 'name', 'url', 'href', 'type', 'isPrivate']
 
 
 class TicketSerializerVersion1(serializers.ModelSerializer):
@@ -81,14 +81,14 @@ class TicketSerializerVersion1(serializers.ModelSerializer):
         return {
             'key': ticket.type,
             'value': ticket.get_type_display(),
-            'icon': ticket.ticketTypeIcon,
+            'icon': ticket.typeIcon,
         }
 
     def get_priority(self, ticket):
         return {
             'key': ticket.priority,
             'value': ticket.get_priority_display(),
-            'icon': ticket.ticketPriorityIcon,
+            'icon': ticket.priorityIcon,
         }
 
     def get_resolution(self, ticket):
@@ -122,13 +122,13 @@ class TicketSerializerVersion1(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = [
-            'id', 'url', 'href', 'summary', 'description', 'storyPoints', 'createdDateTime', 'modifiedDateTime',
-            'project', 'type', 'priority', 'reporter', 'assignee', 'resolution', 'epic', 'parent', 'label', 'board',
+            'id', 'url', 'href', 'summary', 'description', 'storyPoints', 'createdDateTime', 'modifiedDateTime', 'type',
+            'priority', 'project', 'reporter', 'assignee', 'resolution', 'epic', 'parent', 'label', 'board',
             'columnStatus',
         ]
 
 
-class TicketSubTaskSerializer(serializers.ModelSerializer):
+class TicketSerializerVersion2(serializers.ModelSerializer):
     href = serializers.CharField(source='getUrl', read_only=True)
     type = serializers.SerializerMethodField()
     priority = serializers.SerializerMethodField()
@@ -146,18 +146,18 @@ class TicketSubTaskSerializer(serializers.ModelSerializer):
         return {
             'key': ticket.type,
             'value': ticket.get_type_display(),
-            'icon': ticket.ticketTypeIcon,
+            'icon': ticket.typeIcon,
         }
 
     def get_priority(self, ticket):
         return {
             'key': ticket.priority,
             'value': ticket.get_priority_display(),
-            'icon': ticket.ticketPriorityIcon,
+            'icon': ticket.priorityIcon,
         }
 
 
-class TicketSubTaskCreateSerializer(serializers.Serializer):
+class SubTaskTicketCreateSerializer(serializers.Serializer):
     summary = serializers.CharField(max_length=2048, allow_blank=False, trim_whitespace=True)
 
     def create(self, validated_data):
@@ -177,11 +177,7 @@ class TicketSubTaskCreateSerializer(serializers.Serializer):
         return subtask
 
 
-class TicketSubTaskAttachSerializer(serializers.Serializer):
-    ticketIds = serializers.ListField(child=serializers.IntegerField(min_value=1), allow_empty=False)
-
-
-class EpicIssueCreateSerializer(serializers.Serializer):
+class EpicTicketCreateSerializer(serializers.Serializer):
     summary = serializers.CharField(max_length=2048, allow_blank=False, trim_whitespace=True)
 
     def create(self, validated_data):
@@ -200,7 +196,11 @@ class EpicIssueCreateSerializer(serializers.Serializer):
         )
 
 
-class EpicIssueAttachSerializer(serializers.Serializer):
+class SubTaskTicketAttachSerializer(serializers.Serializer):
+    ticketIds = serializers.ListField(child=serializers.IntegerField(min_value=1), allow_empty=False)
+
+
+class EpicTicketAttachSerializer(serializers.Serializer):
     ticketIds = serializers.ListField(child=serializers.IntegerField(min_value=1), allow_empty=False)
 
 
@@ -215,7 +215,8 @@ class TicketUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = [
-            'summary', 'description', 'storyPoints', 'resolution', 'type', 'priority', 'assignee', 'columnStatus', 'label', 'parent', 'epic'
+            'summary', 'description', 'storyPoints', 'resolution', 'type', 'priority', 'assignee', 'columnStatus',
+            'label', 'parent', 'epic'
         ]
 
     def validate_columnStatus(self, columnStatus):
@@ -225,38 +226,6 @@ class TicketUpdateSerializer(serializers.ModelSerializer):
 
     def validate_label(self, labelIds):
         return list(Label.objects.filter(pk__in=labelIds))
-
-class TicketInlineUpdateSerializer(serializers.ModelSerializer):
-    assignee = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), allow_null=True, required=False)
-    columnStatus = serializers.PrimaryKeyRelatedField(queryset=ColumnStatus.objects.none(), required=False)
-    label = serializers.PrimaryKeyRelatedField(queryset=Label.objects.all(), many=True, required=False)
-    epic = serializers.PrimaryKeyRelatedField(
-        queryset=Ticket.objects.filter(type=Ticket.Type.EPIC),
-        allow_null=True,
-        required=False
-    )
-
-    class Meta:
-        model = Ticket
-        fields = [
-            'summary', 'description', 'storyPoints', 'type', 'priority', 'assignee', 'columnStatus', 'resolution',
-            'label', 'epic'
-        ]
-
-    def validate_description(self, description):
-        return service.sanitiseTicketDescription(description)
-
-    def validate_epic(self, epic):
-        if epic is not None and epic == self.instance:
-            raise serializers.ValidationError('A ticket cannot be its own epic.')
-        return epic
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance is not None:
-            self.fields['columnStatus'].queryset = ColumnStatus.objects.filter(
-                column__board_id=self.instance.columnStatus.column.board_id
-            )
 
 
 class TicketCommentSerializer(serializers.ModelSerializer):

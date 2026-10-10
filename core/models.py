@@ -302,17 +302,8 @@ class Ticket(BaseModel):
     reporter = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='ticketReporter')
     columnStatus = models.ForeignKey(ColumnStatus, on_delete=models.DO_NOTHING, related_name='columnStatusTickets')
     label = models.ManyToManyField(Label, blank=True, related_name='ticketLabels')
-    watchers = models.ManyToManyField(User, blank=True, related_name='ticketWatchers')
 
-    parent = models.ForeignKey(
-        'Ticket',
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='subTasks',
-        limit_choices_to={'type': 'SUB_TASK'}
-    )
-
+    parent = models.ForeignKey('Ticket', null=True, blank=True, on_delete=models.SET_NULL, related_name='subTasks')
     epic = models.ForeignKey(
         'Ticket',
         null=True,
@@ -353,14 +344,6 @@ class Ticket(BaseModel):
 
     @property
     def priorityIcon(self):
-        return self.icons.get(self.priority)
-
-    @property
-    def ticketTypeIcon(self):
-        return self.icons.get(self.type)
-
-    @property
-    def ticketPriorityIcon(self):
         return self.icons.get(self.priority)
 
     @property

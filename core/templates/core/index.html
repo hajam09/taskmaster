@@ -63,7 +63,7 @@
                             {% for ticket in myOpenTickets %}
                                 <tr>
                                     <td>
-                                        <img src="{{ ticket.ticketTypeIcon }}" width="18" alt="{{ ticket.get_type_display }}">
+                                        <img src="{{ ticket.typeIcon }}" width="18" alt="{{ ticket.get_type_display }}">
                                         <a href="{{ ticket.getUrl }}">{{ ticket.url }}</a>
                                         <span>{{ ticket.summary }}</span>
                                     </td>
@@ -127,7 +127,7 @@
                     {% for ticket in recentTickets %}
                         <tr>
                             <td>
-                                <img src="{{ ticket.ticketTypeIcon }}" width="18" alt="{{ ticket.get_type_display }}">
+                                <img src="{{ ticket.typeIcon }}" width="18" alt="{{ ticket.get_type_display }}">
                                 <a href="{{ ticket.getUrl }}">{{ ticket.url }}</a>
                                 <span>{{ ticket.summary }}</span>
                             </td>

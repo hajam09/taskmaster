@@ -6,14 +6,9 @@ from core.models import Ticket, TicketLink
 
 @login_required
 def ticketView(request, url):
-    # 19 queries
+    # 11 queries
     ticket = get_object_or_404(
-        Ticket.objects.select_related(
-            'reporter', 'assignee', 'columnStatus__column',
-        ).prefetch_related(
-            'epicTickets__columnStatus__column',
-            # 'ticketSubTask__subTask__columnStatus__column',
-        ),
+        Ticket,
         url=url,
     )
     if request.method == 'POST' and 'delete-ticket' in request.POST:

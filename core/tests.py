@@ -21,15 +21,15 @@ class TicketInlineUpdateApiTests(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
         self.client.force_login(user=self.user)
-        self.api_url = reverse('ticket:ticketApiVersion1')
+        self.api_url = reverse('ticket:ticketApiVersion1', kwargs={'ticketIdOrUrl': self.ticket.id})
         self.user_search_url = reverse('ticket:userLiveSearchApiVersion1')
         self.label_search_url = reverse('ticket:labelLiveSearchApiVersion1')
         self.ticket_search_url = reverse('ticket:ticketLiveSearchApiVersion1')
         self.ticket_page_url = reverse('ticket:ticket-view', kwargs={'url': self.ticket.url})
         self.comments_url = reverse('ticket:ticket-comments', kwargs={'ticketId': self.ticket.id})
-        self.subtasks_url = reverse('ticket:ticket-subtasks', kwargs={'ticketId': self.ticket.id})
-        self.epic_issues_url = reverse('ticket:ticket-epic-issues', kwargs={'ticketId': self.ticket.id})
-        self.linked_issues_url = reverse('ticket:ticket-linked-issues', kwargs={'ticketId': self.ticket.id})
+        self.subtasks_url = reverse('ticket:ticket-subtasks', kwargs={'ticketIdOrUrl': self.ticket.id})
+        self.epic_issues_url = reverse('ticket:ticket-epic-issues', kwargs={'ticketIdOrUrl': self.ticket.id})
+        self.linked_issues_url = reverse('ticket:ticket-linked-issues', kwargs={'ticketIdOrUrl': self.ticket.id})
 
     @staticmethod
     def create_project(name, code):
@@ -176,6 +176,61 @@ class TicketInlineUpdateApiTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.ticket.refresh_from_db()
         self.assertIsNone(self.ticket.epic)
+
+    def test_patch_assigns_and_clears_parent(self):
+        parent = Ticket.objects.create(
+            url='ONE-2',
+            summary='Parent ticket',
+            type=Ticket.Type.SUB_TASK,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+
+        response = self.client.patch(
+            self.api_url,
+            {'parent': parent.id},
+            format='json',
+            QUERY_STRING=f'url={self.ticket.url}',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['parent']['id'], parent.id)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.parent, parent)
+
+        response = self.client.patch(
+            self.api_url,
+            {'parent': None},
+            format='json',
+            QUERY_STRING=f'url={self.ticket.url}',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.data['parent'])
+        self.ticket.refresh_from_db()
+        self.assertIsNone(self.ticket.parent)
+
+    def test_patch_rejects_epic_as_parent(self):
+        epic = Ticket.objects.create(
+            url='ONE-2',
+            summary='Project epic',
+            type=Ticket.Type.EPIC,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+
+        response = self.client.patch(
+            self.api_url,
+            {'parent': epic.id},
+            format='json',
+            QUERY_STRING=f'url={self.ticket.url}',
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.ticket.refresh_from_db()
+        self.assertIsNone(self.ticket.parent)
 
     def test_description_html_is_sanitized_before_saving(self):
         response = self.client.patch(
@@ -336,12 +391,47 @@ class TicketInlineUpdateApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual([item['id'] for item in response.data], [epic.id])
 
+    def test_parent_live_search_returns_only_subtasks_and_excludes_requested_tickets(self):
+        Ticket.objects.create(
+            url='ONE-2',
+            summary='Project epic',
+            type=Ticket.Type.EPIC,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+        parent_ticket = Ticket.objects.create(
+            url='ONE-3',
+            summary='Parent subtask',
+            type=Ticket.Type.SUB_TASK,
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+        Ticket.objects.create(
+            url='ONE-4',
+            summary='Regular issue',
+            project=self.project,
+            reporter=self.user,
+            columnStatus=self.status,
+        )
+
+        response = self.client.get(
+            self.ticket_search_url,
+            {'subTaskOnly': 'true', 'excludeTicketIds': [self.ticket.id]},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item['id'] for item in response.data], [parent_ticket.id])
+
     def test_ticket_page_shows_epic_field_when_no_epic_is_assigned(self):
         response = self.client.get(self.ticket_page_url)
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'data-inline-field="epic"')
         self.assertContains(response, 'Add epic')
+        self.assertContains(response, 'data-inline-field="parent"')
+        self.assertContains(response, 'Add parent')
 
     def test_index_dashboard_shows_my_work_and_hides_private_project_tickets(self):
         self.ticket.assignee = self.user

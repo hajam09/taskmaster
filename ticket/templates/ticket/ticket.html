@@ -13,31 +13,14 @@
         <div class="card">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="col-md-auto">
-                    <img src="{{ ticket.getIcon }}" height="100" width="100">
+                    <img data-ticket-icon height="100" width="100" alt="">
                 </div>
                 <div class="col">
-                    <a href="#"> {{ ticket.project.name }}</a> / <a href={{ ticket.getUrl }}> {{ ticket.url }}</a>
+                    <a href="#" data-ticket-project></a> / <a data-ticket-url></a>
                     <h4 class="mb-0 inline-editable" data-inline-field="summary" data-inline-kind="text"
-                        tabindex="0" title="Click to edit">{{ ticket.summary }}</h4>
+                        tabindex="0" title="Click to edit"></h4>
                 </div>
             </div>
-        </div>
-
-        <div class="btn-group mt-2" role="group">
-            <button class="btn btn-sm btn-outline-primary mr-1">
-                <i class="fa fa-paperclip"></i> Attach
-            </button>
-            <button class="btn btn-sm btn-outline-secondary mr-1">
-                <i class="fa fa-edit"></i> Edit
-            </button>
-            <form method="post" class="d-inline"
-                  onsubmit="return confirm('Are you sure you want to delete this ticket?');">
-                {% csrf_token %}
-                <input name="delete-ticket" hidden=>
-                <button type="submit" class="btn btn-sm btn-outline-danger">
-                    <i class="fa fa-trash"></i> Delete
-                </button>
-            </form>
         </div>
 
         <div id="inlineEditMessage" class="alert d-none mt-2" role="status"></div>
@@ -56,45 +39,16 @@
 
                         <div id="descriptionPanel" class="collapse show mt-3">
                             <div id="descriptionDisplay" class="inline-editable" data-inline-field="description"
-                                 data-inline-kind="quill" tabindex="0" title="Click to edit">
-                                {{ ticket.description|default:"No description."|linebreaks }}
-                            </div>
+                                 data-inline-kind="quill" tabindex="0" title="Click to edit"></div>
                         </div>
                     </div>
                 </div>
-                {% if ticket.type == 'EPIC' %}
-
+                <div data-ticket-type-group="EPIC" hidden>
                     {% url "ticket:ticket-epic-issues" ticket.id as ticket_collection_api_url %}
                     {% url "ticket:ticketLiveSearchApiVersion1" as ticket_collection_search_url %}
                     {% include "ticket/_ticket_collection.html" with collection_key="epicIssues" collection_heading="Issues in this epic" collection_api_url=ticket_collection_api_url collection_search_url=ticket_collection_search_url collection_search_params="excludeEpic=true" collection_create_placeholder="Create new issue" collection_empty_message="No issues available for this epic!" collection_create_success="Issue created and added to this epic." collection_add_success="Issues added to this epic." collection_select_placeholder="Search for issues" %}
-
-                {% else %}
-
-                    <div id="parentSubtasksSection" class="d-none">
-                        {% for pt in ticket.ticketSubTask.all %}
-                            <div class="card mt-4">
-                                <div class="card-body">
-                                    <div class="collapse-header font-weight-bold" data-toggle="collapse"
-                                         data-target="#parentTaskTicketsPanel{{ pt.id }}">
-                                        {% if forloop.first %}
-                                            Other subtasks - All subtasks of the parent issue
-                                        {% endif %}
-                                        <a href="{{ pt.getUrl }}">{{ pt.url }}</a>
-                                        <span class="float-right">▼</span>
-                                    </div>
-
-                                    <div id="parentTaskTicketsPanel{{ pt.id }}" class="collapse show mt-3 parent-subtasks-panel"
-                                         data-subtasks-url="{% url 'ticket:ticket-subtasks' pt.id %}">
-                                        <div class="alert d-none mt-2 parent-subtask-message" role="status"></div>
-                                        <ul class="list-group list-group-flush parent-subtask-list"></ul>
-                                        <i class="parent-subtask-empty">No other subtasks available for this ticket.</i>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-
-
+                </div>
+                <div data-ticket-type-group="NON_EPIC" hidden>
                     {% url "ticket:ticket-subtasks" ticket.id as ticket_collection_api_url %}
                     {% url "ticket:ticketLiveSearchApiVersion1" as ticket_collection_search_url %}
                     {% include "ticket/_ticket_collection.html" with collection_key="subtasks" collection_heading="Subtasks" collection_api_url=ticket_collection_api_url collection_search_url=ticket_collection_search_url collection_search_params="subTaskOnly=true" collection_create_placeholder="Create new subtask" collection_empty_message="No subtasks available for this ticket!" collection_create_success="Subtask created." collection_add_success="Subtasks added." collection_select_placeholder="Search for issues" %}
@@ -136,10 +90,7 @@
                             </div>
                         </div>
                     </div>
-
-                {% endif %}
-
-
+                </div>
                 {% include "ticket/_activity.html" %}
 
             </div>
@@ -153,36 +104,24 @@
                             <div class="col-md-6 mb-3">
                                 <strong>Type</strong>
                                 <div class="inline-editable" data-inline-field="type" data-inline-kind="select"
-                                     tabindex="0" title="Click to edit">
-                                    <img src="{{ ticket.ticketTypeIcon }}" width="20">
-                                    {{ ticket.get_type_display }}
-                                </div>
+                                     tabindex="0" title="Click to edit"></div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <strong>Priority</strong>
                                 <div class="inline-editable" data-inline-field="priority" data-inline-kind="select"
-                                     tabindex="0" title="Click to edit">
-                                    <img src="{{ ticket.ticketPriorityIcon }}" width="20">
-                                    {{ ticket.get_priority_display }}
-                                </div>
+                                     tabindex="0" title="Click to edit"></div>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <strong>Assignee</strong>
                                 <div class="inline-editable" data-inline-field="assignee" data-inline-kind="select"
-                                     tabindex="0" title="Click to edit">
-                                    <img src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
-                                         width="20">
-                                    {% if ticket.assignee %}{{ ticket.assignee.get_full_name }} {% else %}
-                                        <span class="text-muted">Unassigned</span>{% endif %}
-                                </div>
+                                     tabindex="0" title="Click to edit"></div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <strong>Reporter</strong>
                                 <div>
-                                    <img src="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
-                                         width="20">
-                                    {{ ticket.reporter.get_full_name }}
+                                    <img data-ticket-reporter-icon width="20" alt="">
+                                    <span data-ticket-reporter></span>
                                 </div>
                             </div>
 
@@ -191,106 +130,52 @@
                                 <strong>Status</strong>
                                 <div class="inline-editable" data-inline-field="columnStatus"
                                      data-inline-kind="select" tabindex="0" title="Click to edit">
-                                    <span class="badge text-light"
-                                          style="background-color: {{ ticket.columnStatus.column.getColour }}">{{ ticket.columnStatus.name }}</span>
+                                    <span class="badge text-light"></span>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <strong>Resolution</strong>
                                 <div class="inline-editable" data-inline-field="resolution"
-                                     data-inline-kind="select" tabindex="0" title="Click to edit">
-                                    {{ ticket.get_resolution_display }}
-                                </div>
+                                     data-inline-kind="select" tabindex="0" title="Click to edit"></div>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <strong>Story points</strong>
                                 <div class="inline-editable" data-inline-field="storyPoints" data-inline-kind="number"
-                                     tabindex="0" title="Click to edit">
-                                    {{ ticket.storyPoints|default:"-" }}
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <strong>Votes</strong>
-                                <div>
-                                    <span class="badge badge-light">0</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <strong>Watchers</strong>
-                                <div>
-                                    <span class="badge badge-light">
-                                        {{ ticket.watchers|length }}
-                                    </span>
-                                </div>
+                                     tabindex="0" title="Click to edit"></div>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <strong>Created</strong>
-                                <div>
-                                    {{ ticket.createdDateTime|date:"d/m/y, H:i" }}
-                                </div>
+                                <div data-ticket-created></div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <strong>Updated</strong>
-                                <div data-ticket-modified>
-                                    {{ ticket.modifiedDateTime|date:"d/m/y, H:i" }}
-                                </div>
+                                <div data-ticket-modified></div>
                             </div>
                         
                             <div class="col-md-6 mb-3">
                                 <strong>Board</strong>
                                 <div>
-                                    <a href="{{ ticket.columnStatus.column.board.getUrl }}">
-                                        {{ ticket.columnStatus.column.board.name }}
-                                    </a>
+                                    <a data-ticket-board></a>
                                 </div>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <strong>Labels</strong>
                                 <div class="inline-editable" data-inline-field="label" data-inline-kind="multiple"
-                                     tabindex="0" title="Click to edit">
-                                    {% for label in ticket.label.all %}
-                                        <span
-                                           class="badge badge-light border"
-                                           style="background-color: {{ label.colour }}; color: white">{{ label.name }}</span>
-                                    {% endfor %}
-                                </div>
+                                     tabindex="0" title="Click to edit"></div>
                             </div>
-                            {% if ticket.type != 'EPIC' %}
-                                <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-3" data-ticket-type-group="NON_EPIC" hidden>
                                     <strong>Epic</strong>
                                     <div class="inline-editable" data-inline-field="epic" data-inline-kind="select"
-                                         tabindex="0" title="Click to edit">
-                                        {% if ticket.epic %}
-                                            <img src="{{ ticket.epic.ticketTypeIcon }}" width="20">
-                                            <a href="{{ ticket.epic.getUrl }}">
-                                                {{ ticket.epic.url }} {{ ticket.epic.summary|truncatechars:40 }}
-                                            </a>
-                                        {% else %}
-                                            <span class="text-muted">Add epic</span>
-                                        {% endif %}
-                                    </div>
+                                         tabindex="0" title="Click to edit"></div>
                                 </div>
-                            {% endif %}
-                            {% if ticket.ticketSubTask %}
-                                {% for pt in ticket.ticketSubTask.all %}
-                                    {% if forloop.first %}
-                                        <div class="col-md-6 mb-3">
-                                            <strong>Parent</strong>
-                                            <div>
-                                                <div>
-                                                    <img src="{{ pt.ticketTypeIcon }}" width="20">
-                                                    <a href="{{ pt.getUrl }}">
-                                                        {{ pt.summary|truncatechars:10 }}</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endif %}
-                                {% endfor %}
-                            {% endif %}
+                            <div class="col-md-6 mb-3" data-ticket-type-group="NON_EPIC" hidden>
+                                <strong>Parent</strong>
+                                <div class="inline-editable" data-inline-field="parent" data-inline-kind="select"
+                                     tabindex="0" title="Click to edit"></div>
+                            </div>
 
                         </div>
 
@@ -302,7 +187,7 @@
     </div>
 
     <script>
-        const ticketApiUrl = '{% url "ticket:ticketApiVersion1" ticket.url %}';
+        const ticketApiUrl = '{% url "ticket:ticketApiVersion1" ticket.id %}';
         const userLiveSearchUrl = '{% url "ticket:userLiveSearchApiVersion1" %}';
         const labelLiveSearchUrl = '{% url "ticket:labelLiveSearchApiVersion1" %}';
         const ticketLiveSearchUrl = '{% url "ticket:ticketLiveSearchApiVersion1" %}';
@@ -408,6 +293,21 @@
                 } else {
                     field.textContent = 'Add epic';
                 }
+            } else if (name === 'parent') {
+                field.replaceChildren();
+                field.classList.toggle('text-muted', !value.parent);
+                if (value.parent) {
+                    const icon = document.createElement('img');
+                    icon.src = value.parent.icon;
+                    icon.width = 20;
+                    icon.alt = '';
+                    const link = document.createElement('a');
+                    link.href = value.parent.href;
+                    link.textContent = ` ${value.parent.url} ${value.parent.summary}`;
+                    field.append(icon, link);
+                } else {
+                    field.textContent = 'Add parent';
+                }
             } else if (name === 'columnStatus') {
                 field.replaceChildren();
                 if (value.columnStatus) {
@@ -439,6 +339,35 @@
 
         function renderInlineValues(data, changedField = null) {
             ticketData = data;
+            const project = document.querySelector('[data-ticket-project]');
+            if (project) project.textContent = data.project?.name || '';
+            const reporter = document.querySelector('[data-ticket-reporter]');
+            if (reporter) reporter.textContent = data.reporter?.name || '';
+            const reporterIcon = document.querySelector('[data-ticket-reporter-icon]');
+            if (reporterIcon && data.reporter?.icon) reporterIcon.src = data.reporter.icon;
+            const ticketIcon = document.querySelector('[data-ticket-icon]');
+            if (ticketIcon && data.project?.icon) ticketIcon.src = data.project.icon;
+            const ticketUrl = document.querySelector('[data-ticket-url]');
+            if (ticketUrl) {
+                ticketUrl.href = data.href || '#';
+                ticketUrl.textContent = data.url || '';
+            }
+            const watchersCount = document.querySelector('[data-ticket-watchers-count]');
+            if (watchersCount) watchersCount.textContent = data.watchersCount ?? 0;
+            const created = document.querySelector('[data-ticket-created]');
+            if (created && data.createdDateTime) {
+                created.textContent = new Date(data.createdDateTime).toLocaleString();
+            }
+            const board = document.querySelector('[data-ticket-board]');
+            if (board) {
+                board.href = data.board?.href || '#';
+                board.textContent = data.board?.name || '';
+                board.parentElement.hidden = !data.board;
+            }
+            const isEpic = data.type?.key === 'EPIC';
+            document.querySelectorAll('[data-ticket-type-group]').forEach(group => {
+                group.hidden = (group.dataset.ticketTypeGroup === 'EPIC') !== isEpic;
+            });
             document.querySelectorAll('[data-inline-field]').forEach(field => {
                 if (changedField === null || field.dataset.inlineField === changedField) {
                     renderInlineField(field);
@@ -495,10 +424,15 @@
                     const selectedOption = new Option(`${epic.url} ${epic.summary}`, epic.id, true, true);
                     selectedOption.icon = epic.icon;
                     editor.add(selectedOption);
+                } else if (name === 'parent' && ticketData.parent) {
+                    const parent = ticketData.parent;
+                    const selectedOption = new Option(`${parent.url} ${parent.summary}`, parent.id, true, true);
+                    selectedOption.icon = parent.icon;
+                    editor.add(selectedOption);
                 } else if (name === 'columnStatus') {
                     editor.value = ticketData.columnStatus ? String(ticketData.columnStatus.id) : '';
-                } else if (name === 'epic') {
-                    editor.value = ticketData.epic ? String(ticketData.epic.id) : '';
+                } else if (name === 'epic' || name === 'parent') {
+                    editor.value = ticketData[name] ? String(ticketData[name].id) : '';
                 } else if (name === 'type' || name === 'priority' || name === 'resolution') {
                     editor.value = ticketData[name]?.key || '';
                 } else {
@@ -541,6 +475,33 @@
                                 id: user.id,
                                 text: user.name || 'Unnamed user',
                                 icon: user.icon
+                            }))
+                        }),
+                        cache: true
+                    },
+                    templateResult: renderAssigneeOption,
+                    templateSelection: renderAssigneeOption
+                });
+            } else if (name === 'parent') {
+                $(editor).select2({
+                    width: '100%',
+                    placeholder: 'Search tickets',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: ticketLiveSearchUrl,
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({
+                            query: params.term,
+                            excludeEpic: true,
+                            excludeTicketIds: ticketData.id
+                        }),
+                        processResults: tickets => ({
+                            results: tickets.map(ticket => ({
+                                id: ticket.id,
+                                text: `${ticket.url} ${ticket.summary}`,
+                                icon: ticket.icon
                             }))
                         }),
                         cache: true
@@ -678,7 +639,7 @@
                     updatedValue = editor.value === '' ? null : Number(editor.value);
                 } else if (kind === 'select') {
                     updatedValue = editor.value === '' ? null :
-                        (name === 'assignee' || name === 'columnStatus' || name === 'epic'
+                        (name === 'assignee' || name === 'columnStatus' || name === 'epic' || name === 'parent'
                             ? Number(editor.value)
                             : editor.value);
                 } else {
@@ -1083,8 +1044,11 @@
                 progressBar.textContent = `${percent}%`;
             }
 
-            async function initializeTicketCollections() {
-                await Promise.all(Array.from(document.querySelectorAll('.ticket-collection'), async collection => {
+            async function initializeTicketCollections(ticketType) {
+                const ticketTypeGroup = ticketType === 'EPIC' ? 'EPIC' : 'NON_EPIC';
+                const collections = Array.from(document.querySelectorAll('.ticket-collection'))
+                    .filter(collection => collection.closest('[data-ticket-type-group]')?.dataset.ticketTypeGroup === ticketTypeGroup);
+                await Promise.all(collections.map(async collection => {
                     const apiUrl = collection.dataset.apiUrl;
                     const searchParams = new URLSearchParams(collection.dataset.searchParams);
                     if (collection.dataset.searchParams.includes('subTaskOnly')) {
@@ -1186,37 +1150,6 @@
                 }));
             }
 
-            async function loadParentSubtasks() {
-                const panels = document.querySelectorAll('.parent-subtasks-panel');
-                const section = document.getElementById('parentSubtasksSection');
-                if (!panels.length) return;
-                let hasOtherSubtasks = false;
-                let hasLoadError = false;
-                await Promise.all(Array.from(panels, async panel => {
-                    const list = panel.querySelector('.parent-subtask-list');
-                    const emptyState = panel.querySelector('.parent-subtask-empty');
-                    const message = panel.querySelector('.parent-subtask-message');
-                    try {
-                        const response = await fetch(panel.dataset.subtasksUrl);
-                        const data = await response.json();
-                        if (!response.ok) throw new Error(getApiError(data));
-                        const subtasks = data.filter(subtask => subtask.id !== {{ ticket.id }});
-                        hasOtherSubtasks = hasOtherSubtasks || subtasks.length > 0;
-                        const items = subtasks.map(createTicketElement);
-                        items.forEach((item, index) => {
-                            item.id = `${panel.id}-ticket-${subtasks[index].id}`;
-                        });
-                        list.replaceChildren(...items);
-                        emptyState.classList.toggle('d-none', subtasks.length > 0);
-                    } catch (error) {
-                        message.className = 'alert alert-danger mt-2 parent-subtask-message';
-                        message.textContent = error.message;
-                        hasLoadError = true;
-                    }
-                }));
-                section.classList.toggle('d-none', !hasOtherSubtasks && !hasLoadError);
-            }
-
             function renderLinkedIssues(groups) {
                 const linkedIssuesList = document.getElementById('linkedIssuesList');
                 const linkedIssuesEmpty = document.getElementById('linkedIssuesEmpty');
@@ -1250,8 +1183,6 @@
                 if (!response.ok) throw new Error(getApiError(data));
                 renderLinkedIssues(data);
             }
-
-            initializeTicketCollections();
 
             const addLinkedIssuesForm = document.querySelector('.add-linked-issues-form');
             if (addLinkedIssuesForm) {
@@ -1313,6 +1244,16 @@
                 })
                 .then(data => {
                     renderInlineValues(data);
+                    initializeTicketCollections(data.type?.key);
+                    if (data.type?.key !== 'EPIC') {
+                        if (addLinkedIssuesForm) {
+                            loadLinkedIssues().catch(error => {
+                                const message = document.getElementById('linkedIssueMessage');
+                                message.className = 'alert alert-danger mt-2';
+                                message.textContent = error.message;
+                            });
+                        }
+                    }
                 })
                 .catch(error => {
                     const message = document.getElementById('inlineEditMessage');
@@ -1325,14 +1266,6 @@
                 '{% url "ticket:ticketLiveSearchApiVersion1" %}?excludeTicketIds={{ ticket.id }}',
                 'Search for issues'
             );
-            loadParentSubtasks();
-            if (addLinkedIssuesForm) {
-                loadLinkedIssues().catch(error => {
-                    const message = document.getElementById('linkedIssueMessage');
-                    message.className = 'alert alert-danger mt-2';
-                    message.textContent = error.message;
-                });
-            }
         });
 
         window.addEventListener('resize', () => {

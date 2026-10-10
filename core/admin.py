@@ -57,7 +57,6 @@ class TicketAdmin(admin.ModelAdmin):
     list_display = ('id', 'url', 'type', 'orderNo')
     filter_horizontal = (
         'label',
-        'watchers',
     )
     search_fields = (
         'url',
