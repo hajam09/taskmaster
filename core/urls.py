@@ -6,7 +6,6 @@ from core.api import (
     ScrumBoardBacklogTicketUpdateApiVersion1,
     StartSprintEventApiVersion1,
     CompleteSprintEventApiVersion1,
-    TicketOrderNoUpdateApiV1,
     TicketTypeListApiVersion1,
     TicketPriorityListApiVersion1,
     ColumnStatusListApiVersion1,
@@ -15,10 +14,9 @@ from core.api import (
     UserListApiVersion1,
     ProjectStatusListApiVersion1,
     LabelListApiVersion1,
-    AllTicketLiveSearchApiVersion1,
-    SubTaskTicketLiveSearchApiVersion1,
 )
 from core.views import (
+    indexView,
     loginView,
     registerView,
     logoutView,
@@ -37,13 +35,13 @@ from core.views import (
     labelsView,
     labelView,
     ticketsView,
-    ticketView,
     newTicketView,
 )
 
 app_name = 'core'
 
 urlpatterns = [
+    path('', indexView, name='index-view'),
     path('login/', loginView, name='login-view'),
     path('register/', registerView, name='register-view'),
     path('logout/', logoutView, name='logout-view'),
@@ -63,7 +61,6 @@ urlpatterns = [
     path('labels/<slug:url>/', labelView, name='label-view'),
     path('tickets/', ticketsView, name='tickets-view'),
     path('tickets/new/', newTicketView, name='new-ticket-view'),
-    path('tickets/<slug:url>/', ticketView, name='ticket-view'),
 ]
 
 urlpatterns += [
@@ -91,11 +88,6 @@ urlpatterns += [
         'api/v1/completeSprintEventApiVersion1/',
         CompleteSprintEventApiVersion1.as_view(),
         name='completeSprintEventApiVersion1'
-    ),
-    path(
-        'api/v1/ticketOrderNoUpdateApiV1/',
-        TicketOrderNoUpdateApiV1.as_view(),
-        name='ticketOrderNoUpdateApiV1'
     ),
     path(
         'api/v1/ticketTypeListApiVersion1/',
@@ -136,15 +128,5 @@ urlpatterns += [
         'api/v1/labelListApiVersion1/',
         LabelListApiVersion1.as_view(),
         name='labelListApiVersion1'
-    ),
-    path(
-        'api/v1/allTicketLiveSearchApiVersion1/',
-        AllTicketLiveSearchApiVersion1.as_view(),
-        name='allTicketLiveSearchApiVersion1'
-    ),
-    path(
-        'api/v1/subTaskTicketLiveSearchApiVersion1/',
-        SubTaskTicketLiveSearchApiVersion1.as_view(),
-        name='subTaskTicketLiveSearchApiVersion1'
     ),
 ]
