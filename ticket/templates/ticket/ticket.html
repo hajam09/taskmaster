@@ -22,10 +22,6 @@
                             <li class="breadcrumb-item"><span data-ticket-project></span></li>
                             <li class="breadcrumb-item active" aria-current="page">
                                 <a data-ticket-url></a>
-                                <button class="btn btn-sm btn-link p-0 ml-1" type="button"
-                                        data-copy-ticket-key aria-label="Copy issue key" title="Copy issue key">
-                                    <i class="far fa-copy" aria-hidden="true"></i>
-                                </button>
                             </li>
                         </ol>
                     </nav>
@@ -1376,33 +1372,6 @@
                     event.target.matches('[data-inline-field]')) {
                     event.preventDefault();
                     beginInlineEdit(event.target);
-                }
-            });
-
-            document.addEventListener('click', async event => {
-                const copyButton = event.target.closest('[data-copy-ticket-key]');
-                if (!copyButton || !ticketData) return;
-                const copyValue = ticketData.url;
-                const message = document.getElementById('inlineEditMessage');
-                try {
-                    if (navigator.clipboard && window.isSecureContext) {
-                        await navigator.clipboard.writeText(copyValue);
-                    } else {
-                        const copyField = document.createElement('textarea');
-                        copyField.value = copyValue;
-                        copyField.setAttribute('readonly', '');
-                        copyField.className = 'sr-only';
-                        document.body.append(copyField);
-                        copyField.select();
-                        const copied = document.execCommand('copy');
-                        copyField.remove();
-                        if (!copied) throw new Error('Clipboard access is unavailable.');
-                    }
-                    message.className = 'alert alert-success mt-2';
-                    message.textContent = 'Issue key copied.';
-                } catch (error) {
-                    message.className = 'alert alert-danger mt-2';
-                    message.textContent = error.message || 'Unable to copy to the clipboard.';
                 }
             });
 
