@@ -8,24 +8,27 @@
         <div class="card idCardWideComponent">
             <legend>
                 <h2 class="heading-h2 text-center">Boards</h2>
-                <button type="button" class="btn btn-sm float-right mr-2" id="add-board-btn">Add Board</button>
+                <button type="button" class="btn btn-sm float-right mr-2" id="add-board-btn"
+                        data-add-board="{% if request.GET.add == 'true' or form.errors %}true{% else %}false{% endif %}">
+                    {% if request.GET.add == 'true' or form.errors %}Cancel{% else %}Add Board{% endif %}
+                </button>
             </legend>
-            <form method="post" class="p-4" id="form-id-new-board"
-                  style="display: {% if form.errors %}block{% else %}none{% endif %}">
-                {% csrf_token %}
-                {% for field in form %}
-                    {% renderFormFields field %}
-                    {% for error in field.errors %}
-                        <p class="text-center" style="color: red;"><small>{{ error }}</small></p>
+            {% if request.GET.add == 'true' or form.errors %}
+                <form method="post" class="p-4 add-board-form" id="form-id-new-board">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        {% renderFormFields field %}
+                        {% for error in field.errors %}
+                            <p class="text-center" style="color: red;"><small>{{ error }}</small></p>
+                        {% endfor %}
+                        <br>
                     {% endfor %}
-                    <br>
-                {% endfor %}
 
-                <div class="text-right">
-                    <input type="button" class="btn btn-sm btn-cancel" id="close-board-btn" value="Cancel">
-                    <input type="submit" class="btn btn-sm btn-submit" value="Submit">
-                </div>
-            </form>
+                    <div class="text-right">
+                        <input type="submit" class="btn btn-sm btn-submit" value="Submit">
+                    </div>
+                </form>
+            {% endif %}
 
             <div class="form-row align-items-center mt-4 flex-nowrap">
                 <div class="col-2">
@@ -88,17 +91,13 @@
     <script type="application/javascript">
         function initialiseBoardForm() {
             const newBoardBtn = document.getElementById('add-board-btn');
-            const closeBoardBtn = document.getElementById('close-board-btn');
-            const newBoardForm = document.getElementById('form-id-new-board');
 
             newBoardBtn.addEventListener('click', function () {
-                newBoardForm.style.display = (newBoardForm.style.display === 'none' || newBoardForm.style.display === '') ? 'block' : 'none';
+                const params = new URLSearchParams(window.location.search);
+                const shouldAdd = newBoardBtn.dataset.addBoard !== 'true';
+                params.set('add', String(shouldAdd));
+                window.location.href = `${window.location.pathname}?${params.toString()}`;
             });
-
-            closeBoardBtn.addEventListener('click', function () {
-                newBoardForm.style.display = 'none';
-            });
-
         }
 
         function initialiseDataTable() {
