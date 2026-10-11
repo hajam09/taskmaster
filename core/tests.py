@@ -624,7 +624,7 @@ class TicketInlineUpdateApiTests(TestCase):
             reporter=self.user,
             columnStatus=self.status,
         )
-        epic_issues_url = reverse('ticket:ticket-epic-issues', kwargs={'ticketId': epic.id})
+        epic_issues_url = reverse('ticket:ticket-epic-issues', kwargs={'ticketIdOrUrl': epic.id})
         existing_issue = Ticket.objects.create(
             url='ONE-3',
             summary='Existing issue',
@@ -646,7 +646,18 @@ class TicketInlineUpdateApiTests(TestCase):
         created_issue = Ticket.objects.get(summary='New epic issue')
         self.assertEqual(created_issue.type, Ticket.Type.STORY)
         self.assertEqual(created_issue.epic, epic)
-        self.assertEqual([issue['id'] for issue in response.data], [created_issue.id])
+        self.assertEqual(response.data['id'], created_issue.id)
+
+        response = self.client.post(
+            epic_issues_url,
+            {'summary': 'New epic bug', 'type': Ticket.Type.BUG},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 201)
+        created_bug = Ticket.objects.get(summary='New epic bug')
+        self.assertEqual(created_bug.type, Ticket.Type.BUG)
+        self.assertEqual(created_bug.epic, epic)
+        self.assertEqual(response.data['id'], created_bug.id)
 
         response = self.client.post(
             epic_issues_url,
@@ -658,7 +669,7 @@ class TicketInlineUpdateApiTests(TestCase):
         self.assertEqual(existing_issue.epic, epic)
         self.assertEqual(
             {issue['id'] for issue in response.data},
-            {created_issue.id, existing_issue.id},
+            {created_issue.id, created_bug.id, existing_issue.id},
         )
 
     def test_epic_issues_api_rejects_epic_tickets_and_non_epic_parent(self):

@@ -279,6 +279,11 @@
     max-width: 100%;
 }
 
+.ticket-collection-type-control .select2-container {
+    width: auto !important;
+    min-width: 9rem;
+}
+
 .linked-issue-controls > .col-auto:first-child select {
     width: auto;
     max-width: 12rem;

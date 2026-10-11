@@ -57,7 +57,7 @@
                 <div data-ticket-type-group="EPIC" hidden>
                     {% url "ticket:ticket-epic-issues" ticket.id as ticket_collection_api_url %}
                     {% url "ticket:ticketLiveSearchApiVersion1" as ticket_collection_search_url %}
-                    {% include "ticket/_ticket_collection.html" with collection_key="epicIssues" collection_heading="Issues in this epic" collection_api_url=ticket_collection_api_url collection_search_url=ticket_collection_search_url collection_search_params="excludeEpic=true" collection_create_placeholder="Create new issue" collection_empty_message="No issues available for this epic!" collection_create_success="Issue created and added to this epic." collection_add_success="Issues added to this epic." collection_select_placeholder="Search for issues" %}
+                    {% include "ticket/_ticket_collection.html" with collection_key="epicIssues" collection_heading="Issues in this epic" collection_api_url=ticket_collection_api_url collection_search_url=ticket_collection_search_url collection_search_params="excludeEpic=true" collection_create_placeholder="Create new issue" collection_empty_message="No issues available for this epic!" collection_create_success="Issue created and added to this epic." collection_add_success="Issues added to this epic." collection_select_placeholder="Search for issues" collection_create_type_picker=True %}
                 </div>
                 <div data-ticket-type-group="NON_EPIC" hidden>
                     {% url "ticket:ticket-subtasks" ticket.id as ticket_collection_api_url %}
@@ -1162,13 +1162,33 @@
                     const message = collection.querySelector('.ticket-collection-message');
                     const createForm = collection.querySelector('.ticket-collection-create-form');
                     const addForm = collection.querySelector('.ticket-collection-add-form');
+                    const createType = createForm.querySelector('.ticket-collection-create-type');
                     const createButton = createForm.querySelector('button[type="submit"]');
                     const addButton = addForm.querySelector('button[type="submit"]');
                     let tickets = [];
+                    let canCreate = true;
 
                     createButton.disabled = true;
                     addButton.disabled = true;
                     handleSelect2Dropdown(select, searchUrl, collection.dataset.selectPlaceholder);
+                    if (createType) {
+                        try {
+                            const types = await getSelectOptions('type');
+                            types.forEach(type => {
+                                const option = new Option(type.value, type.key, false, type.key === 'STORY');
+                                if (type.icon) option.dataset.icon = type.icon;
+                                createType.add(option);
+                            });
+                            $(createType).select2({
+                                width: 'auto',
+                                templateResult: renderTicketTypePriorityOption,
+                                templateSelection: renderTicketTypePriorityOption
+                            });
+                        } catch (error) {
+                            showMessage(`Unable to load ticket types: ${error.message}`, true);
+                            canCreate = false;
+                        }
+                    }
                     makeSortableElement(list);
 
                     function showMessage(text, isError = false) {
@@ -1188,13 +1208,16 @@
                                     'Content-Type': 'application/json',
                                     'X-CSRFToken': getCookie('csrftoken')
                                 },
-                                body: JSON.stringify({summary: form.elements.summary.value})
+                                body: JSON.stringify({
+                                    summary: form.elements.summary.value,
+                                    ...(createType ? {type: createType.value} : {})
+                                })
                             });
                             const data = await response.json();
                             if (!response.ok) throw new Error(getApiError(data));
                             tickets = [...tickets, data];
                             renderTicketCollection(collection, tickets);
-                            form.reset();
+                            form.elements.summary.value = '';
                             showMessage(collection.dataset.createSuccess);
                         } catch (error) {
                             showMessage(error.message, true);
@@ -1244,7 +1267,7 @@
                         showMessage(error.message, true);
                     } finally {
                         collection.querySelector('.ticket-collection-loading').classList.add('d-none');
-                        createButton.disabled = false;
+                        createButton.disabled = !canCreate;
                         addButton.disabled = false;
                     }
                 }));

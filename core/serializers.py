@@ -179,6 +179,7 @@ class SubTaskTicketCreateSerializer(serializers.Serializer):
 
 class EpicTicketCreateSerializer(serializers.Serializer):
     summary = serializers.CharField(max_length=2048, allow_blank=False, trim_whitespace=True)
+    type = serializers.ChoiceField(choices=Ticket.Type.choices, required=True)
 
     def create(self, validated_data):
         epic = self.context['ticket']
@@ -187,7 +188,7 @@ class EpicTicketCreateSerializer(serializers.Serializer):
         return Ticket.objects.create(
             url=f'{project.code}-{maxOrderNo + 1}',
             summary=validated_data['summary'],
-            type=Ticket.Type.STORY,
+            type=validated_data['type'],
             priority=epic.priority,
             project=project,
             reporter=self.context['request'].user,

@@ -30,7 +30,16 @@
         <div id="{{ collection_key }}Panel" class="collapse show mt-3">
             <div class="alert d-none mt-2 ticket-collection-message" role="status"></div>
             <form class="ticket-collection-create-form">
-                <div class="form-row">
+                <div class="form-row align-items-center">
+                    {% if collection_create_type_picker %}
+                        <div class="col-12 col-md-auto mb-2 ticket-collection-type-control">
+                            <label class="sr-only" for="{{ collection_key }}TicketType">Ticket type</label>
+                            <select class="form-control form-control-sm ticket-collection-create-type"
+                                    id="{{ collection_key }}TicketType" name="ticketType" aria-label="Ticket type"
+                                    required>
+                            </select>
+                        </div>
+                    {% endif %}
                     <div class="col-12 col-md mb-2">
                         <label class="sr-only" for="{{ collection_key }}Summary">{{ collection_create_placeholder }}</label>
                         <input type="text" class="form-control form-control-sm w-100"
