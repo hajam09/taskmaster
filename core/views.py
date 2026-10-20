@@ -8,17 +8,10 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.cache import cache
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import (
-    F,
-    Max,
-    Value
-)
+from django.db.models import F, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponseForbidden
-from django.shortcuts import (
-    redirect
-)
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import DjangoUnicodeDecodeError
@@ -41,17 +34,7 @@ from core.forms import (
     SprintForm,
     TicketForm
 )
-from core.models import (
-    Profile,
-    Team,
-    Project,
-    Board,
-    Label,
-    Column,
-    Ticket,
-    TicketLink,
-    Sprint
-)
+from core.models import Profile, Team, Project, Board, Label, Column, Ticket, Sprint
 
 
 def loginView(request):
@@ -215,12 +198,43 @@ def profileView(request):
     return render(request, 'core/profile.html', context)
 
 
+@login_required
 def indexView(request):
-    pass
+    visibleProjects = Project.objects.filter(
+        Q(isPrivate=False) | Q(lead=request.user) | Q(members=request.user)
+    ).distinct()
+    visibleBoards = Board.objects.filter(
+        project__in=visibleProjects,
+    ).filter(
+        Q(isPrivate=False) | Q(admins=request.user) | Q(members=request.user)
+    ).select_related('project').distinct().order_by('name')
+    visibleTickets = Ticket.objects.filter(project__in=visibleProjects)
 
-
-def dashboardView(request):
-    pass
+    myOpenTickets = visibleTickets.filter(
+        assignee=request.user,
+    ).exclude(
+        columnStatus__column__status=Column.Status.DONE,
+    ).exclude(
+        type=Ticket.Type.EPIC,
+    )
+    context = {
+        'openTicketCount': myOpenTickets.count(),
+        'reportedTicketCount': visibleTickets.filter(
+            reporter=request.user,
+        ).exclude(type=Ticket.Type.EPIC).count(),
+        'projectCount': visibleProjects.count(),
+        'projects': visibleProjects.order_by('name')[:6],
+        'boards': visibleBoards[:6],
+        'myOpenTickets': myOpenTickets.select_related(
+            'project', 'columnStatus__column', 'assignee',
+        ).order_by('-modifiedDateTime')[:8],
+        'recentTickets': visibleTickets.exclude(
+            type=Ticket.Type.EPIC,
+        ).select_related(
+            'project', 'columnStatus__column', 'assignee',
+        ).order_by('-modifiedDateTime')[:8],
+    }
+    return render(request, 'core/index.html', context)
 
 
 @login_required
@@ -707,98 +721,6 @@ def ticketsView(request):
 
 
 @login_required
-def ticketView(request, url):
-    ticket = Ticket.objects.select_related(
-        'reporter', 'assignee', 'columnStatus__column'
-    ).prefetch_related(
-        'epicTickets__columnStatus__column',
-
-        # Direct subtasks of THIS ticket
-        'subTask__columnStatus__column',
-        'subTask__epic',
-
-        # Parent tickets + THEIR subtasks
-        'ticketSubTask__subTask__columnStatus__column',
-    ).get(url=url)
-    context = {
-        'ticket': ticket,
-        'linkTypeChoices': TicketLink.LinkType.choices,
-        'ticketLinks': service.groupLinkedIssues(ticket)
-    }
-
-    if request.method == 'POST' and 'delete-ticket' in request.POST:
-        ticket.delete()
-
-        history = request.session.get('history', [])
-        for url in reversed(history):
-            if url != request.path:
-                return redirect(url)
-
-        return redirect(ticket.columnStatus.column.board.getUrl)
-
-    if request.method == 'POST' and 'create-new-subtask' in request.POST:
-        project = ticket.project
-        orderNo = Ticket.objects.filter(project=project).aggregate(Max('orderNo'))['orderNo__max'] or 0
-
-        sTicket = Ticket(
-            url=f'{project.code}-{orderNo + 1}',
-            summary=request.POST['task-name'],
-            type=Ticket.Type.SUB_TASK,
-            priority=ticket.priority,
-            project=project,
-            reporter=request.user,
-            columnStatus=ticket.columnStatus,
-        )
-        sTicket.save()
-
-        ticket.subTask.add(sTicket)
-        return redirect(request.path)
-
-    elif request.method == 'POST' and 'add-subtasks' in request.POST:
-        ticket.subTask.add(*request.POST.getlist('task-ids'))
-        return redirect(request.path)
-
-    elif request.method == 'POST' and 'add-linked-issue' in request.POST:
-        linkType = TicketLink.LinkType(request.POST.get('link-type'))
-        targetTickets = Ticket.objects.filter(id__in=request.POST.getlist('task-ids'))
-
-        TicketLink.objects.bulk_create([
-            TicketLink(
-                source=ticket,
-                target=target,
-                linkType=linkType
-            )
-            for target in targetTickets
-        ])
-        return redirect(request.path)
-
-    if ticket.type == Ticket.Type.EPIC:
-        ets = [et for et in ticket.epicTickets.all()]
-        dts = [et for et in ets if et.columnStatus.column.status == 'DONE']
-        totalTickets = len(ets)
-        doneTickets = len(dts)
-        progressPercent = int((doneTickets / totalTickets) * 100) if totalTickets > 0 else 0
-        context['epicProgress'] = {
-            'total': totalTickets,
-            'done': doneTickets,
-            'percent': progressPercent
-        }
-    else:
-        sts = [et for et in ticket.subTask.all()]
-        if sts:
-            dts = [st for st in sts if st.columnStatus.column.status == 'DONE']
-            totalTickets = len(sts)
-            doneTickets = len(dts)
-            progressPercent = int((doneTickets / totalTickets) * 100) if totalTickets > 0 else 0
-            context['subTaskProgress'] = {
-                'total': totalTickets,
-                'done': doneTickets,
-                'percent': progressPercent
-            }
-    return render(request, f'core/ticket.html', context)
-
-
-@login_required
 def newTicketView(request):
     if request.method == 'POST':
         form = TicketForm(request, request.POST)
@@ -822,7 +744,3 @@ def newTicketView(request):
         'url': next((url for url in reversed(request.session.get('history', [])) if url != request.path), request.path)
     }
     return render(request, f'core/new-ticket.html', context)
-
-
-def yourWorkView(request):
-    pass

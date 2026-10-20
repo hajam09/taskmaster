@@ -235,12 +235,12 @@ def ticketComponent(ticket):
                 <div class="row align-items-center">{epic}</div>
                 <div class="row align-items-center">
                     <div class="col d-flex align-items-center">
-                        <img src="{ticket.ticketTypeIcon}" width="20px" title="{ticket.get_type_display()}">
+                        <img src="{ticket.typeIcon}" width="20px" title="{ticket.get_type_display()}">
                         <a class="ml-2 {strikethrough}" href="{ticket.getUrl}">{ticket.url}</a>
                     </div>
                     <div class="col-auto ml-auto d-flex align-items-center">
                         <span class="badge badge-pill" style="background-color:#f0f0f0; font-size: 11px">{ticket.storyPoints}</span>
-                        <img src="{ticket.ticketPriorityIcon}" width="20px" style="margin-left:10px" title="{ticket.get_priority_display()}">
+                        <img src="{ticket.priorityIcon}" width="20px" style="margin-left:10px" title="{ticket.get_priority_display()}">
                         {getAvatarImage()}
                     </div>
                 </div>
@@ -263,10 +263,10 @@ def ticketHorizontalBarComponent(ticket, showEpicLabel=True):
 
     body = f'''
         <li class="list-group-item ticket-object-component mt-1" id="ticket-{ticket.id}" identifier="{ticket.id}">
-            <img src="{ticket.ticketTypeIcon}" width="20px" title="{ticket.get_type_display()}" class="img-rounded"
+            <img src="{ticket.typeIcon}" width="20px" title="{ticket.get_type_display()}" class="img-rounded"
                 loading="lazy">
             &nbsp;
-            <img src="{ticket.ticketPriorityIcon}" width="20px" title="{ticket.get_priority_display()}"
+            <img src="{ticket.priorityIcon}" width="20px" title="{ticket.get_priority_display()}"
                 class="img-rounded" loading="lazy" style="margin-left: 10px"/>
             <a class="ml-2 {strikethrough}" href="{ticket.getUrl}">{ticket.url}</a>
             &nbsp;
