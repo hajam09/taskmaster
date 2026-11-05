@@ -260,14 +260,17 @@ def ticketHorizontalBarComponent(ticket, showEpicLabel=True):
         </span>
     ''' if ticket.epic and showEpicLabel else ''
     summary = ticket.summary[:70].rstrip() + '...' if len(ticket.summary) > 70 else ticket.summary
+    priority = f'''
+        <img src="{ticket.priorityIcon}" width="20px" title="{ticket.get_priority_display()}"
+            class="img-rounded" loading="lazy" style="margin-left: 10px"/>
+    ''' if ticket.priority else ''
 
     body = f'''
         <li class="list-group-item ticket-object-component mt-1" id="ticket-{ticket.id}" identifier="{ticket.id}">
             <img src="{ticket.typeIcon}" width="20px" title="{ticket.get_type_display()}" class="img-rounded"
                 loading="lazy">
             &nbsp;
-            <img src="{ticket.priorityIcon}" width="20px" title="{ticket.get_priority_display()}"
-                class="img-rounded" loading="lazy" style="margin-left: 10px"/>
+            {priority}
             <a class="ml-2 {strikethrough}" href="{ticket.getUrl}">{ticket.url}</a>
             &nbsp;
             <span data-toggle="tooltip" data-placement="top" title="{ticket.summary}">{summary}</span>
@@ -275,7 +278,9 @@ def ticketHorizontalBarComponent(ticket, showEpicLabel=True):
             <span class="badge badge-pill float-right ml-3" style="background-color: #f0f0f0; margin-top: 4.5px;">
                 {ticket.storyPoints}
             </span>
-            <span class="badge badge-primary float-right ml-3" style="margin-top: 4.5px;">{ticket.columnStatus.name}</span>
+            <span class="badge badge-primary float-right ml-3" style="margin-top: 4.5px; {'background-color: ' + ticket.columnStatus.column.getColour()}">
+                {ticket.columnStatus.name}
+            </span>
             {epic}
         </li>
     '''

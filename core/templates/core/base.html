@@ -36,7 +36,9 @@
         <a class="navbar-brand" href="{% url 'core:index-view' %}">TaskMaster</a>
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav ml-auto">
-                <a class="btn btn-primary" href="{% url "core:new-ticket-view" %}" role="button">Create Issue</a>
+                {% if user.is_authenticated %}
+                    <a class="btn btn-primary" href="{% url "core:new-ticket-view" %}" role="button">Create Issue</a>
+                {% endif %}
                 {% for panel in navigationPanel %}
                     {% if not panel.subLinks %}
                         <li class="nav-item active">

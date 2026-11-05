@@ -6,12 +6,12 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.exceptions import FieldDoesNotExist
 from django.core.mail import EmailMessage
-from django.db.models import Q
+from django.db.models import Max, Q
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
-from core.models import TicketLink
+from core.models import TicketLink, Ticket
 
 ticketPattern = re.compile(r'^([A-Z]+)-?(\d+)$')
 
@@ -246,3 +246,8 @@ def sanitiseTicketDescription(description):
         strip=True,
     )
     return cleanedText
+
+
+def generateTicketUrl(project):
+    maxOrderNo = Ticket.objects.filter(project=project).aggregate(maxOrderNo=Max('orderNo'))['maxOrderNo'] or 0
+    return f'{project.code}-{maxOrderNo + 1}'

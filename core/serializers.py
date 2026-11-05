@@ -1,6 +1,5 @@
 import bleach
 from django.contrib.auth.models import User
-from django.db.models import Max
 from rest_framework import serializers
 
 from core import service
@@ -163,9 +162,8 @@ class SubTaskTicketCreateSerializer(serializers.Serializer):
     def create(self, validated_data):
         parent = self.context['ticket']
         project = parent.project
-        maxOrderNo = Ticket.objects.filter(project=project).aggregate(maxOrderNo=Max('orderNo'))['maxOrderNo'] or 0
         subtask = Ticket.objects.create(
-            url=f'{project.code}-{maxOrderNo + 1}',
+            url=service.generateTicketUrl(project),
             summary=validated_data['summary'],
             type=Ticket.Type.SUB_TASK,
             priority=parent.priority,
@@ -184,9 +182,8 @@ class EpicTicketCreateSerializer(serializers.Serializer):
     def create(self, validated_data):
         epic = self.context['ticket']
         project = epic.project
-        maxOrderNo = Ticket.objects.filter(project=project).aggregate(maxOrderNo=Max('orderNo'))['maxOrderNo'] or 0
         return Ticket.objects.create(
-            url=f'{project.code}-{maxOrderNo + 1}',
+            url=service.generateTicketUrl(project),
             summary=validated_data['summary'],
             type=validated_data['type'],
             priority=epic.priority,

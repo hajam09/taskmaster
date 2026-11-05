@@ -37,6 +37,11 @@ body {
     text-decoration: line-through;
 }
 
+.ticket-collection-type-control .select2-container {
+    width: auto !important;
+    min-width: 9rem;
+}
+
 /* Remove Arrows/Spinners in Input field type number */
 
 input::-webkit-inner-spin-button,

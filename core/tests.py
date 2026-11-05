@@ -1013,3 +1013,38 @@ class TicketInlineUpdateApiTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertFalse(comment.likes.exists())
         self.assertFalse(comment.dislikes.exists())
+
+    def test_kanban_backlog_creates_ticket_with_selected_type(self):
+        board = Board.objects.create(name='Create ticket board', project=self.project)
+        column = Column.objects.create(name='Backlog', board=board, status=Column.Status.BACK_LOG)
+        backlog_status = ColumnStatus.objects.create(name='Open', column=column)
+        backlog_url = reverse('core:board-backlog-view', kwargs={'url': board.url})
+
+        page_response = self.client.get(backlog_url)
+
+        self.assertContains(page_response, 'id="backlogTicketType"')
+        self.assertContains(page_response, reverse('core:ticketTypeListApiVersion1'))
+
+        response = self.client.post(
+            backlog_url,
+            {'summary': 'New backlog issue', 'ticketType': Ticket.Type.BUG},
+        )
+
+        created_ticket = Ticket.objects.get(summary='New backlog issue')
+        self.assertRedirects(response, backlog_url)
+        self.assertEqual(created_ticket.type, Ticket.Type.BUG)
+        self.assertEqual(created_ticket.project, self.project)
+        self.assertEqual(created_ticket.reporter, self.user)
+        self.assertEqual(created_ticket.columnStatus, backlog_status)
+
+    def test_kanban_backlog_rejects_invalid_ticket_type(self):
+        board = Board.objects.create(name='Invalid ticket board', project=self.project)
+        backlog_url = reverse('core:board-backlog-view', kwargs={'url': board.url})
+
+        response = self.client.post(
+            backlog_url,
+            {'summary': 'Invalid issue', 'ticketType': 'NOT_A_TYPE'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Ticket.objects.filter(summary='Invalid issue').exists())

@@ -89,8 +89,8 @@ class ScrumBoardBacklogTicketUpdateApiVersion1(APIView):
         zone = self.request.data.get('zone')
         ticketIds = self.request.data.get('tickets', [])
 
-        Sprint.tickets.through.objects.filter(ticketId__in=ticketIds).delete()
-        tickets = list(Ticket.objects.filter(id__in=ticketIds))
+        Sprint.tickets.through.objects.filter(ticket_id__in=ticketIds).delete()
+        tickets = list(Ticket.objects.filter(id__in=ticketIds).select_related('columnStatus__column'))
 
         if zone == 'sprint':
             sprint = Sprint.objects.select_related('board').get(id=self.request.data.get('sprint-id'))
@@ -102,7 +102,8 @@ class ScrumBoardBacklogTicketUpdateApiVersion1(APIView):
             ).order_by('id').first()
 
             for ticket in tickets:
-                ticket.columnStatus = columnStatus
+                if ticket.columnStatus.column.status == Column.Status.BACK_LOG:
+                    ticket.columnStatus = columnStatus
 
         elif zone == 'backlog':
             columnStatusId = self.request.data.get('column-id')
@@ -110,7 +111,7 @@ class ScrumBoardBacklogTicketUpdateApiVersion1(APIView):
                 ticket.columnStatus_id = columnStatusId
 
         orderedTickets = service.updateOrderNoForListOfObjects(tickets, ticketIds)
-        Ticket.objects.bulk_update(orderedTickets, ['orderNo'])
+        Ticket.objects.bulk_update(orderedTickets, ['orderNo', 'columnStatus'])
         return Response(status=status.HTTP_200_OK)
 
 

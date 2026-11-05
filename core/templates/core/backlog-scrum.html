@@ -51,6 +51,7 @@
                     </div>
                     <form method="post" class="p-4" id="form-id-new-sprint"
                           style="display: {% if form.errors %}block{% else %}none{% endif %}">
+                        <input type="hidden" name="form-id-new-sprint">
                         {% csrf_token %}
                         {% for field in form %}
                             {% renderFormFields field %}
@@ -84,6 +85,31 @@
                                             </span>
                                         {% endfor %}
                                     {% endfor %}
+                                    <form class="mt-2" method="post">
+                                        <input type="hidden" name="form-new-ticket">
+                                        {% csrf_token %}
+                                        <div class="form-row align-items-center">
+                                            <div class="col-12 col-md-auto mb-2 ticket-collection-type-control">
+                                                <label class="sr-only" for="backlogTicketType">Ticket type</label>
+                                                <select class="form-control form-control-sm ticket-collection-create-type w-auto"
+                                                        id="backlogTicketType" name="ticketType"
+                                                        aria-label="Ticket type" required>
+                                                </select>
+                                            </div>
+                                            <div class="col-12 col-md mb-2">
+                                                <input type="text" class="form-control form-control-sm w-100"
+                                                       name="summary" placeholder="Summary" maxlength="2048"
+                                                       pattern="(?=.*[a-zA-Z])\S(?:.*\S)?"
+                                                       title="Summary must contain at least one letter and cannot contain only spaces."
+                                                       required>
+                                            </div>
+                                            <div class="col-auto mb-2">
+                                                <button type="submit" class="btn btn-primary btn-sm">Create</button>
+                                            </div>
+                                        </div>
+                                        <div class="small text-danger backlog-create-type-error" role="status"
+                                             aria-live="polite"></div>
+                                    </form>
                                 </ul>
                             </div>
                         </div>
@@ -94,6 +120,26 @@
     </div>
 
     <script type="application/javascript">
+        function renderTicketTypeOption(option) {
+            if (!option.id) return option.text;
+            const icon = option.element?.dataset.icon;
+            if (!icon) return option.text;
+
+            const $option = $('<span></span>');
+            $('<img>')
+                .attr('src', icon)
+                .attr('alt', '')
+                .css({
+                    width: '16px',
+                    height: '16px',
+                    'margin-right': '6px',
+                    'vertical-align': 'text-bottom'
+                })
+                .appendTo($option);
+            $option.append(document.createTextNode(option.text));
+            return $option;
+        }
+
         function initialiseSortableForColumnStatus() {
             // Helper to get current ticket order in a column or sprint
             function getTicketOrder(columnEl) {
@@ -149,7 +195,7 @@
                             oldToOrder.some((id, index) => id !== newToOrder[index]);
 
                         const allTicketsInZone = Array.from(toEl.querySelectorAll('.ticket-object-component'))
-                                  .map(el => el.getAttribute('identifier'));
+                            .map(el => el.getAttribute('identifier'));
 
                         // Only trigger API if moved to another column/sprint or order changed
                         if (fromEl !== toEl || isToOrderChanged) {
@@ -175,6 +221,38 @@
                     }
                 });
             });
+        }
+
+        function initialiseNewTicketForm() {
+            const ticketTypeSelect = document.getElementById('backlogTicketType');
+            const createButton = ticketTypeSelect.form.querySelector('button[type="submit"]');
+
+            // Disable the create button until types are loaded
+            createButton.disabled = true;
+
+            fetch('{% url "core:ticketTypeListApiVersion1" %}')
+                .then(response => {
+                    if (!response.ok) throw new Error('Unable to load issue types.');
+                    return response.json();
+                })
+                .then(types => {
+                    types.forEach(type => {
+                        const option = new Option(type.value, type.key, false, type.key === 'STORY');
+                        if (type.icon) option.dataset.icon = type.icon;
+                        ticketTypeSelect.add(option);
+                    });
+                    if (types.length === 0) throw new Error('No issue types are available.');
+                    $(ticketTypeSelect).select2({
+                        width: 'auto',
+                        templateResult: renderTicketTypeOption,
+                        templateSelection: renderTicketTypeOption
+                    });
+                    createButton.disabled = false;
+                })
+                .catch(error => {
+                    const ticketTypeError = document.querySelector('.backlog-create-type-error');
+                    ticketTypeError.textContent = error.message;
+                });
         }
 
 
@@ -225,6 +303,7 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             initialiseSortableForColumnStatus();
+            initialiseNewTicketForm();
             initialiseSprintForm();
 
             showAndHideNavbar(

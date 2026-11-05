@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Case, When, Max
 from django.utils.safestring import mark_safe
 
+from core import service
 from core.models import (
     Profile,
     Team,
@@ -139,7 +140,7 @@ class TeamForm(forms.ModelForm):
         model = Team
         fields = ['name', 'description', 'admins', 'members', 'visibility']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control form-control-sm col'}),
+            'name': forms.TextInput(attrs={'class': 'form-control form-control-sm col', 'pattern': r'.*\S.*'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm col', 'rows': 5}),
             'admins': forms.SelectMultiple(attrs={
                 'class': 'form-control form-control-sm col select2bs4',
@@ -202,8 +203,8 @@ class ProjectForm(forms.ModelForm):
         model = Project
         fields = ['name', 'code', 'description', 'startDate', 'endDate', 'status', 'members', 'visibility']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control form-control-sm col'}),
-            'code': forms.TextInput(attrs={'class': 'form-control form-control-sm col'}),
+            'name': forms.TextInput(attrs={'class': 'form-control form-control-sm col', 'pattern': r'.*\S.*'}),
+            'code': forms.TextInput(attrs={'class': 'form-control form-control-sm col', 'pattern': r'.*\S.*'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm col', 'rows': 5}),
             'startDate': forms.DateInput(attrs={'class': 'form-control form-control-sm col', 'type': 'date'}),
             'endDate': forms.DateInput(attrs={'class': 'form-control form-control-sm col', 'type': 'date'}),
@@ -269,7 +270,7 @@ class BoardForm(forms.ModelForm):
         model = Board
         fields = ['name', 'type', 'project', 'admins', 'members', 'visibility']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control form-control-sm col'}),
+            'name': forms.TextInput(attrs={'class': 'form-control form-control-sm col', 'pattern': r'.*\S.*'}),
             'type': forms.Select(attrs={'class': 'form-control form-control-sm col'}),
             'project': forms.Select(attrs={'class': 'form-control form-control-sm col'}),
             'admins': forms.SelectMultiple(attrs={
@@ -355,7 +356,7 @@ class LabelForm(forms.ModelForm):
             self.fields['colour'].initial = self.instance.colour
 
         for key, value in self.fields.items():
-            value.widget.attrs.update({'class': 'form-control form-control-sm col'})
+            value.widget.attrs.update({'class': 'form-control form-control-sm col', 'pattern': r'.*\S.*'})
             value.label = mark_safe(f'<strong>{value.label}</strong>')
 
 
@@ -445,6 +446,9 @@ class TicketForm(forms.ModelForm):
     class Meta:
         model = Ticket
         fields = ('summary', 'description', 'type', 'priority', 'board', 'storyPoints', 'assignee', 'resolution')
+        widgets = {
+            'summary': forms.TextInput(attrs={'pattern': r'.*\S.*'})
+        }
 
     def __init__(self, request, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -465,7 +469,7 @@ class TicketForm(forms.ModelForm):
         instance = super().save(commit=False)
 
         board = self.cleaned_data.get('board')
-        instance.url = f'{board.project.code}-{Ticket.objects.filter(project=board.project).count() + 3}'
+        instance.url = service.generateTicketUrl(board.project)
         instance.project = board.project
         instance.reporter = self.request.user
         instance.columnStatus = ColumnStatus.objects.filter(

@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.cache import cache
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import F, Q, Value
+from django.db.models import F, Max, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect, render
@@ -34,7 +34,7 @@ from core.forms import (
     SprintForm,
     TicketForm
 )
-from core.models import Profile, Team, Project, Board, Label, Column, Ticket, Sprint
+from core.models import Profile, Team, Project, Board, Label, Column, ColumnStatus, Ticket, Sprint
 
 
 def loginView(request):
@@ -500,11 +500,32 @@ def boardView(request, url):
 
 @login_required
 def backlogView(request, url):
-    board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets__epic').get(url=url)
+    board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets__epic').select_related(
+        'project'
+    ).get(url=url)
     context = {}
 
     if board.type == Board.Types.KANBAN:
         template = 'backlog-kanban'
+        if request.method == 'POST':
+            columnStatus = ColumnStatus.objects.filter(
+                column__board=board, column__status__in=[Column.Status.BACK_LOG, Column.Status.UNMAPPED]
+            ).order_by('column__orderNo', 'orderNo').first()
+            ticket = Ticket.objects.create(
+                url=service.generateTicketUrl(board.project),
+                summary=request.POST.get('summary').strip(),
+                type=request.POST.get('ticketType'),
+                priority=Ticket.Priority.MEDIUM,
+                project=board.project,
+                reporter=request.user,
+                columnStatus=columnStatus,
+            )
+            messages.success(
+                request,
+                f'Ticket created successfully! You can view it by clicking <a href="{ticket.getUrl}">{ticket.url}</a>'
+            )
+            return redirect('core:board-backlog-view', url=url)
+
         inProgressColumns = [
             column for column in board.boardColumns.all()
             if column.status in [Column.Status.TODO, Column.Status.IN_PROGRESS, Column.Status.DONE]
@@ -522,12 +543,31 @@ def backlogView(request, url):
     else:
         template = 'backlog-scrum'
         if request.method == 'POST':
-            form = SprintForm(board, request.POST)
-            if form.is_valid():
-                form.save()
+            if 'form-id-new-sprint' in request.POST:
+                form = SprintForm(board, request.POST)
+                if form.is_valid():
+                    form.save()
+                    messages.success(
+                        request,
+                        f'Sprint has been successfully created!'
+                    )
+                    return redirect('core:board-backlog-view', url=url)
+            elif 'form-new-ticket' in request.POST:
+                columnStatus = ColumnStatus.objects.filter(
+                    column__board=board, column__status__in=[Column.Status.BACK_LOG, Column.Status.UNMAPPED]
+                ).order_by('column__orderNo', 'orderNo').first()
+                ticket = Ticket.objects.create(
+                    url=service.generateTicketUrl(board.project),
+                    summary=request.POST.get('summary').strip(),
+                    type=request.POST.get('ticketType'),
+                    priority=Ticket.Priority.MEDIUM,
+                    project=board.project,
+                    reporter=request.user,
+                    columnStatus=columnStatus,
+                )
                 messages.success(
                     request,
-                    f'Sprint has been successfully created!'
+                    f'Ticket created successfully! You can view it by clicking <a href="{ticket.getUrl}">{ticket.url}</a>'
                 )
                 return redirect('core:board-backlog-view', url=url)
         else:
@@ -735,7 +775,7 @@ def newTicketView(request):
                 if url != request.path:
                     return redirect(url)
 
-            return redirect(ticket.getUrl)
+            return redirect('core:new-ticket-view')
     else:
         form = TicketForm(request)
 

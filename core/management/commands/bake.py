@@ -220,9 +220,7 @@ class Command(BaseCommand):
         return tickets
 
     def seedTicket(self):
-        Ticket.subTask.through.objects.all().delete()
         Ticket.label.through.objects.all().delete()
-        Ticket.watchers.through.objects.all().delete()
         Sprint.tickets.through.objects.all().delete()
         Ticket.objects.all().delete()
         Sprint.objects.all().delete()
