@@ -13,11 +13,12 @@ from ticket.api import (
     ColumnStatusLiveSearchApiVersion1,
     TicketLinkedIssueListCreateView,
 )
-from ticket.views import ticketView
+from ticket.views import ticketView, newTicketView
 
 app_name = 'ticket'
 
 urlpatterns = [
+    path('tickets/create/', newTicketView, name='new-ticket-view'),
     path('tickets/<slug:url>/', ticketView, name='ticket-view'),
     path(
         'api/v1/ticketLiveSearchApiVersion1/',

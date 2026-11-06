@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.cache import cache
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import F, Max, Q, Value
+from django.db.models import F, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect, render
@@ -31,8 +31,7 @@ from core.forms import (
     LabelForm,
     ColumnForm,
     ColumnStatusForm,
-    SprintForm,
-    TicketForm
+    SprintForm
 )
 from core.models import Profile, Team, Project, Board, Label, Column, ColumnStatus, Ticket, Sprint
 
@@ -758,29 +757,3 @@ def ticketsView(request):
         'tickets': tickets,
     }
     return render(request, 'core/tickets.html', context)
-
-
-@login_required
-def newTicketView(request):
-    if request.method == 'POST':
-        form = TicketForm(request, request.POST)
-        if form.is_valid():
-            ticket = form.save()
-            messages.success(
-                request,
-                f'Ticket created successfully! You can view it by clicking <a href="{ticket.getUrl}">{ticket.url}</a>'
-            )
-            history = request.session.get('history', [])
-            for url in reversed(history):
-                if url != request.path:
-                    return redirect(url)
-
-            return redirect('core:new-ticket-view')
-    else:
-        form = TicketForm(request)
-
-    context = {
-        'form': form,
-        'url': next((url for url in reversed(request.session.get('history', [])) if url != request.path), request.path)
-    }
-    return render(request, f'core/new-ticket.html', context)

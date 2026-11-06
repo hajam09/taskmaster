@@ -1048,3 +1048,37 @@ class TicketInlineUpdateApiTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Ticket.objects.filter(summary='Invalid issue').exists())
+
+    def test_create_ticket_view_renders_modal_form_and_creates_ticket(self):
+        board = Board.objects.create(name='Modal ticket board', project=self.project)
+        backlog_column = Column.objects.create(
+            name='Backlog',
+            board=board,
+            status=Column.Status.BACK_LOG,
+        )
+        ColumnStatus.objects.create(name='Open', column=backlog_column)
+        createTicketUrl = reverse('ticket:new-ticket-view')
+
+        dashboardResponse = self.client.get(reverse('core:index-view'))
+        self.assertContains(dashboardResponse, 'open-ticket-modal')
+        self.assertContains(dashboardResponse, 'id="ticketModal"')
+
+        formResponse = self.client.get(createTicketUrl)
+
+        self.assertEqual(formResponse.status_code, 200)
+        self.assertContains(formResponse, 'id="ticketForm"')
+        self.assertContains(formResponse, 'Create issue')
+
+        response = self.client.post(createTicketUrl, {
+            'summary': 'Created in modal',
+            'type': Ticket.Type.TASK,
+            'priority': Ticket.Priority.MEDIUM,
+            'board': board.id,
+        })
+
+        createdTicket = Ticket.objects.get(summary='Created in modal')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['success'])
+        self.assertEqual(response.json()['redirectUrl'], createdTicket.getUrl)
+        self.assertEqual(createdTicket.reporter, self.user)
+        self.assertEqual(createdTicket.project, self.project)

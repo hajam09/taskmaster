@@ -1,0 +1,18 @@
+{% load templateTags %}
+<form id="ticketForm" method="POST" action="{% url 'ticket:new-ticket-view' %}">
+    {% csrf_token %}
+
+    {% for field in form %}
+        <div class="form-group">
+            {% renderFormFields field %}
+            {% for error in field.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+    <div class="text-right">
+        <button type="button" class="btn btn-sm btn-cancel" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-sm btn-submit">Create issue</button>
+    </div>
+</form>

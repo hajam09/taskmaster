@@ -37,7 +37,7 @@
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav ml-auto">
                 {% if user.is_authenticated %}
-                    <a class="btn btn-primary" href="{% url "core:new-ticket-view" %}" role="button">Create Issue</a>
+                    <button type="button" class="btn btn-primary open-ticket-modal">Create</button>
                 {% endif %}
                 {% for panel in navigationPanel %}
                     {% if not panel.subLinks %}
@@ -81,6 +81,24 @@
     </div>
     {% block content %}
     {% endblock %}
+
+    {% if user.is_authenticated %}
+        <div class="modal fade" id="ticketModal" tabindex="-1" role="dialog"
+             aria-labelledby="ticketModalTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="ticketModalTitle">Create issue</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="ticketModalBody"></div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
     </body>
     <script>
 
@@ -136,6 +154,55 @@
             });
         }
 
+        $(document).ready(function () {
+            const ticketModal = $('#ticketModal');
+            const modalBody = $('#ticketModalBody');
+
+            $('.open-ticket-modal').on('click', function () {
+                modalBody.html('<p class="text-muted mb-0" role="status">Loading issue form...</p>');
+                ticketModal.modal('show');
+
+                $.get("{% url 'ticket:new-ticket-view' %}")
+                    .done(function (html) {
+                        modalBody.html(html);
+                    })
+                    .fail(function () {
+                        modalBody.html(
+                            '<div class="alert alert-danger mb-0" role="alert">Unable to load the issue form. Please try again.</div>'
+                        );
+                    });
+            });
+
+            $(document).on('submit', '#ticketForm', function (event) {
+                event.preventDefault();
+                const form = $(this);
+                const submitButton = form.find('button[type="submit"]');
+                submitButton.prop('disabled', true);
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                }).done(function (data) {
+                    if (data.success) {
+                        ticketModal.modal('hide');
+                        window.location.href = data.redirectUrl;
+                        return;
+                    }
+
+                    modalBody.html(data.html);
+                }).fail(function () {
+                    modalBody.find('[data-ticket-form-error]').remove();
+                    modalBody.prepend(
+                        '<div class="alert alert-danger" data-ticket-form-error role="alert">Unable to create the issue. Please try again.</div>'
+                    );
+                }).always(function () {
+                    if (submitButton.closest('body').length) {
+                        submitButton.prop('disabled', false);
+                    }
+                });
+            });
+        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
             integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"

@@ -35,7 +35,6 @@ from core.views import (
     labelsView,
     labelView,
     ticketsView,
-    newTicketView,
 )
 
 app_name = 'core'
@@ -60,7 +59,6 @@ urlpatterns = [
     path('labels/', labelsView, name='labels-view'),
     path('labels/<slug:url>/', labelView, name='label-view'),
     path('tickets/', ticketsView, name='tickets-view'),
-    path('tickets/new/', newTicketView, name='new-ticket-view'),
 ]
 
 urlpatterns += [
