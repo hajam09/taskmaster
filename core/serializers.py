@@ -5,8 +5,6 @@ from rest_framework import serializers
 from core import service
 from core.models import Column, ColumnStatus, Label, Project, Ticket, TicketComment, TicketLink, Board
 
-MAN_AVATAR = 'https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png'
-
 
 class LabelSerializer(serializers.ModelSerializer):
     class Meta:
@@ -35,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
     icon = serializers.SerializerMethodField()
 
     def get_icon(self, user):
-        return MAN_AVATAR
+        return user.profile.icon
 
     class Meta:
         model = User

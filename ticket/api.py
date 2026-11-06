@@ -18,8 +18,6 @@ from core.serializers import (
     UserSerializer, TicketUpdateSerializer
 )
 
-MAN_AVATAR = 'https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png'
-
 
 class TicketOrderNoUpdateApiV1(APIView):
     def put(self, *args, **kwargs):

@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.cache import cache
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import F, Q, Value
+from django.db.models import F, Prefetch, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect, render
@@ -225,12 +225,12 @@ def indexView(request):
         'projects': visibleProjects.order_by('name')[:6],
         'boards': visibleBoards[:6],
         'myOpenTickets': myOpenTickets.select_related(
-            'project', 'columnStatus__column', 'assignee',
+            'project', 'columnStatus__column', 'assignee__profile',
         ).order_by('-modifiedDateTime')[:8],
         'recentTickets': visibleTickets.exclude(
             type=Ticket.Type.EPIC,
         ).select_related(
-            'project', 'columnStatus__column', 'assignee',
+            'project', 'columnStatus__column', 'assignee__profile',
         ).order_by('-modifiedDateTime')[:8],
     }
     return render(request, 'core/index.html', context)
@@ -254,7 +254,10 @@ def teamsView(request):
     page = request.GET.get('page')
     query = request.GET.get('query', '').strip()
 
-    teams = Team.objects.all().prefetch_related('admins', 'members').order_by('-id')
+    teams = Team.objects.all().prefetch_related(
+        Prefetch('admins', queryset=User.objects.select_related('profile')),
+        Prefetch('members', queryset=User.objects.select_related('profile')),
+    ).order_by('-id')
 
     FILTER_MAP = {
         'admins': 'admins__id__in',
@@ -288,7 +291,7 @@ def teamsView(request):
 
 @login_required
 def teamView(request, url):
-    team = Team.objects.get(url=url)
+    team = Team.objects.prefetch_related('admins', 'members').get(url=url)
     if not team.hasViewPermission(request.user):
         return HttpResponseForbidden('Forbidden')
 
@@ -328,7 +331,9 @@ def projectsView(request):
     page = request.GET.get('page')
     query = request.GET.get('query', '').strip()
 
-    projects = Project.objects.all().select_related('lead').prefetch_related('members').annotate(
+    projects = Project.objects.all().select_related('lead__profile').prefetch_related(
+        Prefetch('members', queryset=User.objects.select_related('profile')),
+    ).annotate(
         lead_fullname=Concat(
             F('lead__first_name'), Value(' '), F('lead__last_name')
         )
@@ -368,7 +373,7 @@ def projectsView(request):
 
 @login_required
 def projectView(request, url):
-    project = Project.objects.get(url=url)
+    project = Project.objects.select_related('lead').prefetch_related('members').get(url=url)
     if not project.hasViewPermission(request.user):
         return HttpResponseForbidden('Forbidden')
 
@@ -408,7 +413,10 @@ def boardsView(request):
     page = request.GET.get('page')
     query = request.GET.get('query', '').strip()
 
-    boards = Board.objects.all().select_related('project').prefetch_related('members', 'admins').order_by('-id')
+    boards = Board.objects.all().select_related('project').prefetch_related(
+        Prefetch('members', queryset=User.objects.select_related('profile')),
+        Prefetch('admins', queryset=User.objects.select_related('profile')),
+    ).order_by('-id')
 
     FILTER_MAP = {
         'type': 'type__in',
@@ -446,7 +454,12 @@ def boardsView(request):
 
 @login_required
 def boardView(request, url):
-    board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets__epic').get(url=url)
+    board = Board.objects.prefetch_related(
+        Prefetch(
+            'boardColumns__columnStatus__columnStatusTickets',
+            queryset=Ticket.objects.select_related('assignee__profile', 'columnStatus__column', 'epic')
+        ),
+    ).get(url=url)
     unmappedAndBacklogColumns = [Column.Status.UNMAPPED, Column.Status.BACK_LOG]
     lastTwoWeeks = timezone.now() - timedelta(days=14)
 
@@ -499,9 +512,10 @@ def boardView(request, url):
 
 @login_required
 def backlogView(request, url):
-    board = Board.objects.prefetch_related('boardColumns__columnStatus__columnStatusTickets__epic').select_related(
-        'project'
-    ).get(url=url)
+    tickets = Ticket.objects.select_related('assignee__profile', 'columnStatus__column', 'epic')
+    board = Board.objects.prefetch_related(
+        Prefetch('boardColumns__columnStatus__columnStatusTickets', queryset=tickets)
+    ).select_related('project').get(url=url)
     context = {}
 
     if board.type == Board.Types.KANBAN:
@@ -574,7 +588,7 @@ def backlogView(request, url):
 
         sprints = board.boardSprints.filter(isComplete=False).order_by(
             '-startDate', '-createdDateTime'
-        ).prefetch_related('tickets__columnStatus__column', 'tickets__epic')
+        ).prefetch_related(Prefetch('tickets', queryset=tickets))
         backlogColumns = [
             column for column in board.boardColumns.all()
             if column.status in [Column.Status.UNMAPPED, Column.Status.BACK_LOG]
@@ -710,7 +724,7 @@ def labelView(request, url):
 def ticketsView(request):
     page = request.GET.get('page')
     query = request.GET.get('query', '').strip()
-    relatedColumns = ['columnStatus__column', 'assignee', 'reporter']
+    relatedColumns = ['columnStatus__column', 'assignee__profile', 'reporter__profile']
 
     tickets = Ticket.objects.select_related(*relatedColumns).prefetch_related('label').annotate(
         assignee_fullname=Concat(

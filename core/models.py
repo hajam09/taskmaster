@@ -1,9 +1,7 @@
-import os
 import random
 import uuid
 
 from colorfield.fields import ColorField
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.models import User
 from django.db import models
@@ -13,11 +11,16 @@ from django.utils.translation import gettext_lazy as _
 
 
 def getRandomAvatar():
-    return 'avatars/' + random.choice(os.listdir(os.path.join(settings.MEDIA_ROOT, 'avatars/')))
+    return f'https://raw.githubusercontent.com/hajam09/icons/refs/heads/master/avatars-1/avatar-{random.randint(0, 28)}.svg'
 
 
 def getRandomProjectIcon():
-    return 'project-icons/' + random.choice(os.listdir(os.path.join(settings.MEDIA_ROOT, 'project-icons/')))
+    icons = [
+        'airplane', 'alien', 'art', 'battery', 'beaker', 'bear', 'browser-2', 'browser', 'cloud', 'coffee', 'disc',
+        'drill', 'flag', 'hotdog', 'mountain', 'notes', 'parrot', 'phone', 'refresh', 'rescue', 'rocket',
+        'spanner', 'thunder', 'volume', 'wallet', 'yeti'
+    ]
+    return f'https://raw.githubusercontent.com/hajam09/icons/refs/heads/master/project-icons/{random.choice(icons)}.jpg'
 
 
 def getRandomString():
@@ -54,8 +57,7 @@ class Profile(BaseModel):
     url = models.CharField(max_length=8, editable=False, unique=True, default=getRandomString)
     jobTitle = models.CharField(max_length=32, blank=True, null=True, choices=JobTitle.choices)
     department = models.CharField(max_length=128, blank=True, null=True)
-
-    # icon = models.ImageField(upload_to='profile-picture', blank=True, null=True, default=getRandomAvatar)
+    icon = models.URLField(default=getRandomAvatar)
 
     class Meta:
         verbose_name = 'Profile'
@@ -115,8 +117,7 @@ class Project(BaseModel):
     isPrivate = models.BooleanField(default=False)
     lead = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     members = models.ManyToManyField(User, blank=True, related_name='projectMembers')
-
-    # icon = models.ImageField(upload_to='project-icons/', default=getRandomProjectIcon)
+    icon = models.URLField(default=getRandomProjectIcon)
 
     class Meta:
         verbose_name = 'Project'
@@ -129,10 +130,6 @@ class Project(BaseModel):
         if not self.isPrivate:
             return True
         return user == self.lead or user in self.members.all()
-
-    @property
-    def icon(self):
-        return 'https://dummyimage.com/100x100/'
 
 
 class Board(BaseModel):

@@ -26,6 +26,8 @@ from core.models import Column
 
 register = template.Library()
 
+MAN_AVATAR = 'https://raw.githubusercontent.com/hajam09/icons/refs/heads/master/avatars-1/avatar-0.svg'
+
 
 class Icon:
 
@@ -144,7 +146,7 @@ def renderFormFields(field):
 
 
 @register.simple_tag
-def getAvatarImage(name=None, avatar="https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"):
+def getAvatarImage(name, avatar):
     body = f'''
         <img src="{avatar}"
         width="20px"
@@ -158,32 +160,35 @@ def getAvatarImage(name=None, avatar="https://cdn3.iconfinder.com/data/icons/ava
 
 @register.simple_tag
 def renderSingleOrGroupUserAvatars(users):
-    manAvatar = "https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png"
-
-    def privateGetAvatarImage(name='', avatar=manAvatar):
+    def privateGetAvatarImage(name, avatar):
         return f'''
-            <img alt="{name}"
+            <img alt="{name or ''}"
                 class="avatar filter-by-alt"
                 src={avatar}
                 data-filter-by="alt">
         '''
 
     body = ''
-    remainingCount = 0
     if not isinstance(users, (list, tuple, set, QuerySet)):
         users = [users]
-        remainingCount = max(0, len(users) - 5)
-        users = users[:5]
+
+    remainingCount = max(0, len(users) - 5)
+    users = users[:5]
 
     if len(users) == 1:
         for user in users:
+            name = 'Unassigned'
+            icon = MAN_AVATAR
+            if user:
+                name = user.get_full_name()
+                icon = user.profile.icon
             body += f'''
                 <span class="row">
                     <span class="col">
                          <span class="d-flex align-items-center">
-                             {privateGetAvatarImage(name=None if user is None else user.get_full_name())}
+                             {privateGetAvatarImage(name, icon)}
                              &nbsp;
-                             <span>{'Unassigned' if user is None else user.get_full_name()}</span>
+                             <span>{name}</span>
                         </span>
                     </span>
                 </span>
@@ -191,12 +196,17 @@ def renderSingleOrGroupUserAvatars(users):
     else:
         body += '<ul class="avatars">'
         for user in users:
+            name = 'Unassigned'
+            icon = MAN_AVATAR
+            if user:
+                name = user.get_full_name()
+                icon = user.profile.icon
             body += f'''
                 <li>
                     <a href="#" data-toggle="tooltip"
-                       data-original-title="{user.get_full_name()}"
-                       title="{user.get_full_name()}">
-                    {privateGetAvatarImage(name=user.get_full_name())}
+                       data-original-title="{name}"
+                       title="{name}">
+                    {privateGetAvatarImage(name, icon)}
                     </a>
                 </li>
             '''
@@ -207,10 +217,7 @@ def renderSingleOrGroupUserAvatars(users):
                     <a href="#" data-toggle="tooltip"
                        data-original-title="{remainingCount}"
                        title="{remainingCount}">
-                       {privateGetAvatarImage(
-                name=f"{remainingCount}",
-                avatar=f"https://dummyimage.com/126x128/000/fff&text={remainingCount}"
-            )}
+                       {privateGetAvatarImage(str(remainingCount), f"https://dummyimage.com/126x128/000/fff&text={remainingCount}")}
                     </a>
                 </li>
             '''
@@ -228,6 +235,11 @@ def ticketComponent(ticket):
             {ticket.epic.summary}
         </span>
     ''' if ticket.epic else ''
+    name = 'Unassigned'
+    icon = MAN_AVATAR
+    if ticket.assignee:
+        name = ticket.assignee.get_full_name()
+        icon = ticket.assignee.profile.icon
     body = f'''
         <div class="card mb-1 ticket-object-component border" data-identifier="{ticket.id}">
             <div class="card-body mt-1" style="margin-left: -10px; margin-right: -15px;"> {ticket.summary} </div>
@@ -241,7 +253,7 @@ def ticketComponent(ticket):
                     <div class="col-auto ml-auto d-flex align-items-center">
                         <span class="badge badge-pill" style="background-color:#f0f0f0; font-size: 11px">{ticket.storyPoints}</span>
                         <img src="{ticket.priorityIcon}" width="20px" style="margin-left:10px" title="{ticket.get_priority_display()}">
-                        {getAvatarImage()}
+                        {getAvatarImage(name, icon)}
                     </div>
                 </div>
             </div>
@@ -265,6 +277,12 @@ def ticketHorizontalBarComponent(ticket, showEpicLabel=True):
             class="img-rounded" loading="lazy" style="margin-left: 10px"/>
     ''' if ticket.priority else ''
 
+    name = 'Unassigned'
+    icon = MAN_AVATAR
+    if ticket.assignee:
+        name = ticket.assignee.get_full_name()
+        icon = ticket.assignee.profile.icon
+
     body = f'''
         <li class="list-group-item ticket-object-component mt-1" id="ticket-{ticket.id}" identifier="{ticket.id}">
             <img src="{ticket.typeIcon}" width="20px" title="{ticket.get_type_display()}" class="img-rounded"
@@ -274,7 +292,7 @@ def ticketHorizontalBarComponent(ticket, showEpicLabel=True):
             <a class="ml-2 {strikethrough}" href="{ticket.getUrl}">{ticket.url}</a>
             &nbsp;
             <span data-toggle="tooltip" data-placement="top" title="{ticket.summary}">{summary}</span>
-            <span class="float-right ml-2" style="margin-right: 10px;">{getAvatarImage()}</span>
+            <span class="float-right ml-2" style="margin-right: 10px;">{getAvatarImage(name, icon)}</span>
             <span class="badge badge-pill float-right ml-3" style="background-color: #f0f0f0; margin-top: 4.5px;">
                 {ticket.storyPoints}
             </span>

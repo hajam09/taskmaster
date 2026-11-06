@@ -324,7 +324,7 @@
                 if (value.assignee) {
                     const icon = document.createElement('img');
                     icon.src = value.assignee.icon;
-                    icon.width = 20;
+                    icon.classList.add('user-avatar', 'mr-1');
                     field.append(icon, document.createTextNode(' ' + value.assignee.name));
                 } else {
                     field.textContent = 'Unassigned';
