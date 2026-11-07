@@ -7,10 +7,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" crossorigin="anonymous"></script>
     <div class="container-fluid justify-content-center mt-5 mb-5" style="color: black;">
         <div class="row">
-            <div id="core-navbar-element">
+            <div class="col-12 col-md-2" id="core-navbar-element">
                 {% boardSettingsLinksComponent board 'hide' %}
             </div>
-            <div id="core-backlog-element">
+            <div class="col-12 col-md-10" id="core-backlog-element">
                 <div class="card idCardWideComponent">
                     <legend>
                         <h2 class="heading-h2 text-center">{{ board.name }} Backlog</h2>

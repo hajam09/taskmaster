@@ -1,9 +1,68 @@
+from datetime import timedelta
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from core.models import Board, Column, ColumnStatus, Label, Project, Ticket, TicketComment, TicketLink
+
+
+class KanbanBoardViewTests(TestCase):
+    def test_hides_done_tickets_not_modified_in_the_last_14_days(self):
+        user = User.objects.create_user(username='board-viewer', password='password')
+        project = Project.objects.create(
+            name='Board View Project',
+            code='BVP',
+            description='',
+            lead=user,
+        )
+        board = Board.objects.create(name='Board View Board', project=project)
+        done_column = Column.objects.create(name='Done', board=board, status=Column.Status.DONE)
+        done_status = ColumnStatus.objects.create(name='Done', column=done_column)
+        in_progress_column = Column.objects.create(name='In Progress', board=board, status=Column.Status.IN_PROGRESS)
+        in_progress_status = ColumnStatus.objects.create(name='In Progress', column=in_progress_column)
+        now = timezone.now()
+
+        old_done_ticket = Ticket.objects.create(
+            url='BVP-1',
+            summary='Old done ticket',
+            project=project,
+            reporter=user,
+            columnStatus=done_status,
+        )
+        recent_done_ticket = Ticket.objects.create(
+            url='BVP-2',
+            summary='Recent done ticket',
+            project=project,
+            reporter=user,
+            columnStatus=done_status,
+        )
+        old_in_progress_ticket = Ticket.objects.create(
+            url='BVP-3',
+            summary='Old in-progress ticket',
+            project=project,
+            reporter=user,
+            columnStatus=in_progress_status,
+        )
+        Ticket.objects.filter(pk=old_done_ticket.pk).update(modifiedDateTime=now - timedelta(days=15))
+        Ticket.objects.filter(pk=recent_done_ticket.pk).update(modifiedDateTime=now - timedelta(days=7))
+        Ticket.objects.filter(pk=old_in_progress_ticket.pk).update(modifiedDateTime=now - timedelta(days=1))
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('core:board-view', kwargs={'url': board.url}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Board navigation')
+        self.assertContains(response, 'aria-label="Toggle board navigation"')
+        self.assertContains(response, f'data-sidebar-key="board-sidebar-{board.url}"')
+        columns = {column['name']: column for column in response.context['columns']}
+        done_tickets = columns['Done']['columnStatus'][0]['columnStatusTickets']
+        in_progress_tickets = columns['In Progress']['columnStatus'][0]['columnStatusTickets']
+        self.assertEqual(list(done_tickets), [recent_done_ticket])
+        self.assertEqual(list(in_progress_tickets), [old_in_progress_ticket])
+        self.assertNotIn(old_done_ticket, done_tickets)
 
 
 class TicketInlineUpdateApiTests(TestCase):

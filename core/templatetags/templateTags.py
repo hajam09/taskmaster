@@ -305,34 +305,64 @@ def ticketHorizontalBarComponent(ticket, showEpicLabel=True):
     return mark_safe(body)
 
 
-@register.simple_tag
-def boardSettingsLinksComponent(board, visibility):
+@register.simple_tag(takes_context=True)
+def boardSettingsLinksComponent(context, board, visibility):
     boardSettingsViewUrl = reverse('core:board-settings-view', kwargs={'url': board.url})
     boardViewUrl = reverse('core:board-view', kwargs={'url': board.url})
     boardBacklogViewUrl = reverse('core:board-backlog-view', kwargs={'url': board.url})
+    request = context.get('request')
+    boardActive = ' active' if request and request.path == boardViewUrl else ''
+    backlogActive = ' active' if request and request.path == boardBacklogViewUrl else ''
+    generalSettingsActive = (
+        ' active' if request and request.path == boardSettingsViewUrl and request.GET.get('tab') != 'columns' else ''
+    )
+    columnsSettingsActive = (
+        ' active' if request and request.path == boardSettingsViewUrl and request.GET.get('tab') == 'columns' else ''
+    )
     body = f'''
-        <button class="btn btn-primary" id="toggle-button" style="left: 10px; top: 10px;">
-            &#9776;
-        </button>
-        <p></p>
-        <div class="card idCardWideComponent" id="nav-bar-element"
-            style="padding: 0px; display: {'block' if visibility == 'show' else 'none'};">
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item"><b class="card-title text-uppercase">Links</b></li>
-                <li class="list-group-item">
-                    <a href="{boardViewUrl}">Board</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="{boardBacklogViewUrl}">Backlog</a>
-                </li>
-                <li class="list-group-item"><b class="card-title text-uppercase">Settings</b></li>
-                <li class="list-group-item">
-                    <a href="{boardSettingsViewUrl + '?' + urlencode({'tab': 'general'})}">General</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="{boardSettingsViewUrl + '?' + urlencode({'tab': 'columns'})}">Columns</a>
-                </li>
-            </ul>
+        <div class="text-right mb-2">
+            <button type="button" class="btn btn-sm btn-light" id="toggle-button"
+                    data-sidebar-key="board-sidebar-{board.url}"
+                    data-default-expanded="{'true' if visibility == 'show' else 'false'}"
+                    aria-label="Toggle board navigation" aria-controls="nav-bar-element">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="card border-0 bg-light" id="nav-bar-element"
+             style="display: {'block' if visibility == 'show' else 'none'};">
+            <div class="card-body p-2">
+                <div class="px-3 pt-3 pb-2">
+                    <span class="font-weight-bold text-dark">Board navigation</span>
+                </div>
+                <small class="d-block px-3 pt-2 pb-1 text-muted text-uppercase font-weight-bold">Board</small>
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link{boardActive}" href="{boardViewUrl}">
+                            <i class="fas fa-columns mr-2"></i>Board
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link{backlogActive}" href="{boardBacklogViewUrl}">
+                            <i class="fas fa-list mr-2"></i>Backlog
+                        </a>
+                    </li>
+                </ul>
+                <small class="d-block px-3 pt-4 pb-1 text-muted text-uppercase font-weight-bold">Settings</small>
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link{generalSettingsActive}"
+                           href="{boardSettingsViewUrl + '?' + urlencode({'tab': 'general'})}">
+                            <i class="fas fa-cog mr-2"></i>General
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link{columnsSettingsActive}"
+                           href="{boardSettingsViewUrl + '?' + urlencode({'tab': 'columns'})}">
+                            <i class="fas fa-stream mr-2"></i>Columns
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     '''
     return mark_safe(body)

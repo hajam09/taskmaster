@@ -19,7 +19,9 @@
                     <img class="ticket-project-icon mr-3" data-ticket-icon width="40" height="40" alt="">
                     <nav aria-label="Issue breadcrumb" class="mr-auto">
                         <ol class="breadcrumb ticket-breadcrumb mb-1">
-                            <li class="breadcrumb-item"><span data-ticket-project></span></li>
+                            <li class="breadcrumb-item">
+                                <a data-ticket-project href="{% url 'core:tickets-view' %}"></a>
+                            </li>
                             <li class="breadcrumb-item active" aria-current="page">
                                 <a data-ticket-url></a>
                             </li>
@@ -391,7 +393,14 @@
         function renderInlineValues(data, changedField = null) {
             ticketData = data;
             const project = document.querySelector('[data-ticket-project]');
-            if (project) project.textContent = data.project?.name || '';
+            if (project) {
+                project.textContent = data.project?.name || '';
+                if (data.project?.code) {
+                    const projectTicketsUrl = new URL(project.href, window.location.origin);
+                    projectTicketsUrl.searchParams.set('project', data.project.code);
+                    project.href = projectTicketsUrl.toString();
+                }
+            }
             const reporter = document.querySelector('[data-ticket-reporter]');
             if (reporter) reporter.textContent = data.reporter?.name || '';
             const reporterIcon = document.querySelector('[data-ticket-reporter-icon]');

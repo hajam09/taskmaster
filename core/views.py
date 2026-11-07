@@ -472,7 +472,14 @@ def boardView(request, url):
                     {
                         'id': columnStatus.id,
                         'name': columnStatus.name,
-                        'columnStatusTickets': columnStatus.columnStatusTickets.all()
+                        'columnStatusTickets': (
+                            [
+                                ticket for ticket in columnStatus.columnStatusTickets.all()
+                                if ticket.modifiedDateTime >= lastTwoWeeks
+                            ]
+                            if column.status == Column.Status.DONE
+                            else columnStatus.columnStatusTickets.all()
+                        )
                     }
                     for columnStatus in column.columnStatus.all()
                 ]

@@ -121,36 +121,37 @@
             return cookieValue;
         }
 
-        function amendClassesToElement(element, classesToRemove, classesToAdd) {
-            element.classList.remove(...classesToRemove);
-            element.classList.add(...classesToAdd);
-        }
-
         function showAndHideNavbar(navbarComponent, mainComponent, defaultVisibility) {
-
-            if (defaultVisibility === 'show') {
-                amendClassesToElement(navbarComponent, navbarComponent.classList, ['col-2']);
-                amendClassesToElement(mainComponent, mainComponent.classList, ['col-10']);
-            } else if (defaultVisibility === 'hide') {
-                amendClassesToElement(navbarComponent, navbarComponent.classList, ['col-auto']);
-                amendClassesToElement(mainComponent, mainComponent.classList, ['col-11']);
-            } else {
+            if (defaultVisibility !== 'show' && defaultVisibility !== 'hide') {
                 throw new Error('Unknown defaultVisibility: ' + defaultVisibility);
             }
 
             const navbarToggleButton = navbarComponent.querySelector('#toggle-button');
-            navbarToggleButton.addEventListener('click', () => {
-                const navbarElement = navbarComponent.querySelector('#nav-bar-element');
+            const navbarElement = navbarComponent.querySelector('#nav-bar-element');
+            if (!navbarToggleButton || !navbarElement) return;
 
-                if (navbarElement.style.display === 'block') {
-                    navbarElement.style.display = 'none';
-                    amendClassesToElement(navbarComponent, navbarComponent.classList, ['col-auto']);
-                    amendClassesToElement(mainComponent, mainComponent.classList, ['col-11']);
-                } else {
-                    navbarElement.style.display = 'block';
-                    amendClassesToElement(navbarComponent, navbarComponent.classList, ['col-2']);
-                    amendClassesToElement(mainComponent, mainComponent.classList, ['col-10']);
-                }
+            const storageKey = navbarToggleButton.dataset.sidebarKey;
+            const savedVisibility = window.localStorage.getItem(storageKey);
+            const defaultExpanded = navbarToggleButton.dataset.defaultExpanded === 'true';
+            const initialVisibility = savedVisibility === null
+                ? defaultExpanded
+                : savedVisibility === 'true';
+
+            function setNavbarVisibility(isVisible) {
+                navbarElement.style.display = isVisible ? 'block' : 'none';
+                navbarComponent.classList.toggle('col-12', isVisible);
+                navbarComponent.classList.toggle('col-md-2', isVisible);
+                navbarComponent.classList.toggle('col-auto', !isVisible);
+                mainComponent.classList.toggle('col-12', isVisible);
+                mainComponent.classList.toggle('col-md-10', isVisible);
+                mainComponent.classList.toggle('col', !isVisible);
+                navbarToggleButton.setAttribute('aria-expanded', String(isVisible));
+                window.localStorage.setItem(storageKey, String(isVisible));
+            }
+
+            setNavbarVisibility(initialVisibility);
+            navbarToggleButton.addEventListener('click', () => {
+                setNavbarVisibility(navbarElement.style.display !== 'block');
             });
         }
 

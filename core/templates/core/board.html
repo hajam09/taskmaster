@@ -40,13 +40,13 @@
             flex-grow: 1;
         }
     </style>
-    <div class="container-fluid justify-content-center mt-5 mb-5" style="max-width: 95%">
+    <div class="container-fluid justify-content-center mt-5 mb-5" style="color: black;">
 
         <div class="row">
-            <div class="col=1" id="core-navbar-element">
+            <div class="col-12 col-md-2" id="core-navbar-element">
                 {% boardSettingsLinksComponent board 'hide' %}
             </div>
-            <div class="col=11 ml-3" id="core-board-element">
+            <div class="col-12 col-md-10" id="core-board-element">
                 <legend>
                     <h2 class="heading-h2">Board - {{ board.name }}</h2>
                 </legend>
