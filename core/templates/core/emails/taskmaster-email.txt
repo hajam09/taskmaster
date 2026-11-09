@@ -1,0 +1,11 @@
+Hello {{ userName }},
+
+{{ emailMessage }}
+
+{{ actionLabel }}:
+{{ actionUrl }}
+
+{{ emailNote }}
+
+Thanks,
+The TaskMaster team

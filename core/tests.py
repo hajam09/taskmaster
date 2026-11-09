@@ -2,6 +2,8 @@ from datetime import timedelta
 
 from django.test import TestCase
 from django.contrib.auth.models import User
+from django.core import mail
+from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
@@ -18,6 +20,68 @@ from core.models import (
     TicketLink,
     getAvatarChoices,
 )
+from core.service import (
+    sendEmailToActivateAccount,
+    sendEmailToNotifyUserAddedToTeam,
+    sendEmailToSetPassword,
+)
+
+
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+class AccountActivationEmailTests(TestCase):
+    def test_sends_formatted_email_with_absolute_activation_link(self):
+        user = User.objects.create_user(
+            username='activation-user',
+            email='activation@example.com',
+            first_name='Mohamed',
+            last_name='Hajamohideen',
+        )
+        request = RequestFactory().get('/', secure=True, HTTP_HOST='taskmaster.example.com')
+
+        sendEmailToActivateAccount(request, user)
+
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertEqual(message.subject, 'Activate your TaskMaster account')
+        self.assertEqual(message.to, ['activation@example.com'])
+        self.assertIn('Hello Mohamed Hajamohideen', message.body)
+        self.assertIn('https://taskmaster.example.com/activate-account/', message.body)
+        self.assertEqual(len(message.alternatives), 1)
+        html_body, content_type = message.alternatives[0]
+        self.assertEqual(content_type, 'text/html')
+        self.assertIn('Verify email address', html_body)
+        self.assertIn('https://taskmaster.example.com/activate-account/', html_body)
+
+    def test_password_reset_and_team_emails_use_shared_templates(self):
+        user = User.objects.create_user(
+            username='notifications-user',
+            email='notifications@example.com',
+            first_name='Task',
+            last_name='Master',
+        )
+        passwordRequest = RequestFactory().get('/', secure=True, HTTP_HOST='taskmaster.example.com')
+        teamRequest = RequestFactory().get(
+            '/teams/team-url/',
+            secure=True,
+            HTTP_HOST='taskmaster.example.com',
+        )
+
+        sendEmailToSetPassword(passwordRequest, user)
+        sendEmailToNotifyUserAddedToTeam(teamRequest, user)
+
+        self.assertEqual(len(mail.outbox), 2)
+        passwordEmail, teamEmail = mail.outbox
+        self.assertIn('Reset your TaskMaster password', passwordEmail.subject)
+        self.assertIn('https://taskmaster.example.com/set-password/', passwordEmail.body)
+        self.assertIn('Reset password', passwordEmail.alternatives[0][0])
+        self.assertIn('View team', teamEmail.alternatives[0][0])
+        self.assertIn('https://taskmaster.example.com/teams/team-url/', teamEmail.body)
+        for message in (passwordEmail, teamEmail):
+            htmlBody, contentType = message.alternatives[0]
+            self.assertEqual(contentType, 'text/html')
+            self.assertIn('TaskMaster', htmlBody)
+            self.assertIn('The TaskMaster team', htmlBody)
+            self.assertIn('href=', htmlBody)
 
 
 class ProfileViewTests(TestCase):

@@ -5,8 +5,9 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.exceptions import FieldDoesNotExist
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.db.models import Max, Q
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -163,75 +164,61 @@ def buildFilterMapQuery(request, FILTER_MAP):
     return filters
 
 
-def sendEmailToActivateAccount(currentSiteDomain, user: User):
-    emailSubject = 'Activate your TaskMaster Account'
-    fullName = user.get_full_name()
+def sendTaskMasterEmail(emailSubject, user: User, context):
+    context['userName'] = user.get_full_name() or user.get_username()
+    emailMessage = EmailMultiAlternatives(
+        emailSubject,
+        render_to_string('core/emails/taskmaster-email.txt', context),
+        settings.EMAIL_HOST_USER,
+        [user.email],
+    )
+    emailMessage.attach_alternative(
+        render_to_string('core/emails/taskmaster-email.html', context),
+        'text/html',
+    )
+    emailMessage.send()
+
+
+def sendEmailToActivateAccount(request, user: User):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     prtg = PasswordResetTokenGenerator()
-    url = reverse('core:activate-account-view', kwargs={'encodedId': uid, 'token': prtg.make_token(user)})
-
-    message = f'''
-        Hi {fullName},
-        \n
-        Welcome to TaskMaster, thank you for your joining our service.
-        We have created an account for you to unlock more features.
-        \n
-        please click this link below to verify your account
-        http://{currentSiteDomain}{url}
-        \n
-        Thanks,
-        The TaskMaster Team
-    '''
-
-    emailMessage = EmailMessage(emailSubject, message, settings.EMAIL_HOST_USER, [user.email])
-    emailMessage.send()
-    return
+    activationPath = reverse('core:activate-account-view', kwargs={'encodedId': uid, 'token': prtg.make_token(user)})
+    context = {
+        'emailHeading': 'Verify your email address',
+        'emailMessage': 'Welcome to TaskMaster. Confirm your email address to finish setting up your account.',
+        'actionLabel': 'Verify email address',
+        'actionUrl': request.build_absolute_uri(activationPath),
+        'actionHint': "If the button doesn't work, copy and paste this link into your browser:",
+        'emailNote': "If you didn't create a TaskMaster account, you can safely ignore this email.",
+    }
+    sendTaskMasterEmail('Activate your TaskMaster account', user, context)
 
 
-def sendEmailToSetPassword(currentSiteDomain, user: User):
-    emailSubject = 'Request to change TaskMaster Password'
-    fullName = user.get_full_name()
+def sendEmailToSetPassword(request, user: User):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     prtg = PasswordResetTokenGenerator()
-    url = reverse('core:set-password-view', kwargs={'encodedId': uid, 'token': prtg.make_token(user)})
-
-    message = f'''
-            Hi {fullName},
-            \n
-            You have recently request to change your account password.
-            Please click this link below to change your account password.
-            \n
-            http://{currentSiteDomain}{url}
-            \n
-            Thanks,
-            The TaskMaster Team
-        '''
-
-    emailMessage = EmailMessage(emailSubject, message, settings.EMAIL_HOST_USER, [user.email])
-    emailMessage.send()
-    return
+    passwordPath = reverse('core:set-password-view', kwargs={'encodedId': uid, 'token': prtg.make_token(user)})
+    context = {
+        'emailHeading': 'Reset your password',
+        'emailMessage': 'We received a request to change your TaskMaster account password.',
+        'actionLabel': 'Reset password',
+        'actionUrl': request.build_absolute_uri(passwordPath),
+        'actionHint': "If the button doesn't work, copy and paste this link into your browser:",
+        'emailNote': "If you didn't request a password change, you can safely ignore this email.",
+    }
+    sendTaskMasterEmail('Reset your TaskMaster password', user, context)
 
 
 def sendEmailToNotifyUserAddedToTeam(request, user: User):
-    emailSubject = 'TaskMaster: You have been added to a team!'
-    fullName = user.get_full_name()
-
-    message = f'''
-        Hi {fullName},
-        \n
-        You have been added to a new team.
-        If you think it was a mistake, then don't worry.
-        Simply go to the team page and you can remove yourself from the team. Its that easy.
-        \n
-        Team link: {request.get_raw_uri()}
-        \n
-        Thanks,
-        The TaskMaster Team
-    '''
-
-    emailMessage = EmailMessage(emailSubject, message, settings.EMAIL_HOST_USER, [user.email])
-    emailMessage.send()
-    return
+    context = {
+        'emailHeading': 'You have been added to a team',
+        'emailMessage': 'You have been added to a new TaskMaster team. Visit the team page to see its members and details.',
+        'actionLabel': 'View team',
+        'actionUrl': request.build_absolute_uri(),
+        'actionHint': "If the button doesn't work, copy and paste this link into your browser:",
+        'emailNote': 'If you think this was a mistake, you can remove yourself from the team.',
+    }
+    sendTaskMasterEmail('You have been added to a TaskMaster team', user, context)
 
 
 def sanitiseTicketDescription(description):
