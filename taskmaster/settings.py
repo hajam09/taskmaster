@@ -18,7 +18,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'colorfield',
     'crispy_bootstrap4',
     'crispy_forms',
     'core',

@@ -1,6 +1,5 @@
 from urllib.parse import urlencode
 
-from colorfield.widgets import ColorWidget
 from django import template
 from django.core.paginator import Page
 from django.db.models.query import QuerySet
@@ -86,7 +85,7 @@ def renderFormFields(field):
         label = f'<span class="form-label">{field.label}</span>'
         body = str(field)
         extra = '</br>'
-    elif isinstance(field.field.widget, ColorWidget) or isinstance(field.field.widget, DateInput):
+    elif isinstance(field.field.widget, DateInput):
         label = f'<span class="form-label">{field.label}</span>'
         body += f'''
             <div class="row">

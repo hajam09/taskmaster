@@ -1,14 +1,11 @@
 import random
 import uuid
 
-from colorfield.fields import ColorField
-from django.contrib.auth.models import User
 from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
 
 AVATAR_URL_TEMPLATE = 'https://raw.githubusercontent.com/hajam09/icons/refs/heads/master/avatars-1/avatar-{}.svg'
 AVATAR_COUNT = 29
@@ -189,6 +186,7 @@ class Label(BaseModel):
         GRAY = '#6B778C', _('Gray')
         DARK_GREEN = '#128759', _('Dark Green')
         DARK_ORANGE = '#DD350D', _('Dark Orange')
+
     name = models.CharField(max_length=128, unique=True)
     description = models.CharField(max_length=1024, blank=True, null=True)
     url = models.CharField(max_length=8, editable=False, unique=True, default=getRandomString)
@@ -307,7 +305,6 @@ class Ticket(BaseModel):
     resolution = models.CharField(max_length=16, blank=True, null=True, choices=Resolution.choices)
     type = models.CharField(max_length=8, blank=True, null=True, choices=Type.choices)
     priority = models.CharField(max_length=8, blank=True, null=True, choices=Priority.choices)
-    colour = ColorField(default='#FF0000')
 
     project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, related_name='projectTickets')
     assignee = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING)
@@ -425,7 +422,7 @@ class TicketLink(BaseModel):
 
     source = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='outgoingLinks')
     target = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='incomingLinks')
-    linkType = models.CharField( max_length=32, choices=LinkType.choices)
+    linkType = models.CharField(max_length=32, choices=LinkType.choices)
 
     class Meta:
         constraints = [
@@ -439,6 +436,7 @@ class TicketLink(BaseModel):
 
     def __str__(self):
         return f'{self.source} {self.get_linkType_display()} {self.target}'
+
 
 #
 #
