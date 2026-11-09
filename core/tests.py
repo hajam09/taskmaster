@@ -6,7 +6,65 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from core.models import Board, Column, ColumnStatus, Label, Project, Ticket, TicketComment, TicketLink
+from core.models import (
+    Board,
+    Column,
+    ColumnStatus,
+    Label,
+    Profile,
+    Project,
+    Ticket,
+    TicketComment,
+    TicketLink,
+    getAvatarChoices,
+)
+
+
+class ProfileViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='profile-user', password='password')
+        self.profile = Profile.objects.create(user=self.user)
+        self.client.force_login(self.user)
+        self.profile_url = reverse('core:profile-view')
+
+    def test_profile_displays_current_avatar_and_modal_choices(self):
+        response = self.client.get(self.profile_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'alt="Current profile picture"')
+        self.assertContains(response, self.profile.icon)
+        self.assertContains(response, 'id="avatarModal"')
+        self.assertEqual(len(response.context['avatarChoices']), 29)
+        for avatar_url, label in getAvatarChoices():
+            self.assertContains(response, avatar_url)
+
+    def test_profile_post_updates_avatar(self):
+        selected_avatar = getAvatarChoices()[1][0]
+
+        response = self.client.post(self.profile_url, {
+            'jobTitle': '',
+            'department': 'Engineering',
+            'icon': selected_avatar,
+        })
+
+        self.assertRedirects(response, self.profile_url)
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.icon, selected_avatar)
+        self.assertEqual(self.profile.department, 'Engineering')
+
+    def test_profile_post_rejects_avatar_outside_allowed_choices(self):
+        original_avatar = self.profile.icon
+
+        response = self.client.post(self.profile_url, {
+            'jobTitle': '',
+            'department': '',
+            'icon': 'https://example.com/avatar.svg',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Select a valid choice')
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.icon, original_avatar)
 
 
 class KanbanBoardViewTests(TestCase):
@@ -1109,6 +1167,7 @@ class TicketInlineUpdateApiTests(TestCase):
         self.assertFalse(Ticket.objects.filter(summary='Invalid issue').exists())
 
     def test_create_ticket_view_renders_modal_form_and_creates_ticket(self):
+        profile = Profile.objects.create(user=self.user)
         board = Board.objects.create(name='Modal ticket board', project=self.project)
         backlog_column = Column.objects.create(
             name='Backlog',
@@ -1127,6 +1186,9 @@ class TicketInlineUpdateApiTests(TestCase):
         self.assertEqual(formResponse.status_code, 200)
         self.assertContains(formResponse, 'id="ticketForm"')
         self.assertContains(formResponse, 'Create issue')
+        self.assertContains(formResponse, f'data-icon="{Ticket.icons[Ticket.Type.BUG]}"')
+        self.assertContains(formResponse, f'data-icon="{Ticket.icons[Ticket.Priority.HIGH]}"')
+        self.assertContains(formResponse, f'data-icon="{profile.icon}"')
 
         response = self.client.post(createTicketUrl, {
             'summary': 'Created in modal',

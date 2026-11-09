@@ -1,5 +1,6 @@
 import random
 
+from decouple import config
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import IntegrityError
@@ -14,25 +15,25 @@ class Command(BaseCommand):
         self.stdout.write('🔹 Starting creation of admin user and profile...')
 
         try:
-            adminUser = User(
-                username='admin',
-                email='django.admin@example.com',
-                first_name='Django',
-                last_name='Admin',
+            user = User(
+                username=config('ADMIN_USERNAME', cast=str),
+                email=config('ADMIN_EMAIL', cast=str),
+                first_name=config('ADMIN_FIRST_NAME', cast=str),
+                last_name=config('ADMIN_LAST_NAME', cast=str),
                 is_staff=True,
                 is_active=True,
                 is_superuser=True,
             )
-            adminUser.set_password('admin')
-            adminUser.save()
-            self.stdout.write(self.style.SUCCESS('✅ Superuser \'admin\' created successfully.'))
+            user.set_password(config('ADMIN_PASSWORD', cast=str))
+            user.save()
+            self.stdout.write(self.style.SUCCESS(f'✅ Superuser {user.username} created successfully.'))
 
             Profile.objects.create(
-                user=adminUser,
+                user=user,
                 jobTitle=random.choice(Profile.JobTitle.values),
                 department='Engineering'
             )
-            self.stdout.write(self.style.SUCCESS('✅ Profile for \'admin\' created successfully.'))
+            self.stdout.write(self.style.SUCCESS(f'✅ Profile for {user.username} created successfully.'))
 
         except IntegrityError:
             self.stdout.write(self.style.WARNING('⚠️ Admin user already exists. Skipping creation.'))

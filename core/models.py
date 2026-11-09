@@ -10,8 +10,19 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
+AVATAR_URL_TEMPLATE = 'https://raw.githubusercontent.com/hajam09/icons/refs/heads/master/avatars-1/avatar-{}.svg'
+AVATAR_COUNT = 29
+
+
+def getAvatarChoices():
+    return tuple(
+        (AVATAR_URL_TEMPLATE.format(index), f'Avatar {index + 1}')
+        for index in range(AVATAR_COUNT)
+    )
+
+
 def getRandomAvatar():
-    return f'https://raw.githubusercontent.com/hajam09/icons/refs/heads/master/avatars-1/avatar-{random.randint(0, 28)}.svg'
+    return AVATAR_URL_TEMPLATE.format(random.randint(0, AVATAR_COUNT - 1))
 
 
 def getRandomProjectIcon():

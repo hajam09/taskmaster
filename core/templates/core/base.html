@@ -159,6 +159,37 @@
             const ticketModal = $('#ticketModal');
             const modalBody = $('#ticketModalBody');
 
+            function renderTicketOption(option) {
+                if (!option.id) return option.text;
+
+                const icon = option.element?.dataset.icon || option.icon;
+                if (!icon) return option.text;
+
+                const $result = $('<span></span>');
+                $('<img>')
+                    .attr('src', icon)
+                    .attr('alt', '')
+                    .css({
+                        width: '16px',
+                        height: '16px',
+                        'margin-right': '6px',
+                        'vertical-align': 'text-bottom'
+                    })
+                    .appendTo($result);
+                $result.append(document.createTextNode(option.text));
+                return $result;
+            }
+
+            function initializeTicketFormDropdowns() {
+                $('#ticketForm select[name="type"], #ticketForm select[name="priority"], #ticketForm select[name="assignee"]')
+                    .select2({
+                        width: '100%',
+                        dropdownParent: ticketModal,
+                        templateResult: renderTicketOption,
+                        templateSelection: renderTicketOption
+                    });
+            }
+
             $('.open-ticket-modal').on('click', function () {
                 modalBody.html('<p class="text-muted mb-0" role="status">Loading issue form...</p>');
                 ticketModal.modal('show');
@@ -166,6 +197,7 @@
                 $.get("{% url 'ticket:new-ticket-view' %}")
                     .done(function (html) {
                         modalBody.html(html);
+                        initializeTicketFormDropdowns();
                     })
                     .fail(function () {
                         modalBody.html(
@@ -192,6 +224,7 @@
                     }
 
                     modalBody.html(data.html);
+                    initializeTicketFormDropdowns();
                 }).fail(function () {
                     modalBody.find('[data-ticket-form-error]').remove();
                     modalBody.prepend(

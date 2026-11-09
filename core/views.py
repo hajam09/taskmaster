@@ -191,8 +191,14 @@ def profileView(request):
     else:
         form = ProfileForm(instance=profile)
 
+    avatarIcon = form['icon'].value()
+    if avatarIcon not in dict(form.fields['icon'].choices):
+        avatarIcon = profile.icon
+
     context = {
         'form': form,
+        'avatarChoices': form.fields['icon'].choices,
+        'avatarIcon': avatarIcon,
     }
     return render(request, 'core/profile.html', context)
 

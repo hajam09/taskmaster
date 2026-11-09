@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 
 from core.forms import TicketForm
@@ -9,20 +9,7 @@ from core.models import Ticket, TicketLink
 
 @login_required
 def ticketView(request, url):
-    # 11 queries
-    ticket = get_object_or_404(
-        Ticket,
-        url=url,
-    )
-    if request.method == 'POST' and 'delete-ticket' in request.POST:
-        ticket.delete()
-
-        history = request.session.get('history', [])
-        for url in reversed(history):
-            if url != request.path:
-                return redirect(url)
-
-        return redirect(ticket.columnStatus.column.board.getUrl)
+    ticket = get_object_or_404(Ticket, url=url)
 
     context = {
         'ticket': ticket,

@@ -15,6 +15,7 @@ from django.utils.safestring import mark_safe
 from core import service
 from core.models import (
     Profile,
+    getAvatarChoices,
     Team,
     Project,
     Board,
@@ -24,6 +25,31 @@ from core.models import (
     Sprint,
     Ticket
 )
+
+
+class IconSelect(forms.Select):
+    def __init__(self, *args, icons=None, **kwargs):
+        self.icons = icons or {}
+        super().__init__(*args, **kwargs)
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex, attrs)
+        icon = self.icons.get(str(value))
+        if icon:
+            option['attrs']['data-icon'] = icon
+        return option
+
+
+class UserAvatarSelect(forms.Select):
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex, attrs)
+        user = getattr(value, 'instance', None)
+        if user:
+            try:
+                option['attrs']['data-icon'] = user.profile.icon
+            except Profile.DoesNotExist:
+                pass
+        return option
 
 
 class LoginForm(forms.ModelForm):
@@ -113,9 +139,14 @@ class CustomPasswordResetForm(PasswordResetForm):
 
 
 class ProfileForm(forms.ModelForm):
+    icon = forms.ChoiceField(
+        choices=getAvatarChoices(),
+        widget=forms.HiddenInput(),
+    )
+
     class Meta:
         model = Profile
-        fields = ('jobTitle', 'department')
+        fields = ('jobTitle', 'department', 'icon')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -439,7 +470,7 @@ class TicketForm(forms.ModelForm):
         queryset=User.objects.none(),
         required=False,
         label='Assignee',
-        widget=forms.Select(),
+        widget=UserAvatarSelect(),
         empty_label='---------'
     )
 
@@ -447,7 +478,9 @@ class TicketForm(forms.ModelForm):
         model = Ticket
         fields = ('summary', 'description', 'type', 'priority', 'board', 'storyPoints', 'assignee', 'resolution')
         widgets = {
-            'summary': forms.TextInput(attrs={'pattern': r'.*\S.*'})
+            'summary': forms.TextInput(attrs={'pattern': r'.*\S.*'}),
+            'type': IconSelect(icons=Ticket.icons),
+            'priority': IconSelect(icons=Ticket.icons),
         }
 
     def __init__(self, request, *args, **kwargs):
@@ -459,7 +492,8 @@ class TicketForm(forms.ModelForm):
         users.remove(self.request.user.id)
         users.insert(0, self.request.user.id)
         preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(users)])
-        self.fields['assignee'].queryset = User.objects.filter(id__in=users).order_by(preserved)
+        self.fields['assignee'].queryset = User.objects.filter(id__in=users).select_related('profile').order_by(preserved)
+        self.fields['assignee'].label_from_instance = lambda user: user.get_full_name() or user.username
 
         for key, value in self.fields.items():
             value.widget.attrs.update({'class': 'form-control form-control-sm col'})

@@ -30,7 +30,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'core.middleware.HistoryMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -88,13 +87,10 @@ USE_I18N = True
 
 USE_TZ = True
 
-# Debug Toolbar
-INTERNAL_IPS = ['127.0.0.1']
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
-
-STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 MEDIA_URL = '/media/'
+STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 LOGIN_URL = '/login'
@@ -110,6 +106,8 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', cast=str)
 
 # Additional settings
 if DEBUG:
+    INTERNAL_IPS = ['127.0.0.1']
+    CRISPY_TEMPLATE_PACK = 'bootstrap4'
     INSTALLED_APPS.append('debug_toolbar')
     INSTALLED_APPS.append('django_browser_reload')
     MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
